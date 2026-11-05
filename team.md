@@ -10,4 +10,8 @@ Sanskriti: What kind of music do you listen to?
 ### Sanskriti Singh
 **Bio:** Hi, I'm Sanskriti! I am a junior studying 6-3. I love building things that I can obsess over. I enjoy playing suduko and linkden games in my free time.
 
-**Q/A:**
+**Q/A:** 
+Rebecca: What's your favorite linkedin game to play?
+
+# Rebecca Xiong
+**Bio** Hi, I'm Rebecca! I am a junior studying 6-3 and minoring in 15-3 and 14 . I love to travel, explore new restaurants, complete jigsaw puzzles, and listen to music.
