@@ -30,3 +30,17 @@ Technical Implementation: How will we feed the data the user inputs on their sou
 
 
 **Plans & decisions (completed after):** plans for next week and decisions made
+
+notes:
+narrow down scope: address specifically making communication easier (instead of focusing on discovery)
+
+collaborative aspect: allow friends to make recommendations
+
+how to deal with copyright? maybe can use soundcloud
+
+associate snippets with sound
+
+mvp: 5 words
+
+need to do concept design: advice is that the user journey needs to be a specific narrative
+
