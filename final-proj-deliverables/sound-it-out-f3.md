@@ -553,12 +553,12 @@ It remains unclear if music APIs like SoundCloud will reliably support arbitrary
 
 Our development will focus on building a functional Sound Wall that allows users to communicate their musical preferences through personal definitions and song examples. To keep the project feasible, we will initially use a curated library of approximately 15–25 songs rather than implementing a full music search system. We plan to source these songs from SoundCloud and use its embedded player for playback, storing only song metadata and references.
 
-| Stage | Expected Deliverables | 
-| ----- | ----- | 
-| **Initial Development** | Set up the frontend, backend, and database. Select approximately 15–25 SoundCloud tracks, verify that they can be embedded, and store their metadata. Implement basic user identification (`UserAuthenticating`) and create the initial Sound Wall interface. | 
-| **Checkpoint 1** | Implement `Associating` so users can create, edit, and delete subjective musical labels and descriptions. Implement basic `Annotating` so users can select songs from the curated library, attach them to definitions, and explain why they fit. Integrate SoundCloud playback. Implement a basic read-only shared view. |
-| **Checkpoint 2** | Implement `Excerpting` to store selected song intervals and support timestamp-based playback where permitted. Implement `Pitching` so friends can recommend songs with explanations, and owners can accept or decline suggestions. Connect accepted pitches to `Annotating` so they become examples on the owner’s wall. |
-| **Final Submission** | Integrate and test the complete user journey. Add counterexamples, private/shared annotation controls, and improved UI interactions. Conduct user testing and address usability issues. Fix bugs, test privacy and authorization boundaries, and prepare the final demo. |
+| Stage | Expected Deliverables |
+| ----- | ----- |
+| **Initial Development** | Set up the frontend, backend, and database. Select approximately 15–25 SoundCloud tracks, verify that they can be embedded, and store their metadata. Implement basic user identification (`UserAuthenticating`) and create the initial Sound Wall interface. Divide implementation responsibilities across team members so core concepts can be developed in parallel. |
+| **Checkpoint 1 (Functional MVP + User Testing)** | Complete a functional end-to-end MVP incorporating all core concepts. Implement `Associating` so users can create, edit, and delete subjective musical labels and descriptions. Implement `Annotating` so users can attach songs from the curated library to their definitions and explain why they fit. Integrate SoundCloud playback. Implement basic `Excerpting` using song timestamps where supported. Implement `Pitching` so friends can recommend songs with explanations. Implement basic `Appraising` so users can evaluate recommendations and `Suggesting` so users can receive relevant song suggestions. Connect these interactions so users can build their Sound Walls, explore others' interpretations, and incorporate new musical examples. Conduct initial user testing of the complete workflow and document usability issues. |
+| **Checkpoint 2 (Feature Completion + Iteration)** | Expand the functionality of `Excerpting`, `Appraising`, and `Suggesting` based on initial testing. Improve timestamp-based playback, recommendation evaluation, and song suggestion interactions. Add counterexamples and private/shared annotation controls. Address usability issues identified during Checkpoint 1, particularly around defining musical labels, understanding others' interpretations, and evaluating recommendations. Conduct a second round of user testing to validate improvements. |
+| **Final Submission (Polish + Validation)** | Integrate and refine all concepts to ensure the complete user journey works reliably. Improve UI interactions and visual consistency, fix remaining bugs and edge cases, and test privacy and authorization boundaries. Incorporate high-priority feedback from both rounds of user testing. Prepare the final demo and documentation. |
 
 ### 2. Team Responsibilities
 
@@ -568,8 +568,8 @@ We will divide responsibilities by major application features, while collaborati
 | :--- | :--- |
 | **Rebecca** | Implement `Associating` and the personal Sound Wall, including creating, editing, and organizing definitions. Help integrate the concepts into the main application. |
 | **Sanskriti** | Implement `Excerpting` and music search/playback integration, including selecting song intervals and displaying playable examples. |
-| **Bhadra** | Implement `Annotating` and `UserAuthenticating`, including example/counterexample management, private evaluations, and visibility controls. |
-| **Victor** | Implement `Pitching`, including public/private toggles, suggestion submission, and the review workflow. |
+| **Bhadra** | Implement `Annotating`, `Appraising`, and `UserAuthenticating`, including example/counterexample management, private evaluations, and visibility controls. |
+| **Victor** | Implement `Pitching` + `Suggesting`, including public/private toggles, suggestion submission, and the review workflow. |
 | **Entire Team**| Collaborate on UI design, integration, testing, accessibility, and resolving issues identified through user feedback. |
 
 ### 3. Key Risks and Mitigation Strategies
@@ -605,8 +605,8 @@ If necessary, simplify the pitch workflow. These features improve the experience
 
 ### 4. Development Priorities
 
-Our highest priority is demonstrating that Sound It Out can communicate a person’s subjective understanding of music more effectively than an ordinary playlist or text description.
+Our highest priority is demonstrating that Sound It Out can communicate a person's subjective understanding of music more effectively than an ordinary playlist or text description.
 
-We therefore consider `Associating`, `Excerpting`, and `Annotating` essential to the MVP. `Pitching` is the next priority because it enables the collaborative music discovery experience described in our user journey. `UserAuthenticating` is required to ensure users can log back into their persistent Sound Wall.
+We therefore consider `Associating`, `Excerpting`, `Annotating`, and `UserAuthenticating` essential to building the personal Sound Wall. `Pitching`, `Appraising`, and `Suggesting` are also core MVP features because they enable the collaborative music discovery experience described in our user journey. By Checkpoint 1, we aim to have a functional end-to-end application that allows users to define musical concepts, illustrate them with song examples, exchange and evaluate recommendations, and discover new music. We will conduct initial user testing at this stage to identify usability issues and evaluate whether the application effectively communicates subjective musical interpretations.
 
-By building the personal Sound Wall first and introducing collaboration afterward, we can maintain a functional application throughout development while progressively expanding its capabilities.
+We will prioritize implementing simplified versions of all core concepts before expanding their functionality. This allows us to maintain a functional application throughout development while using feedback from Checkpoint 1 to guide improvements for Checkpoint 2 and the final submission.
