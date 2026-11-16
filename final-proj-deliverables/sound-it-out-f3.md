@@ -1,758 +1,612 @@
-# Concept Design — Sound It Out
+# Problem Framing
 
-## Design Overview
+[Link to revised F2 Problem Framing document](f2.md)
 
-Sound It Out helps listeners communicate what they mean by subjective descriptions of music. A word such as "dreamy" is easy to share, but two listeners may associate it with very different sounds. A song link provides an example, yet does not explain which part of the song matters or why it fits.
+# Concept Design
 
-The design separates six responsibilities:
-
-| Concept | Responsibility |
-|---|---|
-| Associating | Preserve what a subjective label means to a particular person |
-| Excerpting | Identify a reproducible portion of a media item |
-| Annotating | Explain why an item illustrates or contrasts with a particular meaning |
-| Suggesting | Let another person propose an item without changing the owner's collection |
-| Appraising | Record a person's private judgment of how well an item fits |
-| LinkSharing | Grant revocable access to a selected set of resources |
-
-An **Association** is the central object displayed as a word on a Sound Wall. The wall itself is a view of the user's associations, not a separate concept with a second copy of their definitions.
-
-An **Excerpt** identifies the sound someone wants another person to hear. An **Annotation** connects that excerpt to an association and explains its significance. A **Suggestion** holds a proposed excerpt separately until the association's owner reviews it. An **Appraisal** preserves the owner's assessment without automatically changing the association.
-
-These distinctions allow two people to use the same label, even the same excerpt, without being forced to agree on what it means.
-
----
-
-## 1. Associating
+## Associating
 
 ### Purpose
 
 Give a person an editable, independent definition of a subjective label.
-
 *Prevents:* One person's interpretation replacing another's; ambiguity about which definition belongs to whom; accidental duplication of the same label within one person's vocabulary.
 
 ### Principle
 
-Alex defines "hype" as music with energetic percussion and a driving rhythm, but not necessarily loud vocals. A friend can independently define "hype" as fast electronic dance music.
-
-Each person retains their own definition. Alex can revise the description as their understanding changes or remove the word when it is no longer useful. Changing Alex's definition never changes the friend's definition.
+Alex defines "hype" as music with energetic percussion and a driving rhythm, but not necessarily loud vocals. A friend can independently define "hype" as fast electronic dance music. Each person retains their own definition. Alex can revise the description as their understanding changes or remove the word when it is no longer useful. Changing Alex's definition never changes the friend's definition.
 
 ### Types
 
-- `external User` — An opaque identity representing the person defining a label.
+```types
+external User
+  An opaque identity representing the person defining a label.
+```
 
 ### State
 
-A set of `Associations` with:
+```state
+Visibility is PRIVATE or PUBLIC
 
-- `user: User`
-- `label: String`
-- `description: String`
+a set of Associations with
+  a user User
+  a label String
+  a description String
+  a visibility Visibility
+  unique user and label
 
-**Invariant:** At most one association exists for each user and normalized label.
-
-Labels are normalized for comparison by trimming surrounding whitespace, collapsing internal whitespace, and converting to lowercase. The displayed label preserves the user's chosen capitalization.
-
-An association has a stable identity that does not change when its description is edited.
+Rule: Labels are normalized for comparison by trimming surrounding whitespace, collapsing internal whitespace, and converting to lowercase. The displayed label preserves the user's chosen capitalization.
+Rule: An association has a stable identity that does not change when its description is edited.
+```
 
 ### Actions
 
-**associate(user: User, label: String, description: String) : returns (association: Association)**
+```actions
+associate(user: User, label: String, description: String, visibility: Visibility) : returns (association: Association)
+  where the normalized label is empty or the trimmed description is empty
+  then
+    refuses INVALID_ASSOCIATION "Provide a word and a description."
+  where an association already exists for the user and normalized label
+  then
+    refuses ASSOCIATION_EXISTS "You have already defined this word."
+  where the normalized label and trimmed description are not empty and no association exists
+  then
+    create an association with the user, trimmed label, trimmed description, and visibility
+    returns the new association
 
-- Where the normalized label is empty or the trimmed description is empty:
-  - Refuses `INVALID_ASSOCIATION`: "Provide a word and a description."
-- Where an association already exists for the user and normalized label:
-  - Refuses `ASSOCIATION_EXISTS`: "You have already defined this word."
-- Otherwise:
-  - Creates an association with the user, trimmed label, and trimmed description.
-  - Returns the new association.
+update(user: User, association: Association, description: String) : returns ()
+  where the association does not exist
+  then
+    refuses UNKNOWN_ASSOCIATION "This word could not be found."
+  where the association belongs to a different user
+  then
+    refuses NOT_OWNER "You cannot edit another user's definition."
+  where the trimmed description is empty
+  then
+    refuses INVALID_DESCRIPTION "Provide a description."
+  where the association exists, belongs to the user, and the description is valid
+  then
+    replace the association's description with the trimmed description
+    returns
 
-**update(user: User, association: Association, description: String) : returns ()**
+setVisibility(user: User, association: Association, visibility: Visibility) : returns ()
+  where the association does not exist
+  then
+    refuses UNKNOWN_ASSOCIATION "This word could not be found."
+  where the association belongs to a different user
+  then
+    refuses NOT_OWNER "You cannot edit another user's definition."
+  where the association exists and belongs to the user
+  then
+    set its visibility to the supplied value
+    returns
 
-- Where the association does not exist:
-  - Refuses `UNKNOWN_ASSOCIATION`: "This word could not be found."
-- Where the association belongs to a different user:
-  - Refuses `NOT_OWNER`: "You cannot edit another user's definition."
-- Where the trimmed description is empty:
-  - Refuses `INVALID_DESCRIPTION`: "Provide a description."
-- Otherwise:
-  - Replaces the association's description with the trimmed description.
-  - Returns.
-
-**remove(user: User, association: Association) : returns ()**
-
-- Where the association does not exist:
-  - Refuses `UNKNOWN_ASSOCIATION`.
-- Where the association belongs to a different user:
-  - Refuses `NOT_OWNER`.
-- Otherwise:
-  - Removes the association.
-  - Returns.
+remove(user: User, association: Association) : returns ()
+  where the association does not exist
+  then
+    refuses UNKNOWN_ASSOCIATION "This word could not be found."
+  where the association belongs to a different user
+  then
+    refuses NOT_OWNER "You cannot remove another user's definition."
+  where the association exists and belongs to the user
+  then
+    remove the association
+    returns
+```
 
 ### Queries
 
-**_byUser(user: User) : many (association: Association, label: String, description: String)**
+```queries
+_byUser(user: User) : many (association: Association, label: String, description: String, visibility: Visibility)
+  Returns every association defined by the given user.
 
-Returns every association defined by the given user.
+_get(association: Association) : optional (user: User, label: String, description: String, visibility: Visibility)
+  Returns the association's owner and definition, or no result if the association does not exist.
+```
 
-**_get(association: Association) : optional (user: User, label: String, description: String)**
-
-Returns the association's owner and definition, or no result if the association does not exist.
-
-### Notes
-
-**Why the label is a string.** The label is user-authored text, so the concept must understand how to compare it. Representing it as an opaque external identity would leave the normalization rule unexplained.
-
-**Why sharing is absent.** Associating determines what a label means, not who may see it. A definition remains private unless the application grants access to it through LinkSharing. This avoids storing separate visibility rules that might conflict with link permissions.
-
-**Why examples are absent.** A definition can exist before any song has been attached. Associating does not need to know what counts as a musical example or whether an example is accepted.
-
----
-
-## 2. Excerpting
+## Excerpting
 
 ### Purpose
 
 Make a selected portion of a longer media item independently identifiable and reproducible.
-
 *Prevents:* Listeners having to search through a full song to find the relevant moment; uncertainty about which section a contributor intended; two identical selections being treated as unrelated excerpts.
 
 ### Principle
 
-Alex selects the interval from 42 to 57 seconds of a song because it contains the percussion that makes the song feel "hype." The excerpt identifies that interval without assigning it a meaning.
-
-A friend may reference the same interval for an entirely different purpose. Selecting an already existing interval returns its existing identity, so examples can refer to the same sound without duplicating its definition.
-
-An excerpt's boundaries do not change. Selecting a different interval produces a different excerpt.
+Alex selects the interval from 42 to 57 seconds of a song because it contains the percussion that makes the song feel "hype." The excerpt identifies that interval without assigning it a meaning. A friend may reference the same interval for an entirely different purpose. Selecting an already existing interval returns its existing identity, so examples can refer to the same sound without duplicating its definition.
 
 ### Types
 
-- `external Track` — An opaque identity representing a media item supplied by an external catalog.
+```types
+external Track
+  An opaque identity representing a media item supplied by an external catalog.
+```
 
 ### State
 
-A set of `Excerpts` with:
+```state
+a set of Excerpts with
+  a track Track
+  a startMs Number
+  a endMs Number
+  unique track and startMs and endMs
 
-- `track: Track`
-- `startMs: Number`
-- `endMs: Number`
-
-**Invariants:**
-
-- `0 ≤ startMs < endMs`
-- At most one excerpt exists for each `(track, startMs, endMs)` combination.
-
-Time positions are measured in milliseconds.
+Rule: 0 <= startMs < endMs
+Rule: Time positions are measured in milliseconds.
+```
 
 ### Actions
 
-**select(track: Track, startMs: Number, endMs: Number) : returns (excerpt: Excerpt)**
-
-- Where either position is non-finite, negative, or not a whole number, or `startMs ≥ endMs`:
-  - Refuses `INVALID_RANGE`: "Select a valid portion of the track."
-- Where an excerpt already exists for the same track and boundaries:
-  - Returns the existing excerpt without changing state.
-- Otherwise:
-  - Creates an excerpt with the supplied track and boundaries.
-  - Returns the new excerpt.
+```actions
+select(track: Track, startMs: Number, endMs: Number) : returns (excerpt: Excerpt)
+  where either position is non-finite, negative, or not a whole number, or startMs >= endMs
+  then
+    refuses INVALID_RANGE "Select a valid portion of the track."
+  where an excerpt already exists for the same track and boundaries
+  then
+    returns the existing excerpt without changing state
+  where the range is valid and no excerpt exists for the track and boundaries
+  then
+    create an excerpt with the supplied track and boundaries
+    returns the new excerpt
+```
 
 ### Queries
 
-**_get(excerpt: Excerpt) : optional (track: Track, startMs: Number, endMs: Number)**
+```queries
+_get(excerpt: Excerpt) : optional (track: Track, startMs: Number, endMs: Number)
+  Returns the track and interval represented by an excerpt, or no result if the excerpt does not exist.
+```
 
-Returns the track and interval represented by an excerpt, or no result if the excerpt does not exist.
-
-### Notes
-
-**Why excerpts are immutable.** A shared example should not silently change its sound because someone adjusts a waveform selector. Selecting another interval creates another identity. The user can then choose to replace the old example.
-
-**Why musical meaning is absent.** The same excerpt may demonstrate rhythm in one context and vocal production in another. Excerpting identifies the sound; Annotating explains its significance.
-
-**Playback boundary.** The application checks that the selected range falls within the actual track duration and that the music provider permits the requested playback. Excerpting does not store or distribute recordings. If arbitrary excerpt playback is not permitted, the application must use an authorized preview or source link rather than claim that the selected interval is playable.
-
-**Deletion.** Excerpts have no owner-specific interpretation and may be referenced by multiple users. Removing a personal example therefore removes the reference to an excerpt, not the shared excerpt identity. Cleanup of unreferenced excerpts is an implementation concern rather than a user-facing action.
-
----
-
-## 3. Annotating
+## Annotating
 
 ### Purpose
 
 Preserve an explanation of how an item relates to a particular context.
-
 *Prevents:* Examples being presented without their intended meaning; the same item having an unexplained role in different contexts; private explanations becoming visible merely because their associated context was shared.
 
 ### Principle
 
-Alex associates "hype" with energetic percussion. They attach an excerpt of a song with the note, "The drums build energy without the vocals becoming overwhelming."
-
-Alex can also attach a counterexample: an excerpt with an intense vocal performance that does not represent their intended sound.
-
-The item remains the same in both cases. The annotation records how it should be interpreted in this particular context. Alex can revise the explanation, change the item's role, or remove it without changing the item or other contexts where it appears.
+Alex associates "hype" with energetic percussion. They attach an excerpt of a song with the note, "The drums build energy without the vocals becoming overwhelming." Alex can also attach a counterexample. The item remains the same in both cases. The annotation records how it should be interpreted in this particular context. Alex can revise the explanation, change the item's role, or remove it.
 
 ### Types
 
-- `external Author` — An opaque identity representing the person responsible for the annotation.
-- `external Item` — An opaque identity representing the item being explained.
-- `external Context` — An opaque identity representing the setting in which the explanation applies.
+```types
+external Author
+  An opaque identity representing the person responsible for the annotation.
+external Item
+  An opaque identity representing the item being explained.
+external Context
+  An opaque identity representing the setting in which the explanation applies.
+```
 
 ### State
 
-`Role` is `EXAMPLE` or `COUNTEREXAMPLE`.
+```state
+Role is EXAMPLE or COUNTEREXAMPLE
+Visibility is PRIVATE or SHARED
 
-`Visibility` is `PRIVATE` or `SHARED`.
+a set of Annotations with
+  an author Author
+  an item Item
+  a context Context
+  a role Role
+  a note String
+  a visibility Visibility
+  unique context and item
 
-A set of `Annotations` with:
-
-- `author: Author`
-- `item: Item`
-- `context: Context`
-- `role: Role`
-- `note: String`
-- `visibility: Visibility`
-
-**Invariant:** At most one annotation exists for each `(context, item)` pair.
-
-New annotations are `PRIVATE`.
+Rule: New annotations are PRIVATE.
+```
 
 ### Actions
 
-**annotate(author: Author, item: Item, context: Context, role: Role, note: String) : returns (annotation: Annotation)**
+```actions
+annotate(author: Author, item: Item, context: Context, role: Role, note: String) : returns (annotation: Annotation)
+  where the trimmed note is empty
+  then
+    refuses INVALID_NOTE "Explain why this example matters."
+  where an annotation already exists for the item and context
+  then
+    refuses ANNOTATION_EXISTS "This item is already included here."
+  where the note is valid and no annotation exists for the item and context
+  then
+    create an annotation with the supplied author, item, context, role, trimmed note, and PRIVATE visibility
+    returns the annotation
 
-- Where the trimmed note is empty:
-  - Refuses `INVALID_NOTE`: "Explain why this example matters."
-- Where an annotation already exists for the item and context:
-  - Refuses `ANNOTATION_EXISTS`: "This item is already included here."
-- Otherwise:
-  - Creates an annotation with the supplied author, item, context, role, trimmed note, and `PRIVATE` visibility.
-  - Returns the annotation.
+update(author: Author, annotation: Annotation, role: Role, note: String) : returns ()
+  where the annotation does not exist
+  then
+    refuses UNKNOWN_ANNOTATION "This annotation could not be found."
+  where the annotation belongs to another author
+  then
+    refuses NOT_AUTHOR "You cannot edit another user's annotation."
+  where the trimmed note is empty
+  then
+    refuses INVALID_NOTE "Explain why this example matters."
+  where the annotation exists, belongs to the author, and the note is valid
+  then
+    update the role and note, preserving the annotation's identity and visibility
+    returns
 
-**update(author: Author, annotation: Annotation, role: Role, note: String) : returns ()**
+setVisibility(author: Author, annotation: Annotation, visibility: Visibility) : returns ()
+  where the annotation does not exist
+  then
+    refuses UNKNOWN_ANNOTATION "This annotation could not be found."
+  where the annotation belongs to another author
+  then
+    refuses NOT_AUTHOR "You cannot edit another user's annotation."
+  where the annotation exists and belongs to the author
+  then
+    set its visibility to the supplied value
+    returns
 
-- Where the annotation does not exist:
-  - Refuses `UNKNOWN_ANNOTATION`.
-- Where the annotation belongs to another author:
-  - Refuses `NOT_AUTHOR`.
-- Where the trimmed note is empty:
-  - Refuses `INVALID_NOTE`.
-- Otherwise:
-  - Updates the role and note.
-  - Preserves the annotation's identity and visibility.
-  - Returns.
+remove(author: Author, annotation: Annotation) : returns ()
+  where the annotation does not exist
+  then
+    refuses UNKNOWN_ANNOTATION "This annotation could not be found."
+  where the annotation belongs to another author
+  then
+    refuses NOT_AUTHOR "You cannot remove another user's annotation."
+  where the annotation exists and belongs to the author
+  then
+    remove the annotation
+    returns
 
-**setVisibility(author: Author, annotation: Annotation, visibility: Visibility) : returns ()**
-
-- Where the annotation does not exist:
-  - Refuses `UNKNOWN_ANNOTATION`.
-- Where the annotation belongs to another author:
-  - Refuses `NOT_AUTHOR`.
-- Otherwise:
-  - Sets its visibility to the supplied value.
-  - Returns.
-
-**remove(author: Author, annotation: Annotation) : returns ()**
-
-- Where the annotation does not exist:
-  - Refuses `UNKNOWN_ANNOTATION`.
-- Where the annotation belongs to another author:
-  - Refuses `NOT_AUTHOR`.
-- Otherwise:
-  - Removes the annotation.
-  - Returns.
-
-**clearContext(context: Context) : returns ()**
-
-- Removes all annotations for the supplied context.
-- Returns.
+clearContext(context: Context) : returns ()
+  where true
+  then
+    remove all annotations for the supplied context
+    returns
+```
 
 ### Queries
 
-**_forContext(context: Context) : many (annotation: Annotation, author: Author, item: Item, role: Role, note: String, visibility: Visibility)**
+```queries
+_forContext(context: Context) : many (annotation: Annotation, author: Author, item: Item, role: Role, note: String, visibility: Visibility)
+  Returns the annotations belonging to a particular context.
+```
 
-Returns the annotations belonging to a particular context.
-
-### Notes
-
-**Examples and counterexamples.** A counterexample is an explanatory item with a contrasting role, not a rejected recommendation. Counterexamples help communicate distinctions without changing the meaning of the label itself.
-
-**Private examples.** Sharing a context does not automatically publish every annotation. The author explicitly marks which annotations may be shown. This allows a listener to share a word without disclosing all the personal memories or explanations attached to it.
-
-**Context cleanup.** `clearContext` is an internal composition action used when the containing context is deleted. The application does not expose it as an unrestricted public endpoint.
-
-**Independent meaning.** Annotating does not know whether its context represents a musical word, a document, or another kind of resource. The application supplies the context and item identities.
-
----
-
-## 4. Suggesting
+## Pitching
 
 ### Purpose
 
-Allow someone to propose an item for another person's consideration without modifying that person's accepted collection.
-
-*Prevents:* Unapproved contributions changing the owner's collection; losing proposals before review; confusing a recommendation with an accepted example; repeatedly processing the same proposal.
+Allow external contributors to propose items for an owner's consideration and preserve the owner's assessment of its fit, controlling who can see the exchange.
+*Prevents:* Unapproved contributions changing the owner's collection; losing the reason for a judgment; making subjective judgments public by default.
 
 ### Principle
 
-Daniel suggests an excerpt that might fit Alex's definition of "hype." He may include a brief reason, such as "The percussion has the energy you described."
-
-The proposal remains pending until Alex decides whether to accept or decline it. Daniel can withdraw it while pending. Alex may respond with a short explanation, but the decision does not itself modify the accepted collection.
-
-The proposal and its review remain identifiable, so the same excerpt is not repeatedly submitted as though it were new.
+Daniel pitches a song that might fit Alex's word, setting its visibility to PUBLIC. The proposal remains PENDING until Alex reviews it. Alex marks it as a PARTIAL match with a note. Daniel can see Alex's review. If Daniel changes his mind before review, he can withdraw the pitch.
 
 ### Types
 
-- `external User` — An opaque identity representing a participant.
-- `external Context` — An opaque identity representing the collection receiving a proposal.
-- `external Item` — An opaque identity representing a candidate item.
+```types
+external Contributor
+  An opaque identity submitting the proposal.
+external Target
+  An opaque identity representing the criteria.
+external Item
+  An opaque candidate identity being proposed.
+```
 
 ### State
 
-`Status` is `PENDING`, `ACCEPTED`, or `DECLINED`.
+```state
+Fit is PENDING or MATCH or PARTIAL or MISS
+Visibility is PRIVATE or PUBLIC
 
-`Decision` is `ACCEPTED` or `DECLINED`.
+a set of Pitches with
+  a contributor Contributor
+  a target Target
+  an item Item
+  a fit Fit
+  a note String
+  a visibility Visibility
+  unique target and item
 
-A set of `Suggestions` with:
-
-- `contributor: User`
-- `recipient: User`
-- `context: Context`
-- `item: Item`
-- `reason: String`
-- `status: Status`
-- `response: String`
-
-**Invariant:** At most one suggestion exists for each `(context, item)` pair.
-
-New suggestions have status `PENDING` and an empty response.
+Rule: New pitches have status PENDING and an empty note.
+```
 
 ### Actions
 
-**suggest(contributor: User, recipient: User, context: Context, item: Item, reason: String) : returns (suggestion: Suggestion)**
+```actions
+pitch(contributor: Contributor, target: Target, item: Item, visibility: Visibility) : returns (pitch: Pitch)
+  where an entry in Pitches already has target and item
+  then
+    refuses ALREADY_PITCHED "This item has already been pitched here."
+  where no entry in Pitches has target and item
+  then
+    create a pitch with contributor, target, item, PENDING fit, an empty note, and the given visibility
+    returns pitch
 
-- Where contributor and recipient are the same:
-  - Refuses `SELF_SUGGESTION`: "Add this item directly instead."
-- Where a suggestion already exists for the same context and item:
-  - Refuses `ALREADY_SUGGESTED`: "This item has already been suggested here."
-- Otherwise:
-  - Creates a suggestion with the contributor, recipient, context, item, trimmed reason, `PENDING` status, and empty response.
-  - Returns the suggestion.
+withdraw(contributor: Contributor, pitch: Pitch) : returns ()
+  where the pitch does not exist
+  then
+    refuses UNKNOWN_PITCH "This pitch could not be found."
+  where the contributor does not own the pitch
+  then
+    refuses NOT_CONTRIBUTOR "You cannot withdraw someone else's pitch."
+  where the pitch has a fit other than PENDING
+  then
+    refuses ALREADY_REVIEWED "This pitch has already been reviewed."
+  where the pitch exists, is owned by the contributor, and is PENDING
+  then
+    remove the pitch
+    returns
 
-**withdraw(contributor: User, suggestion: Suggestion) : returns ()**
+review(pitch: Pitch, fit: Fit, note: String) : returns ()
+  where the pitch does not exist
+  then
+    refuses UNKNOWN_PITCH "This pitch could not be found."
+  where the pitch exists
+  then
+    set the pitch's fit to the new fit and note to the trimmed note
+    returns
 
-- Where the suggestion does not exist:
-  - Refuses `UNKNOWN_SUGGESTION`.
-- Where the contributor does not own the suggestion:
-  - Refuses `NOT_CONTRIBUTOR`.
-- Where the suggestion has already been reviewed:
-  - Refuses `ALREADY_REVIEWED`.
-- Otherwise:
-  - Removes the pending suggestion.
-  - Returns.
+setVisibility(pitch: Pitch, visibility: Visibility) : returns ()
+  where the pitch does not exist
+  then
+    refuses UNKNOWN_PITCH "This pitch could not be found."
+  where the pitch exists
+  then
+    set the pitch's visibility to the supplied visibility
+    returns
 
-**review(recipient: User, suggestion: Suggestion, decision: Decision, response: String) : returns (context: Context, item: Item)**
-
-- Where the suggestion does not exist:
-  - Refuses `UNKNOWN_SUGGESTION`.
-- Where the recipient does not match the stored recipient:
-  - Refuses `NOT_RECIPIENT`.
-- Where the suggestion is not `PENDING`:
-  - Refuses `ALREADY_REVIEWED`.
-- Otherwise:
-  - Sets the status to the decision.
-  - Saves the trimmed response.
-  - Returns the context and item.
-
-**clearContext(context: Context) : returns ()**
-
-- Removes all suggestions belonging to the supplied context, including previously reviewed suggestions.
-- Returns.
+clearTarget(target: Target) : returns ()
+  where true
+  then
+    remove all pitches associated with the supplied target
+    returns
+```
 
 ### Queries
 
-**_forContext(context: Context) : many (suggestion: Suggestion, contributor: User, recipient: User, item: Item, reason: String, status: Status, response: String)**
+```queries
+_forTarget(target: Target) : many (pitch: Pitch, contributor: Contributor, item: Item, fit: Fit, note: String, visibility: Visibility)
+  Returns all pitches proposed for the target.
+```
 
-Returns the proposals associated with a context.
-
-**_byContributor(contributor: User) : many (suggestion: Suggestion, context: Context, item: Item, status: Status, response: String)**
-
-Returns the contributor's proposals and their review outcomes.
-
-### Notes
-
-**Acceptance is not evaluation.** A song can fit the listener's description but still be unsuitable for inclusion, perhaps because it is already familiar. Suggesting records the owner's decision about the proposal. Appraising separately records the owner's judgment of musical fit.
-
-**A proposal is not an accepted annotation.** Daniel's explanation stays with his proposal. If Alex accepts the song, Alex authors the explanation that will accompany it on their own wall. The application may offer Daniel's reason as editable starting text, but does not publish it as Alex's judgment without approval.
-
-**Response visibility.** A response is optional and visible only to the contributor and recipient. There are no public rejection counts or contributor rankings.
-
-**Permission to suggest.** The application checks whether a contributor may submit to the context before invoking `suggest`. A readable sharing link does not, by itself, grant permission to propose items. Contributor restrictions, rate limits, and reporting are application policies rather than behavior hidden inside the concept.
-
-**Context cleanup.** `clearContext` supports deletion of a collection without leaving proposals that refer to it.
-
----
-
-## 5. Appraising
+## UserAuthenticating
 
 ### Purpose
 
-Preserve a person's private and revisable assessment of how well an item satisfies particular criteria.
-
-*Prevents:* Losing the reason for a judgment; recording contradictory evaluations as separate assessments; making subjective judgments public by default; treating acceptance as proof of fit.
-
-### Principle
-
-Alex evaluates Daniel's proposed excerpt against Alex's definition of "hype."
-
-The excerpt might be a `PARTIAL` match because its drums are energetic but its vocals are too prominent. Alex records that distinction privately. If Alex later changes their mind, they replace the evaluation rather than create another conflicting record.
-
-The assessment does not accept a proposal, modify a definition, or alter anyone else's evaluation.
-
-### Types
-
-- `external Evaluator` — An opaque identity representing the person making a judgment.
-- `external Target` — An opaque identity representing the criteria against which an item is evaluated.
-- `external Item` — An opaque identity representing the item being assessed.
-
-### State
-
-`Fit` is `MATCH`, `PARTIAL`, or `MISS`.
-
-A set of `Appraisals` with:
-
-- `evaluator: Evaluator`
-- `target: Target`
-- `item: Item`
-- `fit: Fit`
-- `note: String`
-
-**Invariant:** At most one appraisal exists for each `(evaluator, target, item)` combination.
-
-### Actions
-
-**appraise(evaluator: Evaluator, target: Target, item: Item, fit: Fit, note: String) : returns ()**
-
-- Where an appraisal already exists for the same evaluator, target, and item:
-  - Replaces its fit and note with the new fit and trimmed note.
-  - Returns.
-- Otherwise:
-  - Creates a new appraisal with the supplied values.
-  - Returns.
-
-**clear(evaluator: Evaluator, target: Target, item: Item) : returns ()**
-
-- Where no corresponding appraisal exists:
-  - Refuses `NOT_APPRAISED`: "No appraisal exists for this item."
-- Otherwise:
-  - Removes the appraisal.
-  - Returns.
-
-**clearTarget(target: Target) : returns ()**
-
-- Removes all appraisals associated with the supplied target.
-- Returns.
-
-### Queries
-
-**_forTarget(evaluator: Evaluator, target: Target) : many (item: Item, fit: Fit, note: String)**
-
-Returns the evaluator's assessments of items against the target.
-
-### Notes
-
-**Fit is not approval.** A `MATCH` does not automatically accept a suggestion, and a `MISS` does not automatically reject it. Appraising represents a judgment about criteria, while Suggesting represents a decision about incorporating a proposal.
-
-**Private by design.** Appraisals are never included in a public Sound Wall or returned by resolving a sharing link. Their notes can describe preferences or personal associations that the evaluator does not want to disclose.
-
-**One current judgment.** Reappraising replaces an earlier assessment. This reflects the listener's current interpretation without requiring a permanent public history of changing opinions.
-
-**Target cleanup.** `clearTarget` is an internal action used when the evaluated target is removed.
-
----
-
-## 6. LinkSharing
-
-### Purpose
-
-Give recipients revocable, read-only access to a selected collection of resources without requiring recipient authentication.
-
-*Prevents:* Publishing an entire collection merely to share one item; accidental disclosure of unrelated resources; permanent access through an obsolete link; treating possession of a link as permission to edit.
+Let people come back to their account by proving who they are with a password.
+*Prevents:* someone signs in with a password other than the one set for that user; someone replaces the password of an account that already has one; someone who reads the stored data learns a person's password.
 
 ### Principle
 
-Alex selects one or more resources and generates an unguessable link granting access to exactly that selection.
-
-Daniel can open the link without creating an account. The link may represent one word or several words that Alex chooses to share together.
-
-Alex can revoke the link. Creating another link produces a different token, so revoking one link does not invalidate unrelated shares.
-
-A link's resource selection is fixed when the link is created. Sharing new material requires a new grant rather than silently expanding the audience's access.
+Ben sets a password when he signs up, and the next day he authenticates with it. Leo guesses at Ben's password and is refused with "The username or password is incorrect." Leo then tries to set a new password for Ben, and is refused with "This account already has a password."
 
 ### Types
 
-- `external Owner` — An opaque identity representing the person authorizing access.
-- `external Resource` — An opaque identity representing an object that can be shared.
+```types
+external User
+  The person a password belongs to.
+```
 
 ### State
 
-A set of `Links` with:
+```state
+opaque Secret
 
-- `owner: Owner`
-- `resources: Set<Resource>`
-- `token: String`
+a set of Users with
+  a verifier Secret
 
-**Invariants:**
-
-- Every token is unique and generated using a cryptographically secure random source.
-- Every active link contains at least one resource.
-- A link's resource selection cannot be expanded after creation.
-
-Different links may contain overlapping resources.
+Rule: Authenticating stores only a verifier derived from the password, never the password itself.
+```
 
 ### Actions
 
-**generate(owner: Owner, resources: Set<Resource>) : returns (link: Link, token: String)**
+```actions
+set(user: User, password: String) : returns (user: User)
+  where password is shorter than 8 or longer than 128 characters
+  then
+    refuses INVALID_PASSWORD "A password must have 8 to 128 characters."
+  where user already has a verifier
+  then
+    refuses PASSWORD_SET "This account already has a password."
+  where password is accepted and user has no verifier
+  then
+    add user with a verifier derived from password
+    returns user
 
-- Where resources is empty:
-  - Refuses `EMPTY_SHARE`: "Select something to share."
-- Otherwise:
-  - Generates a fresh, unguessable token.
-  - Creates a link with the supplied owner and selected resources.
-  - Returns the link and token.
-
-**revoke(owner: Owner, link: Link) : returns ()**
-
-- Where the link does not exist:
-  - Refuses `UNKNOWN_LINK`.
-- Where the link belongs to another owner:
-  - Refuses `NOT_OWNER`.
-- Otherwise:
-  - Removes the link.
-  - Returns.
-
-**forget(resource: Resource) : returns ()**
-
-- Removes the supplied resource from every link containing it.
-- Removes any link left with an empty resource set.
-- Preserves links that still contain other resources.
-- Returns.
+authenticate(user: User, password: String) : returns (user: User)
+  where user has no verifier, or password does not match it
+  then
+    refuses INVALID_CREDENTIALS "The username or password is incorrect."
+  where password matches the user's verifier
+  then
+    returns user
+```
 
 ### Queries
 
-**_resolve(token: String) : optional (resources: Set<Resource>)**
-
-Returns the resources accessible through a valid token, or no result if the token is unknown or revoked.
-
-**_byOwner(owner: Owner) : many (link: Link, resources: Set<Resource>)**
-
-Returns the owner's active sharing links and their resource selections.
-
-### Notes
-
-**Scoped sharing instead of public profiles.** The application can share one association or a selected set of associations using the same concept. A user's entire vocabulary does not become public merely because one word is shared.
-
-**Sharing does not publish every example.** When a shared association is displayed, the application includes only annotations explicitly marked `SHARED`. Private annotations and all appraisals remain hidden.
-
-**No editing authority.** Resolving a link grants read access only. Changing definitions, approving suggestions, or altering annotations requires independent authorization.
-
-**Immutable selection.** An existing link reflects edits to the resources it references, but does not gain access to newly selected resources. Alex can revoke an outdated link and generate another containing a different set of associations.
-
-**Ownership verification.** LinkSharing treats resource identities as opaque. Before generating a link, the application verifies that the owner is authorized to share every selected resource.
-
-**Deletion.** `forget` is an internal cleanup operation. It prevents deleted resources from remaining in active grants without requiring the LinkSharing concept to understand their meaning.
-
-**Limits of revocation.** Revocation prevents future resolution of a token. It cannot retract information that a recipient has already copied.
-
----
-
-# Concept Composition
-
-## Type Bindings
-
-The concepts do not import or inspect one another's state. The application connects their generic identities as follows:
-
-| Application object | Concept identities |
-|---|---|
-| A listener | Associating.User, Suggesting.User, Appraising.Evaluator, LinkSharing.Owner, Annotating.Author |
-| A personal word | Associating.Association, Annotating.Context, Suggesting.Context, Appraising.Target, LinkSharing.Resource |
-| A selected sound | Excerpting.Excerpt, Annotating.Item, Suggesting.Item, Appraising.Item |
-| A song | Excerpting.Track |
-| A shared selection | A set of LinkSharing.Resource identities |
-
-These bindings are defined by Sound It Out, not by the individual concepts. For example, Annotating works with an arbitrary `Context`, even though Sound It Out supplies an Association as that context.
-
-This is the main composition: **an excerpt has a stable identity, while its meaning is supplied by the association and annotation in which it appears.** The same excerpt can support different interpretations without duplicating audio or forcing agreement between users.
-
-## Application Authorization
-
-The application derives the acting user from the authenticated session. A client cannot authorize an action simply by supplying another user's identity.
-
-Before calling a concept action, the application checks the relationships the concept cannot know:
-
-- Only an association's owner may add accepted examples to it or review suggestions addressed to it.
-- Only that owner may grant access to the association.
-- Only authorized contributors may submit suggestions.
-- A shared-link recipient may view the granted associations, but cannot modify them.
-- Public reads include only explicitly shared annotations; private appraisals are never included.
-
-The concept actions also enforce their own local ownership rules where that information is part of their state. These two boundaries complement one another: application authorization checks cross-concept relationships, while concept actions preserve their local invariants.
+```queries
+_acceptable(password: String) : one (acceptable: Flag)
+  Returns true when the password has 8 to 128 characters, and false otherwise.
+```
 
 ## Essential Reactions
 
-The following reactions describe the relationships between concepts. Each linkage has one triggering occurrence and one resulting concept action. Multi-part user operations are expressed as separate linkages rather than imperative scripts.
+```text
+R1 — A selected excerpt becomes an example
+When: Excerpting.select(track, startMs, endMs) returns excerpt e in an authorized AddExample request for association a, with role r and note n.
+Then: Annotating.annotate(user, e, a, r, n).
+Effect: The selected sound becomes evidence for the listener's definition.
 
-Request context carries the authorized user, target association, and user-provided explanations. Each returned excerpt or proposal is correlated with the request that created it, preventing unrelated concurrent operations from being combined.
+R2 — A selected excerpt becomes a proposal
+When: Excerpting.select(track, startMs, endMs) returns excerpt e in an authorized ProposeExample request addressed to association a, with contributor c and visibility v.
+Then: Pitching.pitch(c, a, e, v).
+Effect: A friend can propose a sound without changing the listener's accepted examples.
 
-### R1 — A selected excerpt becomes an example
+R3 — Promoting a pitch to an accepted example
+When: Pitching.review(pitch, MATCH, response) succeeds for excerpt e and target association a, in an authorized request containing the owner's public example note n.
+Then: Annotating.annotate(owner, e, a, EXAMPLE, n).
+Effect: A highly-rated pitch becomes part of the owner's personal explanation. 
 
-**When:** `Excerpting.select(track, startMs, endMs)` returns excerpt `e` in an authorized `AddExample` request for association `a`, with role `r` and note `n`.
+R4 — Removing a definition removes its explanations
+When: Associating.remove(user, association) succeeds for association a.
+Then: Annotating.clearContext(a).
+Effect: Examples and counterexamples do not remain attached to a definition that no longer exists.
 
-**Then:** `Annotating.annotate(user, e, a, r, n)`.
+R5 — Removing a definition clears its pitches
+When: Associating.remove(user, association) succeeds for association a.
+Then: Pitching.clearTarget(a).
+Effect: Pending and reviewed pitches cannot continue to target a removed definition.
+```
 
-**Effect:** The selected sound becomes evidence for the listener's definition.
+# User Journey
 
-**Notes:** The association must belong to the acting user. The resulting annotation is private by default. The user may later mark it shared. If the excerpt already has an annotation in this context, the app must direct the user to revise that annotation rather than create a duplicate.
+Alex wouldn’t consider themselves a music connoisseur, but they’ve collected a pretty extensive playlist of songs to get themselves through their lengthy commute. When the playlist was just getting started, adding something new that fit the vibe was easy, and they spent most of the commute jamming out instead of focusing on how many more minutes it would be until their next stop, or how loud that other passenger was.
 
-### R2 — A selected excerpt becomes a proposal
+These days, it was getting harder to find something new that fit the vibe, so they turned to the group chat. They told their friends that they needed something ‘hype’ and everyone gave a different answer that didn’t sound like Alex’s kind of hype. Song after song was met with a vague rejection of “That just isn’t hype”, annoying the group chat immensely. Fed up with pinpointing Alex’s taste by playing a neverending game of musical Whack-a-Mole, one of their friends sends them a link to Sound It Out, telling Alex to make things easier by describing hype there, and they can give suggestions in their free time.
 
-**When:** `Excerpting.select(track, startMs, endMs)` returns excerpt `e` in an authorized `ProposeExample` request addressed to association `a`, owned by recipient `u`, with contributor `c` and reason `n`.
+Clicking on their friend’s link, Alex can see a variety of emotional words like ‘hype’ and ‘dreamy’ with a play button next to them. Clicking on hype, they’re unfortunately met with a plethora of EDM samples, which is apparently what their friend considers a hype tune.
 
-**Then:** `Suggesting.suggest(c, u, a, e, n)`.
+Inspired by a desire to show said friend what hype really means, Alex clicks on the ‘Describe Your Taste’ button and is presented with a similar looking initial wall as their friend had, but with some words unaccounted for. Seeing some issues in how ‘hype’ was currently described, Alex clicks onto the hype bubble and sees it unfurl into its constituent songs. They remove some of them from the bubble and add their own choices by clicking an ‘Add Song’ button that allows them to search within the app’s database for a hype song. Alex is prompted to pinpoint a hype sample, highlighting a section of the song’s waveform as a selector. Afterward, they click on the play button associated with hype and hear it cycling between their selected samples.
 
-**Effect:** A friend can propose a sound without changing the listener's accepted examples.
+Alex plays around with the wall for a bit, Alex notices some hint text telling them that by making an account, they can receive suggestions of songs to add from their friends, as well as some automated suggestions. After making an account, they see the same sound wall as the one they made during setup and have the ability to share a link to their wall, which they send in the group chat.
 
-**Notes:** This is distinct from R1. The request's purpose determines whether a selected excerpt becomes the owner's annotation or a contributor's pending suggestion. Both reactions reuse Excerpting without requiring it to know either application workflow.
+Now that their friends can listen to what Alex means by ‘hype’, they engage in some friendly ribbing about their song choices, and leave some suggestions of songs to add, with each suggestion accompanied by a snippet the friend found representative of ‘hype’. Alex approves some suggestions and rejects others, and leaves some suggestions on their friends’ walls as well.
 
-### R3 — Accepting a proposal creates an accepted example
+To describe their music taste to a friend now, Alex sends them a link to their sound wall, and invites them to click play on some words. Instead of retreading an explanation of what they mean by ‘hype’ any time they’re asking for suggestions for new music, a friend can click on Alex’s page and hear their association.
 
-**When:** `Suggesting.review(owner, suggestion, ACCEPTED, response)` returns context `a` and item `e`, in an authorized review request containing the owner's public example note `n`.
+# Visual Design Study
 
-**Then:** `Annotating.annotate(owner, e, a, EXAMPLE, n)`, provided no annotation already exists for `(a, e)`.
+Sound It Out should feel like exploring a personal record collection: expressive enough to reflect someone's musical taste, but organized enough that another person can understand it without explanation. Our visual study draws from vinyl artwork, independent music magazines, record-store displays, and editorial typography. These references suggest a design in which music supplies the personality while the interface provides a clear structure for understanding it.
 
-**Effect:** An accepted suggestion becomes part of the owner's personal explanation.
+The central challenge is distinguishing what a listener means, which songs demonstrate that meaning, and what other people have suggested. Our visual choices make these relationships visible without requiring users to inspect every song or read every explanation.
 
-**Notes:** Acceptance requires the owner to confirm the explanation that will appear on their wall. The contributor's original reason can be offered as editable starting text, but is not automatically attributed to the owner. A declined suggestion does not trigger an annotation.
+### 1. Color Study — Expressive Music, Quiet Interface
 
-The application must guard against duplicate annotations and coordinate the review and annotation so that a failed addition does not leave an inconsistent accepted state.
+Our palette combines warm, paper-like backgrounds with deep plum text and a focused violet accent. The references use vibrant records, concert lighting, and textured print design, but we deliberately avoid applying that intensity to every interface element.
 
-### R4 — Recording fit is independent of reviewing a proposal
+| Role | Color | Application | 
+| ----- | ----- | ----- | 
+| Canvas | `#FBF8F4` | Warm background for the Sound Wall | 
+| Surface | `#FFFDFB` | Word entries, examples, and review panels | 
+| Ink | `#282132` | Primary text and definitions | 
+| Muted | `#746C7D` | Supporting explanations and metadata | 
+| Accent | `#6B47CF` | Primary actions, selected controls, and focus | 
+| Border | `#DED7E5` | Subtle separation between related content | 
 
-**When:** An authorized evaluation request supplies evaluator `u`, target association `a`, excerpt `e`, fit `f`, and private note `n`.
+Violet draws attention to decisions such as Add Word, Add Example, and Share, rather than competing with the songs themselves. Neutral surfaces allow album artwork and waveform previews to communicate musical character without making the overall page visually overwhelming.
 
-**Then:** `Appraising.appraise(u, a, e, f, n)`.
+Three softer colors communicate the state of an interaction:
 
-**Effect:** The listener can record what matched or missed their definition without making an acceptance decision.
+* Warm cream (`#FFF7E6`) identifies a word that still needs an illustrative example.
+* Mint (`#E1F3E9`) identifies an example that fits a listener's definition.
+* Soft peach (`#FBE3E2`) accompanies a correction or partial mismatch.
 
-**Notes:** The evaluation may accompany a review request, but it is a separate linkage. No reaction automatically converts `MATCH` into `ACCEPTED`, or `MISS` into `DECLINED`.
+These states always include text labels. Color reinforces meaning rather than carrying it alone. In particular, a friend's rejected suggestion is not displayed as a public negative rating; private appraisals remain in the owner's review interface.
 
-### R5 — Removing a definition removes its explanations
+The resulting hierarchy is intentionally restrained. Users should first notice the word and its meaning, then the examples that support it, and finally the actions available to them.
 
-**When:** `Associating.remove(user, association)` succeeds for association `a`.
+### 2. Typography and Layout Study — A Personal Music Dictionary
 
-**Then:** `Annotating.clearContext(a)`.
+We use Inter Variable throughout the interface, drawing from the bold editorial hierarchy of record sleeves and music publications while retaining the readability of a modern application.
 
-**Effect:** Examples and counterexamples do not remain attached to a definition that no longer exists.
+The typography study establishes five levels:
 
-### R6 — Removing a definition clears its proposals
+| Level | Treatment | Example | 
+| ----- | ----- | ----- | 
+| Page heading | Inter 520, 32–44px | Sound Wall | 
+| Word heading | Inter 520, 28–38px | Define your dreamy | 
+| Definition | Inter 400, 16px | Airy vocals and layered synths | 
+| Section label | Inter 600, 12px | Why this fits | 
+| Supporting metadata | Inter 400, 12–13px | 3 examples · 1 counterexample | 
 
-**When:** `Associating.remove(user, association)` succeeds for association `a`.
+The hierarchy follows the order in which someone encounters an unfamiliar definition. The word receives the strongest emphasis, followed by its personal description. Excerpts and their explanations occupy a consistent supporting area, while timestamps, track information, and secondary controls remain visually quieter. Small metadata is supplementary rather than necessary to understand or complete a task; the implemented interface will test readability at normal viewing sizes and support text resizing.
 
-**Then:** `Suggesting.clearContext(a)`.
+The Sound Wall uses a collection-oriented layout inspired by record sleeves. Each word forms a distinct entry that can expand to reveal its examples and counterexamples. Consistent alignment, spacing, and card structure make entries easy to compare without requiring a rigid musical taxonomy.
 
-**Effect:** Pending and reviewed proposals cannot continue to target a removed definition.
+The same organization carries into suggestions. A proposed song appears separately from accepted examples, with its contributor's explanation and an explicit review action. Accepted examples join the owner's collection only after approval. This visual separation reflects the design's underlying concepts: a suggestion is not yet part of someone's definition, and a private appraisal is not a public judgment.
 
-### R7 — Removing a definition clears its appraisals
+### 3. Applying the Style to the User Journey
 
-**When:** `Associating.remove(user, association)` succeeds for association `a`.
+Consider Alex sharing their meaning of "hype." Their Sound Wall first presents the word prominently, followed by the description "Fast, driving percussion without overpowering vocals." Below it, a small collection of song excerpts illustrates the sound, each accompanied by a note explaining why it fits.
 
-**Then:** `Appraising.clearTarget(a)`.
+When Daniel opens Alex's shared entry, he encounters the definition and deliberately shared examples before proposing a song. He does not need to infer the intended qualities from an unexplained playlist. When Alex reviews his suggestion, the interface distinguishes the proposed excerpt, Daniel's reasoning, Alex's private assessment, and the decision to incorporate it.
 
-**Effect:** Private evaluations of an obsolete definition are removed without affecting evaluations of other definitions.
+This structure helps users understand both the overall collection and the details of a particular exchange. It also allows Alex to share one word without exposing unrelated associations or private evaluations.
 
-### R8 — Removing a definition updates sharing links
+### 4. Accessibility and Design Boundaries
 
-**When:** `Associating.remove(user, association)` succeeds for association `a`.
+A sound-centered experience must remain usable without relying entirely on sound or visual decoration. Excerpts are accompanied by track information and written explanations; playback controls require accessible names, keyboard operation, and visible focus states. Example roles and review outcomes use explicit labels rather than color alone. The Sound Wall should preserve a logical reading order when entries expand or collapse.
 
-**Then:** `LinkSharing.forget(a)`.
+# Design Summary
 
-**Effect:** A deleted word is no longer accessible through an existing link. Links containing other words remain usable for those words.
+The overall design solves the core "semantic gap" of musical adjectives through independent, composable concepts. `Associating` gives users ownership over their text definitions, while `Excerpting` strictly binds those definitions to exact milliseconds of audio so there is no ambiguity about which part of the track represents the vibe. `Annotating` ties the excerpt to the definition with an explanatory note. To support the collaborative workflows without exposing private tastes, the application relies heavily on `Pitching` and `UserAuthenticating`.
 
-**Notes for R5–R8:** These are four independent linkages from the same event. None of the concepts needs to call another concept directly or understand why the association was deleted. The implementation must coordinate cleanup and make repeated cleanup safe.
+Instead of relying on complex URL tokens to share walls, `Associating` handles visibility explicitly (PUBLIC vs. PRIVATE). Friends can view the user's public wall and submit ideas via `Pitching`, which merges the proposal and its evaluation (MATCH, PARTIAL, MISS) securely in the background without polluting the owner's permanent `Annotating` collection until promoted.
 
-## Application Views
+**Ethical Alignments:**
 
-The user interface assembles current state without storing a second copy of the same information.
+* **Privacy:** Pitching evaluations (like a MISS) can remain entirely private, avoiding publicly grading a friend’s taste.
+* **Control:** The owner decides if an annotation is PRIVATE or SHARED, meaning they never have to explain a personal memory to a public audience.
+* **Consent:** A friend’s pitched song cannot automatically place itself on the owner's public wall.
 
-### Personal Sound Wall
+**Unclear Issues:**
+It remains unclear if music APIs like SoundCloud will reliably support arbitrary timestamp-based playback for external excerpts, meaning we may have to fall back on full-track playback or 30-second standard previews if we run into licensing blockers.
 
-For the authenticated user:
+# Development Plan
 
-1. Retrieve the user's associations through `Associating._byUser`.
-2. For each association, retrieve its annotations through `Annotating._forContext`.
-3. Resolve each annotated excerpt using `Excerpting._get`.
-4. Display definitions, playable authorized examples, and counterexamples.
-5. Show the owner's pending suggestions and private appraisals in their respective interfaces.
+### 1. Development Timeline
 
-This is a read composition. It does not create a separate Sound Wall concept.
+Our development will focus on building a functional Sound Wall that allows users to communicate their musical preferences through personal definitions and song examples. To keep the project feasible, we will initially use a curated library of approximately 15–25 songs rather than implementing a full music search system. We plan to source these songs from SoundCloud and use its embedded player for playback, storing only song metadata and references.
 
-### Shared Sound Wall
+| Stage | Expected Deliverables | 
+| ----- | ----- | 
+| **Initial Development** | Set up the frontend, backend, and database. Select approximately 15–25 SoundCloud tracks, verify that they can be embedded, and store their metadata. Implement basic user identification (`UserAuthenticating`) and create the initial Sound Wall interface. | 
+| **Checkpoint 1** | Implement `Associating` so users can create, edit, and delete subjective musical labels and descriptions. Implement basic `Annotating` so users can select songs from the curated library, attach them to definitions, and explain why they fit. Integrate SoundCloud playback. Implement a basic read-only shared view. |
+| **Checkpoint 2** | Implement `Excerpting` to store selected song intervals and support timestamp-based playback where permitted. Implement `Pitching` so friends can recommend songs with explanations, and owners can accept or decline suggestions. Connect accepted pitches to `Annotating` so they become examples on the owner’s wall. |
+| **Final Submission** | Integrate and test the complete user journey. Add counterexamples, private/shared annotation controls, and improved UI interactions. Conduct user testing and address usability issues. Fix bugs, test privacy and authorization boundaries, and prepare the final demo. |
 
-For a recipient opening a token:
+### 2. Team Responsibilities
 
-1. Resolve the selected association identities through `LinkSharing._resolve`.
-2. Retrieve their definitions and annotations.
-3. Include only annotations marked `SHARED`.
-4. Display authorized audio playback or source links, with artist and track attribution.
+We will divide responsibilities by major application features, while collaborating on integration, testing, and design decisions.
 
-Private appraisals, unshared annotations, and unrelated associations are excluded. A single-association link and a multi-association wall link use the same view rules.
+| Team Member | Primary Responsibilities |
+| :--- | :--- |
+| **Rebecca** | Implement `Associating` and the personal Sound Wall, including creating, editing, and organizing definitions. Help integrate the concepts into the main application. |
+| **Sanskriti** | Implement `Excerpting` and music search/playback integration, including selecting song intervals and displaying playable examples. |
+| **Bhadra** | Implement `Annotating` and `UserAuthenticating`, including example/counterexample management, private evaluations, and visibility controls. |
+| **Victor** | Implement `Pitching`, including public/private toggles, suggestion submission, and the review workflow. |
+| **Entire Team**| Collaborate on UI design, integration, testing, accessibility, and resolving issues identified through user feedback. |
 
-### Suggestion Review
+### 3. Key Risks and Mitigation Strategies
 
-For the association's owner, display each pending suggestion beside the definition it targets. The contributor's reason explains why the item was proposed; any appraisal belongs to the owner's private evaluation. Accepting a proposal requires a separate decision about what explanation to add to the accepted collection.
+**Risk 1: Music API and Excerpt Playback Limitations**
+*Risk:* Our design depends on allowing users to select and play specific portions of songs. Music APIs may restrict playback, require authentication, or prohibit arbitrary excerpt selection.
+*Mitigation:* Investigate available music APIs and their playback restrictions early. Build a small proof of concept before implementing the full excerpt selection interface. Keep `Excerpting` independent of the playback provider so that the rest of the application does not depend on a particular API.
+*Fallback:* If arbitrary excerpt playback is not supported, use authorized song previews or links to external music platforms. Users can still identify relevant timestamps and explain why those moments represent their definitions, even if the application cannot play those exact intervals directly.
 
----
+**Risk 2: Complexity of Integrating Concepts**
+*Risk:* Several user workflows require multiple concepts to interact. For example, accepting a pitch must update its review status and create an annotation without producing duplicate or inconsistent state. Deleting a definition also requires cleaning up associated annotations, suggestions, and appraisals.
+*Mitigation:* Implement and test concepts independently before connecting them through reactions. Define clear interfaces between concepts and add integration tests for important workflows, particularly accepting pitches and deleting definitions.
+*Fallback:* If full integration becomes too complex, prioritize the essential workflows of creating definitions, adding examples, and sharing them. 
 
-# Composition Walkthrough
+**Risk 3: Sharing and Privacy**
+*Risk:* Users may accidentally expose personal definitions, private annotations, or evaluations when sharing their Sound Wall. Sharing links also introduce the possibility of unauthorized modifications.
+*Mitigation:* Make annotations private by default and require explicit visibility changes before they appear in shared views.
+*Fallback:* If selective sharing is too difficult to implement reliably, restrict sharing to individual definitions with explicitly approved examples rather than supporting multi-definition links. We will not expose private information as a shortcut to completing the feature.
 
-Alex wants to explain "hype" to a friend. They create an association with the description, "Fast, driving percussion without overpowering vocals." The association belongs to Alex alone.
+**Risk 4: Scope and Time Constraints**
+*Risk:* Implementing five concepts, music integration, authentication, collaborative workflows, and a polished interface may exceed the amount of time we have to develop it.
+*Mitigation:* Prioritize features according to their importance to the user journey. Establish a working end-to-end experience early rather than implementing every concept completely before integration. Use the checkpoints to identify blockers and adjust scope.
+*Fallback:* Focus the final application on three essential capabilities:
+1. Creating personal definitions of musical labels.
+2. Attaching songs or excerpts that demonstrate those definitions.
+3. Sharing those definitions so others can understand the intended meaning.
+If necessary, simplify the pitch workflow. These features improve the experience but are not required to demonstrate the central value of Sound It Out.
 
-Alex selects a short interval of a familiar song and attaches it as an example with the explanation, "The rhythm builds energy while the vocals stay in the background." They also add a contrasting excerpt whose loud vocals demonstrate what they do not want.
+**Risk 5: User Understanding of the Interface**
+*Risk:* Users may not immediately understand the difference between examples, counterexamples, pending suggestions, and private evaluations. They may also struggle to identify which actions affect their own Sound Wall versus someone else’s.
+*Mitigation:* Use consistent visual grouping, explicit labels, and distinct interfaces for accepted examples and pending pitches. Conduct user testing on the core workflows and observe whether participants can complete them without additional explanation.
+*Fallback:* Simplify the interface by initially displaying only definitions and accepted examples. Counterexamples and private evaluations can be placed behind secondary controls or omitted from the initial experience if they introduce unnecessary confusion.
 
-To share the explanation, Alex selects the association and marks its intended examples `SHARED`. LinkSharing generates a link containing that association. Their friend opens it and hears the authorized examples alongside Alex's descriptions, without being required to create a Sound Wall.
+### 4. Development Priorities
 
-The friend proposes an unfamiliar excerpt, explaining, "The drums have the same momentum." Suggesting records the proposal as pending; Alex's accepted examples remain unchanged.
+Our highest priority is demonstrating that Sound It Out can communicate a person’s subjective understanding of music more effectively than an ordinary playlist or text description.
 
-Alex listens and privately appraises the excerpt as `PARTIAL`, noting that the rhythm fits but the vocals are too prominent. Alex declines the proposal and optionally replies, "Close on the drums, but not quite the vocal style."
+We therefore consider `Associating`, `Excerpting`, and `Annotating` essential to the MVP. `Pitching` is the next priority because it enables the collaborative music discovery experience described in our user journey. `UserAuthenticating` is required to ensure users can log back into their persistent Sound Wall.
 
-Later, another suggestion fits. Alex accepts it and confirms the explanation to add to the wall. The accepted excerpt becomes an annotation of Alex's association. Alex may also revise the definition if the exchange helped them identify something more precise.
-
-When Alex shares the word with someone else, the current definition and deliberately shared examples provide reusable context. They do not need to reconstruct the earlier conversation. The original problem is reduced because the explanation remains attached to the word and can be updated by its owner.
-
----
-
-# Remaining Design Decisions
-
-**Playback availability.** Excerpting represents a selected interval, but actual playback depends on the music provider. The implementation must validate track duration and permitted preview ranges. If arbitrary excerpts are unavailable, the initial release will use authorized previews or links and explain that limitation.
-
-**Suggestion participation.** Read-only sharing works without an account. For the first implementation, contributors may need to authenticate before submitting suggestions, although they do not need to create Sound Walls. Anonymous, token-authorized contributions would require a separate policy for identifying and restricting contributors.
-
-**Abuse prevention.** The design separates read access from permission to suggest, but rate limits, blocking, reporting, and content moderation still need implementation decisions. The first release should not expose unrestricted anonymous suggestion endpoints.
-
-**Guest-to-account transition.** Alex's journey begins with browsing before account creation. The team must decide whether unsaved guest edits are preserved when an account is created. This is not behavior provided by the six domain concepts.
-
-**Automated recommendations.** The core design supports person-to-person recommendations. A future recommendation model could produce candidates for the same review process without being allowed to edit personal definitions automatically. Model generation and ranking are outside the initial concept design.
-
-**Consistency across reactions.** Cross-concept updates must be guarded against duplicate requests and partial failures. In particular, accepting a proposal must not leave an accepted status without the intended annotation. Cleanup following deletion must eventually complete across all related concepts.
-
-The initial release should prioritize creating one definition, attaching an example, sharing it, receiving a suggestion, and deciding whether to incorporate it. These interactions directly address the difficulty identified in the problem framing. More elaborate recommendation or social features are justified only if that small workflow proves useful.
-
----
-
-# Design Rationale
-
-The principal design choice is to separate **the sound, the interpretation, and the social decision**.
-
-Excerpting identifies a reproducible sound without attaching a universal meaning. Associating gives the listener ownership of a subjective definition. Annotating explains why an excerpt matters to that definition. Suggesting allows another person to contribute without changing it. Appraising records the listener's judgment without turning taste into a public score. LinkSharing lets the listener choose what to disclose without making their full vocabulary public.
-
-This decomposition makes an important difficulty simpler: the same word and song can participate in different interpretations without any concept having to decide which interpretation is correct.
-
-The application coordinates these independent behaviors, but the listener remains the authority over the meaning they communicate. That is what allows Sound It Out to preserve an explanation across conversations while still letting it change as the listener's taste evolves.
+By building the personal Sound Wall first and introducing collaboration afterward, we can maintain a functional application throughout development while progressively expanding its capabilities.

@@ -34,4 +34,7 @@ This concept generates unique, revocable links that grant read-only access to a 
 
 
 **Plans & decisions (completed after):**
-
+associating is defining the vocabulary
+annotating is describing using that vocabulary
+change the names of appraising and suggesting (can combine into one)
+add user authenticating
