@@ -1,8 +1,27 @@
 # Problem Framing
 
-[Link to revised F2 Problem Framing document](f2.md)
+[Read the revised problem framing and ethical analysis](f2.md). Friends can resolve what a word such as “dreamy” means through examples and conversation, but that explanation can be scattered across messages and difficult to reuse. Sound It Out collects a listener’s definition, examples, and optional feedback in one editable entry.
 
 # Concept Design
+
+The interface calls each personal definition a **word**; its concept identity is an `Association`. A sound example is an `Excerpt` plus an `Annotation` explaining its role in that particular word. A `Pitch` is a proposal and its owner’s review, kept separate from accepted examples. This distinction lets Alex and Daniel reference the same sound without sharing its meaning or accepting each other's judgment.
+
+```text
+Track + interval ──> Excerpt ──> Annotation ──> Association
+                         └─────> Pitch ────────> Association
+                                   │
+                            owner may promote ──> Annotation
+```
+
+Each concept has one job:
+
+- **Associating** keeps Alex's meaning of “hype” separate from Daniel's.
+- **Excerpting** identifies a track interval without assigning it a meaning.
+- **Annotating** explains why that interval fits a particular word.
+- **Pitching** records a suggestion and the owner’s review, without adding it to the accepted examples.
+- **UserAuthenticating** checks credentials so the application can identify who is acting.
+
+To add an example, the application selects an excerpt and annotates it for Alex's association. To suggest one, it selects an excerpt and creates a pitch instead. Alex can review the pitch and, in a separate step, promote a match into a private annotation. This separation preserves human judgment: the same sound can illustrate different meanings, and no suggestion becomes an example without its owner's decision.
 
 ## Associating
 
@@ -32,10 +51,10 @@ a set of Associations with
   a label String
   a description String
   a visibility Visibility
-  unique user and label
+  unique user and normalized label
 
 Rule: Labels are normalized for comparison by trimming surrounding whitespace, collapsing internal whitespace, and converting to lowercase. The displayed label preserves the user's chosen capitalization.
-Rule: An association has a stable identity that does not change when its description is edited.
+Rule: An association has a stable identity that does not change when its description is edited. New associations are PRIVATE by default in the application.
 ```
 
 ### Actions
@@ -103,6 +122,9 @@ _get(association: Association) : optional (user: User, label: String, descriptio
   Returns the association's owner and definition, or no result if the association does not exist.
 ```
 
+**Note.** Uniqueness is per person and normalized word, so two listeners can use the same word without competing for a single definition. Public visibility applies to the definition alone; examples have their own visibility.
+
+
 ## Excerpting
 
 ### Purpose
@@ -131,7 +153,7 @@ a set of Excerpts with
   unique track and startMs and endMs
 
 Rule: 0 <= startMs < endMs
-Rule: Time positions are measured in milliseconds.
+Rule: Time positions are measured in milliseconds. The application checks the end against track duration when reliable duration metadata is available; otherwise it communicates that the interval cannot be verified.
 ```
 
 ### Actions
@@ -156,6 +178,9 @@ select(track: Track, startMs: Number, endMs: Number) : returns (excerpt: Excerpt
 _get(excerpt: Excerpt) : optional (track: Track, startMs: Number, endMs: Number)
   Returns the track and interval represented by an excerpt, or no result if the excerpt does not exist.
 ```
+
+**Note.** An excerpt identifies an interval; it does not copy audio or assign meaning. Reusing the same identity allows the interval to appear in several contexts. Provider playback and duration verification remain external constraints.
+
 
 ## Annotating
 
@@ -265,26 +290,25 @@ _forContext(context: Context) : many (annotation: Annotation, author: Author, it
   Returns the annotations belonging to a particular context.
 ```
 
+**Note.** The same excerpt can mean different things in different contexts. Uniqueness is per context and item, so an owner edits an existing annotation rather than adding a conflicting second role.
+
+
 ## Pitching
 
 ### Purpose
 
-Allow external contributors to propose items for an owner's consideration and preserve the owner's assessment of its fit, controlling who can see the exchange.
-*Prevents:* Unapproved contributions changing the owner's collection; losing the reason for a judgment; making subjective judgments public by default.
+Let a contributor propose an item for consideration and let the recipient record a private, revisable response to that proposal.
 
 ### Principle
 
-Daniel pitches a song that might fit Alex's word, setting its visibility to PUBLIC. The proposal remains PENDING until Alex reviews it. Alex marks it as a PARTIAL match with a note. Daniel can see Alex's review. If Daniel changes his mind before review, he can withdraw the pitch.
+Daniel proposes a song interval for Alex's “hype.” The pitch is pending until Alex reviews it. Alex marks it a partial match and notes that the drums fit but the vocals are too intense. This response is private unless Alex shares it with Daniel. If Daniel changes his mind before the review, he can withdraw the pitch. A review does not itself add the song to Alex's examples.
 
 ### Types
 
 ```types
 external Contributor
-  An opaque identity submitting the proposal.
 external Target
-  An opaque identity representing the criteria.
 external Item
-  An opaque candidate identity being proposed.
 ```
 
 ### State
@@ -297,72 +321,101 @@ a set of Pitches with
   a contributor Contributor
   a target Target
   an item Item
-  a fit Fit
-  a note String
   a visibility Visibility
+  a fit Fit
+  a response String
+  a responseShared Flag
   unique target and item
 
-Rule: New pitches have status PENDING and an empty note.
+Rule: A new pitch is PENDING, with an empty response and responseShared false.
+Rule: A PENDING pitch has an empty response and responseShared false.
+Rule: A new or changed review is private, even if the previous review was shared.
 ```
 
 ### Actions
 
 ```actions
 pitch(contributor: Contributor, target: Target, item: Item, visibility: Visibility) : returns (pitch: Pitch)
-  where an entry in Pitches already has target and item
+  where a pitch already exists for target and item
   then
     refuses ALREADY_PITCHED "This item has already been pitched here."
-  where no entry in Pitches has target and item
+  where no pitch exists for target and item
   then
-    create a pitch with contributor, target, item, PENDING fit, an empty note, and the given visibility
-    returns pitch
+    create a pitch with contributor, target, item, visibility,
+      PENDING fit, empty response, and responseShared false
+    returns the pitch
 
 withdraw(contributor: Contributor, pitch: Pitch) : returns ()
   where the pitch does not exist
   then
     refuses UNKNOWN_PITCH "This pitch could not be found."
-  where the contributor does not own the pitch
+  where the pitch belongs to another contributor
   then
     refuses NOT_CONTRIBUTOR "You cannot withdraw someone else's pitch."
-  where the pitch has a fit other than PENDING
+  where the pitch has already been reviewed
   then
     refuses ALREADY_REVIEWED "This pitch has already been reviewed."
-  where the pitch exists, is owned by the contributor, and is PENDING
+  where the pitch exists, belongs to contributor, and is PENDING
   then
     remove the pitch
     returns
 
-review(pitch: Pitch, fit: Fit, note: String) : returns ()
+review(pitch: Pitch, fit: Fit, response: String) : returns ()
   where the pitch does not exist
   then
     refuses UNKNOWN_PITCH "This pitch could not be found."
-  where the pitch exists
+  where fit is PENDING
   then
-    set the pitch's fit to the new fit and note to the trimmed note
+    refuses INVALID_REVIEW "Choose a fit."
+  where the pitch exists and fit is not PENDING
+  then
+    set its fit to fit and response to the trimmed response
+    set responseShared to false
     returns
 
-setVisibility(pitch: Pitch, visibility: Visibility) : returns ()
+setVisibility(contributor: Contributor, pitch: Pitch, visibility: Visibility) : returns ()
   where the pitch does not exist
   then
     refuses UNKNOWN_PITCH "This pitch could not be found."
-  where the pitch exists
+  where the pitch belongs to another contributor
   then
-    set the pitch's visibility to the supplied visibility
+    refuses NOT_CONTRIBUTOR "You cannot change someone else's pitch."
+  where the pitch exists and belongs to contributor
+  then
+    set its visibility to visibility
+    returns
+
+setResponseShared(pitch: Pitch, shared: Flag) : returns ()
+  where the pitch does not exist
+  then
+    refuses UNKNOWN_PITCH "This pitch could not be found."
+  where the pitch is PENDING and shared is true
+  then
+    refuses NOT_REVIEWED "There is no review to share."
+  where the pitch exists and either it has been reviewed or shared is false
+  then
+    set responseShared to shared
     returns
 
 clearTarget(target: Target) : returns ()
   where true
   then
-    remove all pitches associated with the supplied target
+    remove all pitches for target
     returns
 ```
 
 ### Queries
 
 ```queries
-_forTarget(target: Target) : many (pitch: Pitch, contributor: Contributor, item: Item, fit: Fit, note: String, visibility: Visibility)
-  Returns all pitches proposed for the target.
+_get(pitch: Pitch) : optional (contributor: Contributor, target: Target, item: Item, visibility: Visibility, fit: Fit, response: String, responseShared: Flag)
+  Returns the pitch's fields, or no result if it does not exist.
+
+_forTarget(target: Target) : many (pitch: Pitch, contributor: Contributor, item: Item, visibility: Visibility, fit: Fit, response: String, responseShared: Flag)
+  Returns all pitches for target.
 ```
+
+**Note.** The review belongs to the proposal's lifecycle: without a pitch there is nothing to review. `Pitching` does not create accepted examples or determine who owns a target; the application checks the owner before allowing a review or sharing its response. A review response explains a judgment to the contributor, while an `Annotation` explains an accepted example in the owner's definition. One pitch per target and item prevents duplicate proposals, but a second contributor cannot propose that same interval for the target while the first pitch exists.
+
 
 ## UserAuthenticating
 
@@ -390,6 +443,7 @@ opaque Secret
 a set of Users with
   a verifier Secret
 
+Rule: Each User has at most one verifier.
 Rule: Authenticating stores only a verifier derived from the password, never the password itself.
 ```
 
@@ -424,52 +478,133 @@ _acceptable(password: String) : one (acceptable: Flag)
   Returns true when the password has 8 to 128 characters, and false otherwise.
 ```
 
+**Note.** This concept verifies credentials; the application creates identities and establishes sessions separately. Password reset, rate limiting, and account recovery remain implementation concerns that must be resolved before deployment.
+
+### Application access and coordination rules
+
+All action alternatives are evaluated in the order written; the first matching refusal or success applies, and refusals leave state unchanged. Concept queries describe internal state, not unrestricted public endpoints. An authenticated request identifies its actor; the application checks ownership through `Associating._get` before invoking owner-only operations. Only the association owner may add, edit, share, or remove its annotations; review pitches; or share a review. Only a pitch's contributor may withdraw it or change its visibility. Cleanup actions are internal and run only after successful owner-authorized deletion. The owner can see all pitches for their association; a contributor can see their own pitch, but sees its review only when `responseShared` is true. Other viewers see neither private pitches nor reviews. A public association exposes only annotations marked SHARED; private associations and annotations are visible only to their owner. Public means accessible to anyone with the address, not a revocable, secret link.
+
+Registration creates a fresh user identity and sets its password as one atomic operation; callers cannot choose an existing identity or directly invoke `UserAuthenticating.set`. A successful authentication establishes a session, from which protected requests obtain their actor; a client-supplied user identity is never treated as proof of identity. A friend must sign in to submit a pitch in the initial version; viewing a public association needs no account. The application verifies that the target exists and is public before accepting a pitch, and that an annotation's author owns its context. These checks protect concept actions that deliberately use generic external identities. The application maintains these cross-concept invariants: every annotation and pitch targets an existing association; only an association owner may create an annotation for it; and a pitch never creates an annotation without the owner’s explicit promotion. Requests involving multiple concepts are atomic: if any required action refuses, none of that request's state changes persist. A refused add or proposal does not leave a newly selected excerpt behind. Review and promotion are separate requests: a failed promotion leaves the saved review unchanged. Cleanup on deletion is part of the same transaction, serialized against concurrent additions to that association. Withdrawal is likewise serialized against review, so a pitch cannot be reviewed after it has been withdrawn. This atomicity is an implementation requirement to verify, not a claim about an existing system. A review can be updated later; changing a review does not automatically remove an already promoted example, which the owner can edit or remove separately.
+
+
 ## Essential Reactions
 
+Sound It Out instantiates `Annotating.Item` and `Pitching.Item` as excerpts, and `Annotating.Context` and `Pitching.Target` as associations. `Contributor`, `Author`, and `User` denote the same authenticated user identities. `Requesting` below is the application request interface, not a persistent domain concept: each named action represents one incoming request carrying the listed arguments and a server-established actor. For the request types shown, a request that fails its authorization or other guards is refused, not silently accepted. Other protected operations follow the access rules above. Reactions correlate actions by request identity; variables in a reaction refer to the same request and its results.
+
+### Add an example
+
 ```text
-R1 — A selected excerpt becomes an example
-When: Excerpting.select(track, startMs, endMs) returns excerpt e in an authorized AddExample request for association a, with role r and note n.
-Then: Annotating.annotate(user, e, a, r, n).
-Effect: The selected sound becomes evidence for the listener's definition.
+reaction selectExample
+when Requesting.addExample(actor, association, track, startMs, endMs, role, note)
+where Associating._get(association) returns (user: actor, ...)
+then Excerpting.select(track, startMs, endMs)
 
-R2 — A selected excerpt becomes a proposal
-When: Excerpting.select(track, startMs, endMs) returns excerpt e in an authorized ProposeExample request addressed to association a, with contributor c and visibility v.
-Then: Pitching.pitch(c, a, e, v).
-Effect: A friend can propose a sound without changing the listener's accepted examples.
-
-R3 — Promoting a pitch to an accepted example
-When: Pitching.review(pitch, MATCH, response) succeeds for excerpt e and target association a, in an authorized request containing the owner's public example note n.
-Then: Annotating.annotate(owner, e, a, EXAMPLE, n).
-Effect: A highly-rated pitch becomes part of the owner's personal explanation. 
-
-R4 — Removing a definition removes its explanations
-When: Associating.remove(user, association) succeeds for association a.
-Then: Annotating.clearContext(a).
-Effect: Examples and counterexamples do not remain attached to a definition that no longer exists.
-
-R5 — Removing a definition clears its pitches
-When: Associating.remove(user, association) succeeds for association a.
-Then: Pitching.clearTarget(a).
-Effect: Pending and reviewed pitches cannot continue to target a removed definition.
+reaction annotateExample
+when Requesting.addExample(actor, association, track, startMs, endMs, role, note)
+     Excerpting.select(track, startMs, endMs) returns (excerpt)
+where Associating._get(association) returns (user: actor, ...)
+then Annotating.annotate(actor, excerpt, association, role, note)
 ```
+
+**Note.** The request and selection must belong to the same transaction. The owner and context are passed explicitly; the same track interval may be reused elsewhere with a different annotation.
+
+### Propose an excerpt
+
+```text
+reaction selectProposal
+when Requesting.propose(actor, association, track, startMs, endMs, visibility)
+where actor is authenticated
+      Associating._get(association) returns (visibility: PUBLIC, ...)
+then Excerpting.select(track, startMs, endMs)
+
+reaction pitchProposal
+when Requesting.propose(actor, association, track, startMs, endMs, visibility)
+     Excerpting.select(track, startMs, endMs) returns (excerpt)
+where actor is authenticated
+      Associating._get(association) returns (visibility: PUBLIC, ...)
+then Pitching.pitch(actor, association, excerpt, visibility)
+```
+
+**Note.** Selecting an excerpt does not accept it. The contributor, target, and item are all recorded by `pitch`; only the owner can later promote it. The visibility argument belongs to the pitch, not the target.
+
+### Review a pitch
+
+```text
+reaction reviewPitch
+when Requesting.review(actor, pitch, fit, response)
+where Pitching._get(pitch) returns (target: association, ...)
+      Associating._get(association) returns (user: actor, ...)
+then Pitching.review(pitch, fit, response)
+```
+
+**Note.** Only the target's owner can review. Any new or edited review starts private; sharing it requires a separate owner action.
+
+### Promote a reviewed match
+
+```text
+reaction promotePitch
+when Requesting.promote(actor, pitch, exampleNote)
+where Pitching._get(pitch) returns (target: association, item: excerpt, fit: MATCH, ...)
+      Associating._get(association) returns (user: actor, ...)
+then Annotating.annotate(actor, excerpt, association, EXAMPLE, exampleNote)
+```
+
+**Note.** Promotion requires an existing MATCH, an owner, and a nonempty example note. The annotation begins private. If it already exists or the note is invalid, `annotate` refuses and the saved review remains unchanged. A later change to the review does not delete an accepted example; the owner controls that annotation separately.
+
+### Remove a word and its dependent records
+
+```text
+reaction removeWord
+when Requesting.removeWord(actor, association)
+where Associating._get(association) returns (user: actor, ...)
+then Associating.remove(actor, association)
+
+reaction removeAnnotations
+when Associating.remove(user, association) succeeds
+then Annotating.clearContext(association)
+
+reaction removePitches
+when Associating.remove(user, association) succeeds
+then Pitching.clearTarget(association)
+```
+
+**Note.** These reactions remove annotations and pitches, including their reviews, in the deletion transaction. Excerpts remain available for other words. Recreating the same label produces a new association identity and cannot inherit the deleted word's pitches or annotations.
+
+### Representative access checks
+
+```text
+reaction withdrawPitch
+when Requesting.withdraw(actor, pitch)
+where Pitching._get(pitch) returns (contributor: actor, fit: PENDING, ...)
+then Pitching.withdraw(actor, pitch)
+
+
+reaction shareReview
+when Requesting.shareReview(actor, pitch, shared)
+where Pitching._get(pitch) returns (target: association, ...)
+      Associating._get(association) returns (user: actor, ...)
+then Pitching.setResponseShared(pitch, shared)
+```
+
+**Note.** These illustrate the access patterns for contributor-only and owner-only actions. The contributor alone may withdraw or change the visibility of a pitch, and annotation edits require both ownership of the association and authorship of the annotation. Cleanup actions are internal. Query projections enforce the same visibility rules: a public association exposes only shared annotations; a contributor sees a review only when shared. An address to a public association is forwardable and is not a secret link.
 
 # User Journey
 
-Alex wouldn’t consider themselves a music connoisseur, but they’ve collected a pretty extensive playlist of songs to get themselves through their lengthy commute. When the playlist was just getting started, adding something new that fit the vibe was easy, and they spent most of the commute jamming out instead of focusing on how many more minutes it would be until their next stop, or how loud that other passenger was.
+Alex wants fresh music for their commute and asks Daniel for something “hype.” He sends fast electronic tracks. Alex was hoping for driving drums without overpowering vocals, but “not quite hype” does not tell Daniel what to change.
 
-These days, it was getting harder to find something new that fit the vibe, so they turned to the group chat. They told their friends that they needed something ‘hype’ and everyone gave a different answer that didn’t sound like Alex’s kind of hype. Song after song was met with a vague rejection of “That just isn’t hype”, annoying the group chat immensely. Fed up with pinpointing Alex’s taste by playing a neverending game of musical Whack-a-Mole, one of their friends sends them a link to Sound It Out, telling Alex to make things easier by describing hype there, and they can give suggestions in their free time.
+Alex creates a private “hype” entry in Sound It Out and describes it as “driving percussion without overpowering vocals.” They choose a familiar song from the catalog and mark the passage from 0:42 to 0:57. Beside it, they write: “The drums build energy while the vocals stay in the background.” If the music provider cannot play that exact interval, the entry shows the timestamps and a link to the track.
 
-Clicking on their friend’s link, Alex can see a variety of emotional words like ‘hype’ and ‘dreamy’ with a play button next to them. Clicking on hype, they’re unfortunately met with a plethora of EDM samples, which is apparently what their friend considers a hype tune.
+Alex previews the entry, shares the example, and makes the word public. Daniel opens its address without an account. The description and passage give him a more specific starting point than “hype” alone. He signs in, chooses a song and passage of his own, and submits a pitch. It appears in Alex's review queue, separate from their examples.
 
-Inspired by a desire to show said friend what hype really means, Alex clicks on the ‘Describe Your Taste’ button and is presented with a similar looking initial wall as their friend had, but with some words unaccounted for. Seeing some issues in how ‘hype’ was currently described, Alex clicks onto the hype bubble and sees it unfurl into its constituent songs. They remove some of them from the bubble and add their own choices by clicking an ‘Add Song’ button that allows them to search within the app’s database for a hype song. Alex is prompted to pinpoint a hype sample, highlighting a section of the song’s waveform as a selector. Afterward, they click on the play button associated with hype and hear it cycling between their selected samples.
+Alex listens and marks the pitch **partial match**: “The drums fit, but the vocals are more intense than I wanted.” The assessment stays private unless Alex chooses to share it with Daniel. A later pitch is a match. Alex saves that judgment, then chooses to promote the pitch and writes why it fits. The new example starts private; Alex shares it when ready.
 
-Alex plays around with the wall for a bit, Alex notices some hint text telling them that by making an account, they can receive suggestions of songs to add from their friends, as well as some automated suggestions. After making an account, they see the same sound wall as the one they made during setup and have the ability to share a link to their wall, which they send in the group chat.
-
-Now that their friends can listen to what Alex means by ‘hype’, they engage in some friendly ribbing about their song choices, and leave some suggestions of songs to add, with each suggestion accompanied by a snippet the friend found representative of ‘hype’. Alex approves some suggestions and rejects others, and leaves some suggestions on their friends’ walls as well.
-
-To describe their music taste to a friend now, Alex sends them a link to their sound wall, and invites them to click play on some words. Instead of retreading an explanation of what they mean by ‘hype’ any time they’re asking for suggestions for new music, a friend can click on Alex’s page and hear their association.
+The next time Alex asks a friend for this kind of music, they can send the updated entry instead of rebuilding the explanation from a chat. If their taste changes, they can edit the word or make it private again. The journey illustrates a possibility to test: whether one passage and a short explanation help a friend make a more useful suggestion.
 
 # Visual Design Study
+
+![Color study: palette and record-store inspiration](visual-design/colorschemeslide1-visualdesign.png)
+
+![Typography and layout study: editorial hierarchy and record-sleeve inspiration](visual-design/typographyslide2-visualdesign.png)
 
 Sound It Out should feel like exploring a personal record collection: expressive enough to reflect someone's musical taste, but organized enough that another person can understand it without explanation. Our visual study draws from vinyl artwork, independent music magazines, record-store displays, and editorial typography. These references suggest a design in which music supplies the personality while the interface provides a clear structure for understanding it.
 
@@ -488,7 +623,7 @@ Our palette combines warm, paper-like backgrounds with deep plum text and a focu
 | Accent | `#6B47CF` | Primary actions, selected controls, and focus | 
 | Border | `#DED7E5` | Subtle separation between related content | 
 
-Violet draws attention to decisions such as Add Word, Add Example, and Share, rather than competing with the songs themselves. Neutral surfaces allow album artwork and waveform previews to communicate musical character without making the overall page visually overwhelming.
+Violet draws attention to decisions such as Add Word, Add Example, and Share, rather than competing with the songs themselves. Neutral surfaces allow album artwork and track previews to communicate musical character without making the overall page visually overwhelming.
 
 Three softer colors communicate the state of an interaction:
 
@@ -502,7 +637,7 @@ The resulting hierarchy is intentionally restrained. Users should first notice t
 
 ### 2. Typography and Layout Study — A Personal Music Dictionary
 
-We use Inter Variable throughout the interface, drawing from the bold editorial hierarchy of record sleeves and music publications while retaining the readability of a modern application.
+We use Inter Variable throughout the interface, drawing from the bold editorial hierarchy of record sleeves and music publications while retaining the readability of a modern application. We will test out other fonts too but for a clean look start with Inter.
 
 The typography study establishes five levels:
 
@@ -518,13 +653,13 @@ The hierarchy follows the order in which someone encounters an unfamiliar defini
 
 The Sound Wall uses a collection-oriented layout inspired by record sleeves. Each word forms a distinct entry that can expand to reveal its examples and counterexamples. Consistent alignment, spacing, and card structure make entries easy to compare without requiring a rigid musical taxonomy.
 
-The same organization carries into suggestions. A proposed song appears separately from accepted examples, with its contributor's explanation and an explicit review action. Accepted examples join the owner's collection only after approval. This visual separation reflects the design's underlying concepts: a suggestion is not yet part of someone's definition, and a private appraisal is not a public judgment.
+The same organization carries into suggestions. A proposed song appears separately from accepted examples, with its contributor and an explicit review action. Accepted examples join the owner's collection only after approval. This visual separation reflects the design's underlying concepts: a suggestion is not yet part of someone's definition, and a private appraisal is not a public judgment.
 
 ### 3. Applying the Style to the User Journey
 
 Consider Alex sharing their meaning of "hype." Their Sound Wall first presents the word prominently, followed by the description "Fast, driving percussion without overpowering vocals." Below it, a small collection of song excerpts illustrates the sound, each accompanied by a note explaining why it fits.
 
-When Daniel opens Alex's shared entry, he encounters the definition and deliberately shared examples before proposing a song. He does not need to infer the intended qualities from an unexplained playlist. When Alex reviews his suggestion, the interface distinguishes the proposed excerpt, Daniel's reasoning, Alex's private assessment, and the decision to incorporate it.
+When Daniel opens Alex's shared entry, he encounters the definition and deliberately shared examples before proposing a song. He does not need to infer the intended qualities from an unexplained playlist. When Alex reviews his suggestion, the interface distinguishes the proposed excerpt and interval, Alex's private assessment, and the decision to incorporate it.
 
 This structure helps users understand both the overall collection and the details of a particular exchange. It also allows Alex to share one word without exposing unrelated associations or private evaluations.
 
@@ -534,31 +669,33 @@ A sound-centered experience must remain usable without relying entirely on sound
 
 # Design Summary
 
-The overall design solves the core "semantic gap" of musical adjectives through independent, composable concepts. `Associating` gives users ownership over their text definitions, while `Excerpting` strictly binds those definitions to exact milliseconds of audio so there is no ambiguity about which part of the track represents the vibe. `Annotating` ties the excerpt to the definition with an explanatory note. To support the collaborative workflows without exposing private tastes, the application relies heavily on `Pitching` and `UserAuthenticating`.
+The overall design solves the core "semantic gap" of musical adjectives through independent, composable concepts. `Associating` gives users ownership over their text definitions, while `Excerpting` identifies a track interval in milliseconds. `Annotating` connects that interval to a definition, so the same excerpt can illustrate different meanings. Playback at exact boundaries depends on the provider. Its explanatory note makes the connection explicit. To support the collaborative workflows without exposing private tastes, the application relies heavily on `Pitching` and `UserAuthenticating`.
 
-Instead of relying on complex URL tokens to share walls, `Associating` handles visibility explicitly (PUBLIC vs. PRIVATE). Friends can view the user's public wall and submit ideas via `Pitching`, which merges the proposal and its evaluation (MATCH, PARTIAL, MISS) securely in the background without polluting the owner's permanent `Annotating` collection until promoted.
+Instead of relying on complex URL tokens to share walls, `Associating` handles visibility explicitly (PUBLIC vs. PRIVATE). Friends can view the user's public wall and submit ideas via `Pitching` to record proposals and their private-by-default evaluations (MATCH, PARTIAL, MISS). A proposal enters the owner's `Annotating` collection only when the owner promotes it.
 
 **Ethical Alignments:**
 
-* **Privacy:** Pitching evaluations (like a MISS) can remain entirely private, avoiding publicly grading a friend’s taste.
+* **Privacy:** Pitch reviews (like a MISS) can remain entirely private, avoiding publicly grading a friend’s taste.
 * **Control:** The owner decides if an annotation is PRIVATE or SHARED, meaning they never have to explain a personal memory to a public audience.
 * **Consent:** A friend’s pitched song cannot automatically place itself on the owner's public wall.
 
 **Unclear Issues:**
-It remains unclear if music APIs like SoundCloud will reliably support arbitrary timestamp-based playback for external excerpts, meaning we may have to fall back on full-track playback or 30-second standard previews if we run into licensing blockers.
+It remains unclear if music APIs like SoundCloud will reliably support arbitrary timestamp-based playback for external excerpts, meaning we may have to fall back on provider-authorized playback or previews if we run into licensing blockers.
 
 # Development Plan
 
 ### 1. Development Timeline
+
+The dates follow the course milestones; the testing below is planned work, not a claim that testing has already occurred.
 
 Our development will focus on building a functional Sound Wall that allows users to communicate their musical preferences through personal definitions and song examples. To keep the project feasible, we will initially use a curated library of approximately 15–25 songs rather than implementing a full music search system. We plan to source these songs from SoundCloud and use its embedded player for playback, storing only song metadata and references.
 
 | Stage | Expected Deliverables |
 | ----- | ----- |
 | **Initial Development** | Set up the frontend, backend, and database. Select approximately 15–25 SoundCloud tracks, verify that they can be embedded, and store their metadata. Implement basic user identification (`UserAuthenticating`) and create the initial Sound Wall interface. Divide implementation responsibilities across team members so core concepts can be developed in parallel. |
-| **Checkpoint 1 (Functional MVP + User Testing)** | Complete a functional end-to-end MVP incorporating all core concepts. Implement `Associating` so users can create, edit, and delete subjective musical labels and descriptions. Implement `Annotating` so users can attach songs from the curated library to their definitions and explain why they fit. Integrate SoundCloud playback. Implement basic `Excerpting` using song timestamps where supported. Implement `Pitching` so friends can recommend songs with explanations. Implement basic `Appraising` so users can evaluate recommendations and `Suggesting` so users can receive relevant song suggestions. Connect these interactions so users can build their Sound Walls, explore others' interpretations, and incorporate new musical examples. Conduct initial user testing of the complete workflow and document usability issues. |
-| **Checkpoint 2 (Feature Completion + Iteration)** | Expand the functionality of `Excerpting`, `Appraising`, and `Suggesting` based on initial testing. Improve timestamp-based playback, recommendation evaluation, and song suggestion interactions. Add counterexamples and private/shared annotation controls. Address usability issues identified during Checkpoint 1, particularly around defining musical labels, understanding others' interpretations, and evaluating recommendations. Conduct a second round of user testing to validate improvements. |
-| **Final Submission (Polish + Validation)** | Integrate and refine all concepts to ensure the complete user journey works reliably. Improve UI interactions and visual consistency, fix remaining bugs and edge cases, and test privacy and authorization boundaries. Incorporate high-priority feedback from both rounds of user testing. Prepare the final demo and documentation. |
+| **F4: Alpha — Nov 23 (Functional MVP)** | Complete a functional end-to-end MVP incorporating all core concepts. Implement `Associating` so users can create, edit, and delete subjective musical labels and descriptions. Implement `Annotating` so users can attach songs from the curated library to their definitions and explain why they fit. Integrate SoundCloud playback. Implement basic `Excerpting` using song timestamps where supported. Implement `Pitching` so signed-in friends can propose excerpts and owners can record private fit judgments. Connect these interactions so users can build their Sound Walls, explore others' interpretations, and incorporate new musical examples. Conduct initial user testing of the complete workflow and document usability issues. |
+| **F5: Beta — Nov 30 (Feature Completion + Iteration)** | Expand the functionality of `Excerpting` and `Pitching` based on initial testing. Improve timestamp-based playback, recommendation evaluation, and song suggestion interactions. Add counterexamples and private/shared annotation controls. Address usability issues identified during Checkpoint 1, particularly around defining musical labels, understanding others' interpretations, and evaluating recommendations. Conduct a second round of user testing to validate improvements. |
+| **F6/F7 — Dec 7 / Dec 9 (Validation + Final Demo)** | Integrate and refine all concepts to ensure the complete user journey works reliably. Improve UI interactions and visual consistency, fix remaining bugs and edge cases, and test privacy and authorization boundaries. Incorporate high-priority feedback from both rounds of user testing. Prepare the final demo and documentation. |
 
 ### 2. Team Responsibilities
 
@@ -568,8 +705,8 @@ We will divide responsibilities by major application features, while collaborati
 | :--- | :--- |
 | **Rebecca** | Implement `Associating` and the personal Sound Wall, including creating, editing, and organizing definitions. Help integrate the concepts into the main application. |
 | **Sanskriti** | Implement `Excerpting` and music search/playback integration, including selecting song intervals and displaying playable examples. |
-| **Bhadra** | Implement `Annotating`, `Appraising`, and `UserAuthenticating`, including example/counterexample management, private evaluations, and visibility controls. |
-| **Victor** | Implement `Pitching` + `Suggesting`, including public/private toggles, suggestion submission, and the review workflow. |
+| **Bhadra** | Implement `Annotating` and `UserAuthenticating`, including example/counterexample management and visibility controls. |
+| **Victor** | Implement `Pitching`, including proposal submission, visibility controls, and private review. |
 | **Entire Team**| Collaborate on UI design, integration, testing, accessibility, and resolving issues identified through user feedback. |
 
 ### 3. Key Risks and Mitigation Strategies
@@ -580,8 +717,8 @@ We will divide responsibilities by major application features, while collaborati
 *Fallback:* If arbitrary excerpt playback is not supported, use authorized song previews or links to external music platforms. Users can still identify relevant timestamps and explain why those moments represent their definitions, even if the application cannot play those exact intervals directly.
 
 **Risk 2: Complexity of Integrating Concepts**
-*Risk:* Several user workflows require multiple concepts to interact. For example, accepting a pitch must update its review status and create an annotation without producing duplicate or inconsistent state. Deleting a definition also requires cleaning up associated annotations, suggestions, and appraisals.
-*Mitigation:* Implement and test concepts independently before connecting them through reactions. Define clear interfaces between concepts and add integration tests for important workflows, particularly accepting pitches and deleting definitions.
+*Risk:* Several user workflows require multiple concepts to interact. For example, promotion must verify the owner and a saved MATCH before creating an annotation, while preventing duplicate examples. Deleting a definition also requires cleaning up associated annotations and pitches.
+*Mitigation:* Implement and test concepts independently before connecting them through reactions. Define clear interfaces between concepts and add integration tests for important workflows, particularly promoting pitches and deleting definitions with their reviews.
 *Fallback:* If full integration becomes too complex, prioritize the essential workflows of creating definitions, adding examples, and sharing them. 
 
 **Risk 3: Sharing and Privacy**
@@ -603,10 +740,16 @@ If necessary, simplify the pitch workflow. These features improve the experience
 *Mitigation:* Use consistent visual grouping, explicit labels, and distinct interfaces for accepted examples and pending pitches. Conduct user testing on the core workflows and observe whether participants can complete them without additional explanation.
 *Fallback:* Simplify the interface by initially displaying only definitions and accepted examples. Counterexamples and private evaluations can be placed behind secondary controls or omitted from the initial experience if they introduce unnecessary confusion.
 
-### 4. Development Priorities
+### 4. Validation plan
+
+At Checkpoint 1, recruit at least three people outside the team in friend pairs where possible. Give each creator the same request: define a word, add one example, and share it. Ask the recipient to explain the creator's meaning in their own words and propose a fitting song. Observe without coaching, record completion, time, errors, and points of confusion, and ask both participants whether the exchange was clearer than their usual chat. Compare the recipient's explanation with the creator's intended qualities; this is a qualitative signal, not proof of improved recommendation accuracy. Do not collect sensitive notes without participants' consent.
+
+At Checkpoint 2, retest the highest-impact changes with at least three participants, including at least one new participant. The core flow is ready for the final demo when participants can create and share a definition, distinguish a pitch from an accepted example, and review or promote it without facilitator intervention. Treat failures as issues to fix or explicitly document, rather than assuming the target is met. Independently test keyboard-only navigation, labels and focus, and verify private definitions, annotations, and reviews using separate owner, contributor, and anonymous sessions. Test duplicate promotion, unauthorized edits, and deletion cleanup as integration cases.
+
+### 5. Development Priorities
 
 Our highest priority is demonstrating that Sound It Out can communicate a person's subjective understanding of music more effectively than an ordinary playlist or text description.
 
-We therefore consider `Associating`, `Excerpting`, `Annotating`, and `UserAuthenticating` essential to building the personal Sound Wall. `Pitching`, `Appraising`, and `Suggesting` are also core MVP features because they enable the collaborative music discovery experience described in our user journey. By Checkpoint 1, we aim to have a functional end-to-end application that allows users to define musical concepts, illustrate them with song examples, exchange and evaluate recommendations, and discover new music. We will conduct initial user testing at this stage to identify usability issues and evaluate whether the application effectively communicates subjective musical interpretations.
+We therefore consider `Associating`, `Excerpting`, `Annotating`, and `UserAuthenticating` essential to building the personal Sound Wall. `Pitching` is also a core MVP feature because they enable the collaborative music discovery experience described in our user journey. By Checkpoint 1, we aim to have a functional end-to-end application that allows users to define musical concepts, illustrate them with song examples, exchange and evaluate recommendations, and discover new music through friends. We will conduct initial user testing at this stage to identify usability issues and evaluate whether the application effectively communicates subjective musical interpretations.
 
 We will prioritize implementing simplified versions of all core concepts before expanding their functionality. This allows us to maintain a functional application throughout development while using feedback from Checkpoint 1 to guide improvements for Checkpoint 2 and the final submission.
