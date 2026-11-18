@@ -8,6 +8,39 @@ _specifications and composition source, then regenerate this file._
 
 ## Concepts
 
+### Annotating
+
+Defined in [Annotating](../design/concepts/Annotating.md), line 1.
+
+#### Actions
+
+- `annotate(author: Author, item: Item, context: Context, role: Role, note: String) : returns (annotation: Annotation)`
+  - Refuses `INVALID_NOTE`: Explain why this example matters.
+  - Refuses `ANNOTATION_EXISTS`: This item is already included here.
+- `update(author: Author, annotation: Annotation, role: Role, note: String) : returns ()`
+  - Refuses `UNKNOWN_ANNOTATION`: This annotation could not be found.
+  - Refuses `NOT_AUTHOR`: You cannot edit another user's annotation.
+  - Refuses `INVALID_NOTE`: Explain why this example matters.
+- `setVisibility(author: Author, annotation: Annotation, visibility: Visibility) : returns ()`
+  - Refuses `UNKNOWN_ANNOTATION`: This annotation could not be found.
+  - Refuses `NOT_AUTHOR`: You cannot edit another user's annotation.
+- `remove(author: Author, annotation: Annotation) : returns ()`
+  - Refuses `UNKNOWN_ANNOTATION`: This annotation could not be found.
+  - Refuses `NOT_AUTHOR`: You cannot edit another user's annotation.
+- `clearContext(context: Context) : returns ()`
+
+#### Queries
+
+- `_get(annotation: Annotation) : optional (author: Author, item: Item, context: Context, role: Role, note: String, visibility: Visibility)`
+- `_forContext(context: Context) : many (annotation: Annotation, author: Author, item: Item, role: Role, note: String, visibility: Visibility)`
+
+#### Instances
+
+- `Annotating` — instance of `Annotating` — [Application types](../design/types.md), line 20.
+  - `Author` is `UserAuthenticating.User` — [Application types](../design/types.md), line 21.
+  - `Context` is `SoundWord` — [Application types](../design/types.md), line 23.
+  - `Item` is `SoundExcerpt` — [Application types](../design/types.md), line 22.
+
 ### UserAuthenticating
 
 Defined in [UserAuthenticating](../design/concepts/UserAuthenticating.md), line 1.
@@ -27,7 +60,14 @@ Defined in [UserAuthenticating](../design/concepts/UserAuthenticating.md), line 
 
 #### Instances
 
-- `UserAuthenticating` — instance of `UserAuthenticating` — [Application types](../design/types.md), line 7.
+- `UserAuthenticating` — instance of `UserAuthenticating` — [Application types](../design/types.md), line 18.
+
+## Application types
+
+Concrete types:
+
+- `SoundExcerpt` — [Application types](../design/types.md), line 10.
+- `SoundWord` — [Application types](../design/types.md), line 13.
 
 ## Reactions
 
