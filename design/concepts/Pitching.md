@@ -14,13 +14,13 @@ Daniel proposes a song interval for Alex's “hype.” The pitch is pending unti
 external Contributor
 external Target
 external Item
+Fit is PENDING or MATCH or PARTIAL or MISS
+Visibility is PRIVATE or SHARED
 ```
 
 ## State
 
 ```state
-Fit is PENDING or MATCH or PARTIAL or MISS
-Visibility is PRIVATE or PUBLIC
 
 a set of Pitches with
   a contributor Contributor
@@ -45,9 +45,8 @@ createPitch(contributor: Contributor, target: Target, item: Item, visibility: Vi
     refuses ALREADY_PITCHED "This item has already been pitched here."
   where no pitch exists for target and item
   then
-    create a pitch with contributor, target, item, visibility,
-      PENDING fit, empty response, and responseShared false
-    returns the pitch
+    create a pitch with contributor, target, item, visibility PENDING fit, empty response, and responseShared false
+    returns pitch
 
 deletePitch(contributor: Contributor, pitch: Pitch) : returns ()
   where the pitch does not exist
@@ -62,6 +61,7 @@ deletePitch(contributor: Contributor, pitch: Pitch) : returns ()
   where the pitch exists, belongs to contributor, and is PENDING
   then
     remove the pitch
+    returns
 
 review(pitch: Pitch, fit: Fit, response: String) : returns ()
   where the pitch does not exist
@@ -105,4 +105,14 @@ clearTarget(target: Target) : returns ()
   then
     remove all pitches for target
     returns
+```
+
+## Queries
+
+```queries
+_get(pitch: Pitch) : optional (contributor: Contributor, target: Target, item: Item, visibility: Visibility, fit: Fit, response: String, responseShared: Flag)
+  Returns the pitch's fields, or no result if it does not exist.
+
+_forTarget(target: Target) : many (pitch: Pitch, contributor: Contributor, item: Item, visibility: Visibility, fit: Fit, response: String, responseShared: Flag)
+  Returns all pitches for target.
 ```
