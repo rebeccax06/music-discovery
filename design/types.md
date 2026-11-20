@@ -21,4 +21,9 @@ instantiate Annotating with
   Author is UserAuthenticating.User
   Item is SoundExcerpt
   Context is SoundWord
+
+instantiate Pitching with
+  Contributor is UserAuthenticating.User
+  Target is Associating.Association
+  Item is SoundExcerpt
 ```
