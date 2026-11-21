@@ -130,5 +130,21 @@ export class PitchingConcept<Contributor extends string, Target extends string, 
     await this.#ready();
     await this.pitches.deleteMany({target: target});
   }
+
+  async _get({pitch}: {pitch: Pitch})
+  {
+    const row = await this.pitches.findOne({pitch});
+
+    if (!row) return [];
+    return [row];
+    
+  }
+
+  async _forTarget({target}: {target: Target})
+  {
+    const rows = await this.pitches.find({target: target}).toArray();
+
+    return rows.map(({_id, contributor, item, visibility, fit, response, responseShared }) => ({pitch: _id, contributor, item, visibility, fit, response, responseShared}));
+  }
 }
 
