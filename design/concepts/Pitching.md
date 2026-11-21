@@ -80,7 +80,7 @@ setVisibility(contributor: Contributor, pitch: Pitch, visibility: Visibility) : 
   where the pitch does not exist
   then
     refuses PITCH_NOT_FOUND "This pitch could not be found."
-  where the pitch belongs to another contributor
+  where pitch exists and belongs to another contributor
   then
     refuses NOT_CONTRIBUTOR "You cannot change someone else's pitch."
   where the pitch exists and belongs to contributor
@@ -92,10 +92,10 @@ setResponseShared(pitch: Pitch, shared: Flag) : returns ()
   where the pitch does not exist
   then
     refuses PITCH_NOT_FOUND "This pitch could not be found."
-  where the pitch is PENDING and shared is true
+  where pitch exists and Fit is PENDING
   then
     refuses NOT_REVIEWED "There is no review to share."
-  where the pitch exists and either it has been reviewed or shared is false
+  where the pitch exists and Fit is not PENDING
   then
     set responseShared to shared
     returns
