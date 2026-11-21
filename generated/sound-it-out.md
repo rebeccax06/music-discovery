@@ -41,6 +41,41 @@ Defined in [Annotating](../design/concepts/Annotating.md), line 1.
   - `Context` is `SoundWord` — [Application types](../design/types.md), line 23.
   - `Item` is `SoundExcerpt` — [Application types](../design/types.md), line 22.
 
+### Pitching
+
+Defined in [Pitching](../design/concepts/Pitching.md), line 1.
+
+#### Actions
+
+- `createPitch(contributor: Contributor, target: Target, item: Item, visibility: Visibility) : returns (pitch: Pitch)`
+  - Refuses `ALREADY_PITCHED`: This item has already been pitched here.
+- `deletePitch(contributor: Contributor, pitch: Pitch) : returns ()`
+  - Refuses `PITCH_NOT_FOUND`: This pitch could not be found.
+  - Refuses `NOT_CONTRIBUTOR`: You cannot withdraw someone else's pitch.
+  - Refuses `ALREADY_REVIEWED`: This pitch has already been reviewed.
+- `review(pitch: Pitch, fit: Fit, response: String) : returns ()`
+  - Refuses `PITCH_NOT_FOUND`: This pitch could not be found.
+  - Refuses `INVALID_REVIEW`: Choose a fit.
+- `setVisibility(contributor: Contributor, pitch: Pitch, visibility: Visibility) : returns ()`
+  - Refuses `PITCH_NOT_FOUND`: This pitch could not be found.
+  - Refuses `NOT_CONTRIBUTOR`: You cannot change someone else's pitch.
+- `setResponseShared(pitch: Pitch, shared: Flag) : returns ()`
+  - Refuses `PITCH_NOT_FOUND`: This pitch could not be found.
+  - Refuses `NOT_REVIEWED`: There is no review to share.
+- `clearTarget(target: Target) : returns ()`
+
+#### Queries
+
+- `_get(pitch: Pitch) : optional (contributor: Contributor, target: Target, item: Item, visibility: Visibility, fit: Fit, response: String, responseShared: Flag)`
+- `_forTarget(target: Target) : many (pitch: Pitch, contributor: Contributor, item: Item, visibility: Visibility, fit: Fit, response: String, responseShared: Flag)`
+
+#### Instances
+
+- `Pitching` — instance of `Pitching` — [Application types](../design/types.md), line 25.
+  - `Contributor` is `UserAuthenticating.User` — [Application types](../design/types.md), line 26.
+  - `Item` is `SoundExcerpt` — [Application types](../design/types.md), line 28.
+  - `Target` is `SoundWord` — [Application types](../design/types.md), line 27.
+
 ### UserAuthenticating
 
 Defined in [UserAuthenticating](../design/concepts/UserAuthenticating.md), line 1.

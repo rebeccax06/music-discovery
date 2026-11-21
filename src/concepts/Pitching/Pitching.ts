@@ -1,12 +1,12 @@
 import {MongoServerError, type Collection, type Db, ObjectId} from "mongodb";
 
 // Errors
-export class PITCH_NOT_FOUND extends Error{};
-export class ALREADY_PITCHED extends Error{};
-export class NOT_CONTRIBUTOR extends Error{};
-export class ALREADY_REVIEWED extends Error{};
-export class INVALID_REVIEW extends Error{};
-export class NOT_REVIEWED extends Error{};
+export class PitchNotFound extends Error{};
+export class AlreadyPitched extends Error{};
+export class NotContributor extends Error{};
+export class AlreadyReviewed extends Error{};
+export class InvalidReview extends Error{};
+export class NotReviewed extends Error{};
 // 11000 is the MongoDB error code for a write that violates a unique index.
 const isDuplicate = (error: unknown) => error instanceof MongoServerError && error.code === 11000;
 // End Errors
@@ -62,7 +62,7 @@ export class PitchingConcept<Contributor extends string, Target extends string, 
       await this.pitches.insertOne({_id: pitch, target, item, contributor, visibility, response: "", responseShared: false, fit:"PENDING"  })
     } catch (error)
     {
-      if (isDuplicate(error)) throw new ALREADY_PITCHED("This item has already been pitched here.");
+      if (isDuplicate(error)) throw new AlreadyPitched("This item has already been pitched here.");
       throw error;
     }
   return {pitch};
@@ -72,25 +72,26 @@ export class PitchingConcept<Contributor extends string, Target extends string, 
   {
     await this.#ready();
     const result = await this.pitches.deleteOne({_id: pitch, contributor, fit: "PENDING"});
-    if (result.deletedCount === 1) return;
+    if (result.deletedCount === 1) return {};
 
     // Distinguish failure cases
     const existing = await this.pitches.findOne({_id: pitch}, {projection: {contributor: 1, fit: 1}});
-    if (existing === null) throw new PITCH_NOT_FOUND("This pitch could not be found.");
-    if (existing.contributor !== contributor) throw new NOT_CONTRIBUTOR("You cannot withdraw someone else's pitch.");
-    throw new ALREADY_REVIEWED("This pitch has already been reviewed.");   
+    if (existing === null) throw new PitchNotFound("This pitch could not be found.");
+    if (existing.contributor !== contributor) throw new NotContributor("You cannot withdraw someone else's pitch.");
+    throw new AlreadyReviewed("This pitch has already been reviewed.");   
   }
 
   async review({pitch, fit, response}: {pitch: Pitch, fit: Fit, response: string})  
   {
-    if (fit === "PENDING") throw new INVALID_REVIEW ("Choose a fit.");
+    if (fit === "PENDING") throw new InvalidReview ("Choose a fit.") 
     await this.#ready();
     const updatedPitch = await this.pitches.findOneAndUpdate(
       {_id:pitch},
       {$set: {fit, response: response.trim(), responseShared: false}},
       {returnDocument: "after"}
     );
-    if (updatedPitch === null) throw new PITCH_NOT_FOUND ("This pitch could not be found.");
+    if (updatedPitch === null) throw new PitchNotFound ("This pitch could not be found.");
+    return {};
   }
 
   async setVisibility({contributor, pitch, visibility}: {contributor: Contributor, pitch: Pitch, visibility: PitchVisibility})
@@ -100,16 +101,16 @@ export class PitchingConcept<Contributor extends string, Target extends string, 
     {_id: pitch, contributor},
     {$set: {visibility}});
 
-    if (updateResult.matchedCount === 1) return;
+    if (updateResult.matchedCount === 1) return {};
 
     // Distinguish match failure cases
     const existing = await this.pitches.findOne({_id: pitch}, {projection: {_id: 1}});
-    if (existing === null) throw new PITCH_NOT_FOUND("This pitch could not be found.");
+    if (existing === null) throw new PitchNotFound("This pitch could not be found.");
 
-    throw new NOT_CONTRIBUTOR("You cannot change someone else's pitch");
+    throw new NotContributor("You cannot change someone else's pitch.");
   }
 
-  async setResponseShared({pitch, shared}: {pitch: Pitch, shared: boolean})
+  async setResponseShared({pitch, shared}: {pitch: Pitch, shared: boolean}): Promise<Record<string, never>>
   {
     await this.#ready();
     const updateResult = await this.pitches.updateOne(
@@ -117,27 +118,30 @@ export class PitchingConcept<Contributor extends string, Target extends string, 
       {$set: {responseShared: shared}}
     );
 
-    if (updateResult.matchedCount === 1) return;
+    if (updateResult.matchedCount === 1) return {};
 
     // Distinguish match failure cases
     const existingPitch = await this.pitches.findOne({_id: pitch});
-    if (existingPitch === null) throw new PITCH_NOT_FOUND("This pitch could not be found.");
-    if (existingPitch.fit === "PENDING") throw new NOT_REVIEWED("There is no review to share.");
+    if (existingPitch === null) throw new PitchNotFound("This pitch could not be found.");
+    if (existingPitch.fit === "PENDING") throw new NotReviewed ("There is no review to share.");
+    // Reviewed between the update and the lookup; retry so the flag is actually set.
+    return this.setResponseShared({pitch, shared});
   }
 
   async clearTarget({target}: {target: Target})
   {
     await this.#ready();
     await this.pitches.deleteMany({target: target});
+    return {};
   }
 
   async _get({pitch}: {pitch: Pitch})
   {
-    const row = await this.pitches.findOne({pitch});
+    const row = await this.pitches.findOne({_id: pitch});
 
     if (!row) return [];
-    return [row];
-    
+    const {contributor, target, item, visibility, fit, response, responseShared} = row;
+    return [{contributor, target, item, visibility, fit, response, responseShared}];
   }
 
   async _forTarget({target}: {target: Target})
@@ -145,6 +149,5 @@ export class PitchingConcept<Contributor extends string, Target extends string, 
     const rows = await this.pitches.find({target: target}).toArray();
 
     return rows.map(({_id, contributor, item, visibility, fit, response, responseShared }) => ({pitch: _id, contributor, item, visibility, fit, response, responseShared}));
-  }
 }
-
+}

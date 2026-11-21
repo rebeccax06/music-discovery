@@ -2,7 +2,7 @@
 
 The server derives the user identity for protected requests from the session cookie.
 Other concepts receive that opaque user identity through application reactions.
-Annotating receives the selected excerpt and the word as opaque identities. When
+Annotating and Pitching receive the selected excerpt and the word as opaque identities. When
 Excerpting and Associating join the assembly, bind the same parameters directly to
 their owned identities.
 
@@ -24,6 +24,6 @@ instantiate Annotating with
 
 instantiate Pitching with
   Contributor is UserAuthenticating.User
-  Target is Associating.Association
+  Target is SoundWord
   Item is SoundExcerpt
 ```

@@ -6,6 +6,7 @@ import {
   UserAuthenticatingConcept, UsernameTaken,
 } from "./concepts/UserAuthenticating.ts";
 import { AnnotatingConcept, AnnotationExists, InvalidNote, NotAuthor, UnknownAnnotation } from "./concepts/Annotating.ts";
+import { pitching } from "./concepts/Pitching/registry.ts";
 
 const authenticating = registerConcept({
   class: UserAuthenticatingConcept,
@@ -30,5 +31,9 @@ const annotating = registerConcept({
   },
 });
 
-export const applicationConceptSet = conceptSet({ UserAuthenticating: authenticating, Annotating: annotating });
+export const applicationConceptSet = conceptSet({
+  UserAuthenticating: authenticating,
+  Annotating: annotating,
+  Pitching: pitching,
+});
 export const { concepts } = applicationConceptSet;
