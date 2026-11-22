@@ -753,3 +753,22 @@ Our highest priority is demonstrating that Sound It Out can communicate a person
 We therefore consider `Associating`, `Excerpting`, `Annotating`, and `UserAuthenticating` essential to building the personal Sound Wall. `Pitching` is also a core MVP feature because they enable the collaborative music discovery experience described in our user journey. By Checkpoint 1, we aim to have a functional end-to-end application that allows users to define musical concepts, illustrate them with song examples, exchange and evaluate recommendations, and discover new music through friends. We will conduct initial user testing at this stage to identify usability issues and evaluate whether the application effectively communicates subjective musical interpretations.
 
 We will prioritize implementing simplified versions of all core concepts before expanding their functionality. This allows us to maintain a functional application throughout development while using feedback from Checkpoint 1 to guide improvements for Checkpoint 2 and the final submission.
+
+### 6. Update after the alpha build (November 22, 2026)
+
+The plan above is the F3 submission and is kept as written. The alpha build changed it
+as follows; each change, its reason, and its check are in the [decision log](../design/decisions.md).
+
+- **Built:** accounts, words without required descriptions, songs from a checked
+  library of 14 SoundCloud tracks with SoundCloud playback, picked qualities, a draft
+  description computed from those picks, sharing with a per-song choice, suggestions,
+  private reviews, adding a match as a separate step, and friends.
+- **Added:** a Friending concept and a "friends" audience for words ([D8](../design/decisions.md#d8-friends-and-a-third-audience-for-a-word)).
+- **Changed:** an example is a whole track, not a timestamped excerpt ([D4](../design/decisions.md#d4-whole-tracks-now-excerpting-later));
+  a written note is optional ([D2](../design/decisions.md#d2-qualities-belong-to-the-annotation));
+  multi-concept requests are not transactions ([D3](../design/decisions.md#d3-no-cross-concept-transactions));
+  the pitch stores its recipient so Pitching can enforce who reviews it.
+- **Deferred:** Excerpting, counterexamples in the interface, sharing a review with
+  its contributor, SoundCloud search, and LLM rewording of the draft.
+- **Not yet done:** public deployment, the narrated recording, and sessions with
+  people outside the team ([what is left](../design/alpha-integration.md#before-the-alpha-is-complete)).

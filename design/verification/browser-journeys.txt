@@ -1,0 +1,11 @@
+$ bun test --timeout 120000 ./tests/e2e/journeys.e2e.ts
+bun test v1.4.0 (1381054db)
+
+tests/e2e/journeys.e2e.ts:
+Browser journeys against http://127.0.0.1:3768 (started for this run)
+SoundCloud player reported READY for Chill Day: yes
+
+ 18 pass
+ 0 fail
+ 50 expect() calls
+Ran 18 tests across 1 file. [9.24s]
