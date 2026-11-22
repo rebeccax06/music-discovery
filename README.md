@@ -3,6 +3,16 @@
 Sound It Out is a personal music dictionary. Define a word such as “dreamy,” attach a
 song excerpt, and explain what the excerpt conveys to you.
 
+## F4 Alpha Deliverables
+
+| Deliverable | Link or status |
+| --- | --- |
+| Source code | [Backend](src/) · [Frontend](web/) · [Tests](tests/) |
+| Updated designs | [Current specifications and API contracts](#application-design) · [Design changes and verification](design/alpha-integration.md) |
+| Updated development plan | [F4 development plan](final-proj-deliverables/f4-development-plan.md) |
+| Deployed app | *Public URL pending deployment.* |
+| Narrated screen recording | *Video link pending recording.* |
+
 ## Run locally
 
 Install Bun 1.4.2 and a Docker Compose-compatible runtime. From this directory run:
@@ -35,11 +45,12 @@ a local MongoDB with permission to create and drop test databases.
 - [Associating concept](design/concepts/Associating.md)
 - [Annotating concept](design/concepts/Annotating.md)
 - [Accounts composition](design/compositions/Accounts.md)
+- [Managing examples](design/compositions/Examples.md)
 - [Sound Wall composition](design/compositions/SoundWall.md)
 - [Generated API documentation](generated/sound-it-out.md) and [wire types](generated/wire.ts)
 - [Alpha integration and verification](design/alpha-integration.md)
 
-## Final Project Deliverables
+## Earlier Project Deliverables
 
 #### F2 Deliverables: Problem Framing
 * [Domain](final-proj-deliverables/f2.md#domain)
