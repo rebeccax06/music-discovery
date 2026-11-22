@@ -84,4 +84,6 @@ logout(session: Session) : returns ()
 ## Queries
 
 ```queries
+_byUsername(username: String) : optional (user: User, name: String)
+  Returns the user whose canonical username matches the trimmed, lowercased input, with its stored display username, or no row when no such user exists.
 ```

@@ -14,6 +14,11 @@ export function soundItOutPolicy(publicOrigin: string) {
       USERNAME_TAKEN: "CONFLICT",
       INVALID_CREDENTIALS: "UNAUTHORIZED",
       UNKNOWN_SESSION: "UNAUTHORIZED",
+      INVALID_ASSOCIATION: "INVALID_REQUEST",
+      ASSOCIATION_EXISTS: "CONFLICT",
+      UNKNOWN_ASSOCIATION: "NOT_FOUND",
+      NOT_OWNER: "FORBIDDEN",
+      WALL_NOT_FOUND: "NOT_FOUND",
     },
     limits: { requestBodyBytes: 16 * 1024 },
     cookies: {

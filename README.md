@@ -32,8 +32,10 @@ a local MongoDB with permission to create and drop test databases.
 
 - [Application types](design/types.md)
 - [UserAuthenticating concept](design/concepts/UserAuthenticating.md)
+- [Associating concept](design/concepts/Associating.md)
 - [Annotating concept](design/concepts/Annotating.md)
 - [Accounts composition](design/compositions/Accounts.md)
+- [Sound Wall composition](design/compositions/SoundWall.md)
 - [Generated API documentation](generated/sound-it-out.md) and [wire types](generated/wire.ts)
 - [Alpha integration and verification](design/alpha-integration.md)
 

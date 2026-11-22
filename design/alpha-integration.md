@@ -13,6 +13,16 @@ returns the user ID that should be passed as actor. Vue's account state helps re
 controls. The HTTP adapter injects the session from an HttpOnly cookie and checks the
 origin on routes that use it. User IDs are safe to display and carry no authority.
 
+## Associating on the personal Sound Wall
+
+Associating is registered, and its user is the authenticated account. The Sound Wall
+lists, creates, edits, and changes visibility for the session user. A person's public
+wall, addressed by username, can be opened without a session and lists only public
+words; private words stay hidden. Removing a word calls
+`Associating.remove` and then `Annotating.clearContext` in that request. Pitch
+cleanup joins the same request when Pitching is registered. Those writes run in
+order. They are not yet one database transaction.
+
 ## Connecting annotations to the Sound Wall
 
 The registered [Annotating concept](concepts/Annotating.md) owns notes, roles, and
