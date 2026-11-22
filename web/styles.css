@@ -947,6 +947,16 @@ button:disabled {
 .example .meta {
   margin-top: 0.35rem;
 }
+.example .note {
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+.example-actions {
+  margin-top: 0.75rem;
+}
+.example-note-form {
+  margin-top: 0.75rem;
+}
 fieldset {
   margin: 0;
   padding: 0;

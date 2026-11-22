@@ -1,38 +1,16 @@
 import { ref } from "vue/dist/vue.esm-bundler.js";
+import type { SoundItOutWireHttp } from "../generated/wire.ts";
 import { api } from "./api.ts";
 
-export type Visibility = "PRIVATE" | "PUBLIC";
-
-export type Example = {
-  annotation: string;
-  author?: string;
-  item: string;
-  role: string;
-  note: string;
-  visibility?: string;
-};
-
-export type Word = {
-  association: string;
-  label: string;
-  description: string;
-  visibility: Visibility;
-  examples: Example[];
-};
-
-export type SharedWord = {
-  association: string;
-  label: string;
-  description: string;
-  examples: Array<{
-    annotation: string;
-    item: string;
-    role: string;
-    note: string;
-  }>;
-};
-
-export type SharedWall = { owner: string; words: SharedWord[] };
+type WordList = SoundItOutWireHttp["/wall/list"]["output"]["wall"];
+type PublicResult = SoundItOutWireHttp["/wall/public"]["output"];
+export type Word = WordList["words"][number];
+export type Visibility = Word["visibility"];
+export type Example = Word["examples"][number];
+export type ExampleNote = Pick<Example, "role" | "note">;
+export type SharedWord = PublicResult["wall"]["words"][number];
+export type SharedWall = { owner: PublicResult["owner"]; words: SharedWord[] };
+export type ExampleActions = ReturnType<typeof useWall>["examples"];
 
 export function wallUrl(username: string) {
   const url = new URL("/", location.href);
@@ -169,6 +147,35 @@ export function useWall() {
     await load({ quiet: true });
   }
 
+  async function finishExampleChange(result: { error?: string }, fallback: string) {
+    if (result.error) {
+      const errors: Record<string, string> = {
+        INVALID_REQUEST: "Check the explanation and try again.",
+        FORBIDDEN: "You cannot change another person's example.",
+        NOT_FOUND: "This example is no longer available on this word.",
+        UNAUTHORIZED: messages.UNAUTHORIZED!,
+        NETWORK_ERROR: messages.NETWORK_ERROR!,
+      };
+      return errors[result.error] ?? fallback;
+    }
+    await load({ quiet: true });
+  }
+
+  const examples = {
+    async update(association: string, annotation: string, explanation: ExampleNote) {
+      const result = await api.examples.update({ association, annotation, ...explanation });
+      return finishExampleChange(result, "Could not save the explanation. Try again.");
+    },
+    async setVisibility(association: string, annotation: string, visibility: Example["visibility"]) {
+      const result = await api.examples.visibility({ association, annotation, visibility });
+      return finishExampleChange(result, "Could not change who can see this example. Try again.");
+    },
+    async remove(association: string, annotation: string) {
+      const result = await api.examples.remove({ association, annotation });
+      return finishExampleChange(result, "Could not remove this example. Try again.");
+    },
+  };
+
   return {
     words,
     loading,
@@ -183,5 +190,6 @@ export function useWall() {
     saveWord,
     setVisibility,
     removeWord,
+    examples,
   };
 }

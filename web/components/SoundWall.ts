@@ -1,6 +1,7 @@
 import { computed, defineComponent, nextTick, onBeforeUnmount, ref, watch, type PropType } from "vue/dist/vue.esm-bundler.js";
 import { fitLabel } from "../fitLabel.ts";
-import { wallUrl, type useWall, type Word } from "../wall.ts";
+import { wallUrl, type ExampleActions, type useWall, type Word } from "../wall.ts";
+import ExampleCard from "./ExampleCard.ts";
 
 type Wall = ReturnType<typeof useWall>;
 
@@ -32,6 +33,7 @@ const SEARCH_FROM = 6;
 export const MAX_WORD = 40;
 
 export default defineComponent({
+  components: { ExampleCard },
   directives: { fitLabel },
   props: {
     username: { type: String, required: true },
@@ -44,6 +46,7 @@ export default defineComponent({
     saveWord: { type: Function as PropType<Wall["saveWord"]>, required: true },
     setVisibility: { type: Function as PropType<Wall["setVisibility"]>, required: true },
     removeWord: { type: Function as PropType<Wall["removeWord"]>, required: true },
+    exampleActions: { type: Object as PropType<ExampleActions>, required: true },
   },
   setup(props) {
     const adding = ref(false);
@@ -477,9 +480,8 @@ export default defineComponent({
               <h3 id="examples-heading" class="section-label">Examples</h3>
               <ul class="examples">
                 <li v-for="example in selected.examples" :key="example.annotation" class="example" :class="{ counterexample: example.role === 'COUNTEREXAMPLE' }">
-                  <p class="section-label">{{ example.role === 'COUNTEREXAMPLE' ? 'Counterexample' : 'Example' }}</p>
-                  <p class="note">{{ example.note }}</p>
-                  <p class="meta">{{ example.visibility === 'SHARED' ? 'Shared' : 'Private note' }}</p>
+                  <ExampleCard :association="selected.association" :example="example"
+                    :word-public="selected.visibility === 'PUBLIC'" :actions="exampleActions" />
                 </li>
               </ul>
             </section>

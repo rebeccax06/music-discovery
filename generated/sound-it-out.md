@@ -103,6 +103,22 @@ Concrete types:
 
 - `SoundExcerpt` — [Application types](../design/types.md), line 10.
 
+## Views
+
+_Views name reusable conditions. Multiple `where` blocks are alternatives._
+
+### example (annotation) on word (association) owned by (user)
+
+Authored path: `Examples.ExampleOnOwnedWord`.
+- Covered by [Managing examples](../design/compositions/Examples.md), line 5.
+
+```view
+example (annotation) on word (association) owned by (user) — inputs (annotation, association, user); outputs (); bindings ()
+  where
+    Associating._get (association) has (user)
+    Annotating._get (annotation) has (context: association)
+```
+
 ## Formers
 
 _Formers name result shapes evaluated when asked. The source former owns_
@@ -281,6 +297,174 @@ where
   earlier, RequestBoundary.request (requestId)
 then
   RequestBoundary.respond (error: message, requestId)
+```
+
+### Examples.Remove
+
+Authored path: `Examples.Remove`.
+- Covered by [Managing examples](../design/compositions/Examples.md), line 13.
+- Covered by [Managing examples](../design/compositions/Examples.md), line 19.
+
+```reaction
+when RequestBoundary.request (annotation, association, path: "/examples/remove", requestId, session)
+then
+  UserAuthenticating.current (session)
+```
+
+### Examples.Remove:example-unavailable#2
+
+Authored path: `Examples.Remove`.
+- Covered by [Managing examples](../design/compositions/Examples.md), line 13.
+- Covered by [Managing examples](../design/compositions/Examples.md), line 19.
+
+```reaction
+when UserAuthenticating.current (session, user), asked by Examples.Remove
+where
+  earlier, RequestBoundary.request (annotation, association, path: "/examples/remove", requestId, session)
+  no view "example (annotation) on word (association) owned by (user)" with (annotation, association, user)
+then
+  RequestBoundary.respond (error: "UNKNOWN_ANNOTATION", requestId)
+```
+
+### Examples.Remove:owned-example#2
+
+Authored path: `Examples.Remove`.
+- Covered by [Managing examples](../design/compositions/Examples.md), line 13.
+- Covered by [Managing examples](../design/compositions/Examples.md), line 19.
+
+```reaction
+when UserAuthenticating.current (session, user), asked by Examples.Remove
+where
+  earlier, RequestBoundary.request (annotation, association, path: "/examples/remove", requestId, session)
+  view "example (annotation) on word (association) owned by (user)" with (annotation, association, user)
+then
+  Annotating.remove (annotation, author: user)
+```
+
+### Examples.Remove:owned-example#3
+
+Authored path: `Examples.Remove`.
+- Covered by [Managing examples](../design/compositions/Examples.md), line 13.
+- Covered by [Managing examples](../design/compositions/Examples.md), line 19.
+
+```reaction
+when Annotating.remove (annotation, author: user), asked by Examples.Remove:owned-example#2
+where
+  earlier, RequestBoundary.request (annotation, association, path: "/examples/remove", requestId, session)
+then
+  RequestBoundary.respond (requestId)
+```
+
+### Examples.SetVisibility
+
+Authored path: `Examples.SetVisibility`.
+- Covered by [Managing examples](../design/compositions/Examples.md), line 11.
+- Covered by [Managing examples](../design/compositions/Examples.md), line 18.
+
+```reaction
+when RequestBoundary.request (annotation, association, path: "/examples/visibility", requestId, session, visibility)
+then
+  UserAuthenticating.current (session)
+```
+
+### Examples.SetVisibility:example-unavailable#2
+
+Authored path: `Examples.SetVisibility`.
+- Covered by [Managing examples](../design/compositions/Examples.md), line 11.
+- Covered by [Managing examples](../design/compositions/Examples.md), line 18.
+
+```reaction
+when UserAuthenticating.current (session, user), asked by Examples.SetVisibility
+where
+  earlier, RequestBoundary.request (annotation, association, path: "/examples/visibility", requestId, session, visibility)
+  no view "example (annotation) on word (association) owned by (user)" with (annotation, association, user)
+then
+  RequestBoundary.respond (error: "UNKNOWN_ANNOTATION", requestId)
+```
+
+### Examples.SetVisibility:owned-example#2
+
+Authored path: `Examples.SetVisibility`.
+- Covered by [Managing examples](../design/compositions/Examples.md), line 11.
+- Covered by [Managing examples](../design/compositions/Examples.md), line 18.
+
+```reaction
+when UserAuthenticating.current (session, user), asked by Examples.SetVisibility
+where
+  earlier, RequestBoundary.request (annotation, association, path: "/examples/visibility", requestId, session, visibility)
+  view "example (annotation) on word (association) owned by (user)" with (annotation, association, user)
+then
+  Annotating.setVisibility (annotation, author: user, visibility)
+```
+
+### Examples.SetVisibility:owned-example#3
+
+Authored path: `Examples.SetVisibility`.
+- Covered by [Managing examples](../design/compositions/Examples.md), line 11.
+- Covered by [Managing examples](../design/compositions/Examples.md), line 18.
+
+```reaction
+when Annotating.setVisibility (annotation, author: user, visibility), asked by Examples.SetVisibility:owned-example#2
+where
+  earlier, RequestBoundary.request (annotation, association, path: "/examples/visibility", requestId, session, visibility)
+then
+  RequestBoundary.respond (requestId)
+```
+
+### Examples.Update
+
+Authored path: `Examples.Update`.
+- Covered by [Managing examples](../design/compositions/Examples.md), line 9.
+- Covered by [Managing examples](../design/compositions/Examples.md), line 17.
+
+```reaction
+when RequestBoundary.request (annotation, association, note, path: "/examples/update", requestId, role, session)
+then
+  UserAuthenticating.current (session)
+```
+
+### Examples.Update:example-unavailable#2
+
+Authored path: `Examples.Update`.
+- Covered by [Managing examples](../design/compositions/Examples.md), line 9.
+- Covered by [Managing examples](../design/compositions/Examples.md), line 17.
+
+```reaction
+when UserAuthenticating.current (session, user), asked by Examples.Update
+where
+  earlier, RequestBoundary.request (annotation, association, note, path: "/examples/update", requestId, role, session)
+  no view "example (annotation) on word (association) owned by (user)" with (annotation, association, user)
+then
+  RequestBoundary.respond (error: "UNKNOWN_ANNOTATION", requestId)
+```
+
+### Examples.Update:owned-example#2
+
+Authored path: `Examples.Update`.
+- Covered by [Managing examples](../design/compositions/Examples.md), line 9.
+- Covered by [Managing examples](../design/compositions/Examples.md), line 17.
+
+```reaction
+when UserAuthenticating.current (session, user), asked by Examples.Update
+where
+  earlier, RequestBoundary.request (annotation, association, note, path: "/examples/update", requestId, role, session)
+  view "example (annotation) on word (association) owned by (user)" with (annotation, association, user)
+then
+  Annotating.update (annotation, author: user, note, role)
+```
+
+### Examples.Update:owned-example#3
+
+Authored path: `Examples.Update`.
+- Covered by [Managing examples](../design/compositions/Examples.md), line 9.
+- Covered by [Managing examples](../design/compositions/Examples.md), line 17.
+
+```reaction
+when Annotating.update (annotation, author: user, note, role), asked by Examples.Update:owned-example#2
+where
+  earlier, RequestBoundary.request (annotation, association, note, path: "/examples/update", requestId, role, session)
+then
+  RequestBoundary.respond (requestId)
 ```
 
 ### SoundWall.Definitions.Associate
@@ -524,6 +708,9 @@ not listed here have no explicit input contract.
 - `/auth/logout` — requires `session`
 - `/auth/me` — requires `session`
 - `/auth/register` — requires `username`, `password`
+- `/examples/remove` — requires `session`, `association`, `annotation`
+- `/examples/update` — requires `session`, `association`, `annotation`, `role`, `note`
+- `/examples/visibility` — requires `session`, `association`, `annotation`, `visibility`
 - `/wall/associate` — requires `session`, `label`, `description`, `visibility`
 - `/wall/list` — requires `session`
 - `/wall/public` — requires `username`

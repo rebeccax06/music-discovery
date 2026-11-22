@@ -19,6 +19,9 @@ export function soundItOutPolicy(publicOrigin: string) {
       UNKNOWN_ASSOCIATION: "NOT_FOUND",
       NOT_OWNER: "FORBIDDEN",
       WALL_NOT_FOUND: "NOT_FOUND",
+      INVALID_NOTE: "INVALID_REQUEST",
+      UNKNOWN_ANNOTATION: "NOT_FOUND",
+      NOT_AUTHOR: "FORBIDDEN",
     },
     limits: { requestBodyBytes: 16 * 1024 },
     cookies: {

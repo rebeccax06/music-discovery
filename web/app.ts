@@ -67,7 +67,7 @@ createApp({
       </div>
     </header>
     <main>
-      <h1 ref="title" tabindex="-1">{{ publicWall ? publicWall.owner + ''s Sound Wall' : 'Sound Wall' }}</h1>
+      <h1 ref="title" tabindex="-1">{{ publicWall ? publicWall.owner + '’s Sound Wall' : 'Sound Wall' }}</h1>
       <p v-if="!ready" role="status">Checking your session…</p>
       <div v-else-if="restoreError" class="account-panel">
         <p class="error" role="alert">{{ restoreError }}</p>
@@ -81,7 +81,7 @@ createApp({
         <SoundWall v-if="account && !publicWall"
           :username="account.username" :words="words" :loading="loading" :load-error="loadError" :open-id="openId"
           :reload="load" :create-word="createWord" :save-word="saveWord"
-          :set-visibility="setVisibility" :remove-word="removeWord" />
+          :set-visibility="setVisibility" :remove-word="removeWord" :example-actions="examples" />
         <div v-if="!account && publicWall && !showSignIn" class="visitor-invite">
           <p class="meta">Define the words you use for music.</p>
           <button class="primary" type="button" @click="showSignIn = true">Sign in</button>

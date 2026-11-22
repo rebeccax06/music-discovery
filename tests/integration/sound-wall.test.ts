@@ -152,4 +152,75 @@ describe("Sound Wall over HTTP", () => {
     });
     expect((await request("/wall/public", { username: "nobody-here" })).status).toBe(404);
   });
+
+  async function wordWithExample(username: string) {
+    const cookie = await signIn(username);
+    const word = await request("/wall/associate", {
+      label: "Soft", description: "Gentle vocals.", visibility: "PUBLIC",
+    }, cookie);
+    expect(word.status).toBe(200);
+    const { association } = word.body as { association: string };
+    const account = await request("/auth/me", {}, cookie);
+    const { user } = account.body as { user: string };
+    const { annotation } = await annotations.annotate({
+      author: user, item: "selected-interval", context: association, role: "EXAMPLE", note: "Gentle percussion.",
+    });
+    return { cookie, association, annotation, user };
+  }
+
+  test("lets an owner edit, publish, unpublish, and remove an existing example", async () => {
+    const username = "ExampleOwner";
+    const { cookie, association, annotation } = await wordWithExample(username);
+    const target = { association, annotation };
+    const openPublic = () => request("/wall/public", { username });
+    const readOwn = () => request("/wall/list", {}, cookie);
+    expect((await request("/examples/update", {
+      ...target, role: "COUNTEREXAMPLE", note: "  The cymbals are too sharp.  ",
+    }, cookie)).status).toBe(200);
+    expect((await readOwn()).body).toMatchObject({ wall: { words: [{ examples: [{
+      annotation, role: "COUNTEREXAMPLE", note: "The cymbals are too sharp.", visibility: "PRIVATE",
+    }] }] } });
+    expect((await openPublic()).body).toMatchObject({ wall: { words: [{ examples: [] }] } });
+
+    expect((await request("/examples/visibility", { ...target, visibility: "SHARED" }, cookie)).status).toBe(200);
+    restart();
+    expect((await openPublic()).body).toMatchObject({ wall: { words: [{ examples: [{
+      annotation, role: "COUNTEREXAMPLE", note: "The cymbals are too sharp.",
+    }] }] } });
+    expect((await request("/wall/visibility", { association, visibility: "PRIVATE" }, cookie)).status).toBe(200);
+    expect((await openPublic()).body).toEqual({ owner: username, wall: { words: [] } });
+    expect((await request("/wall/visibility", { association, visibility: "PUBLIC" }, cookie)).status).toBe(200);
+    expect((await request("/examples/visibility", { ...target, visibility: "PRIVATE" }, cookie)).status).toBe(200);
+    expect((await openPublic()).body).toMatchObject({ wall: { words: [{ examples: [] }] } });
+    expect((await request("/examples/remove", target, cookie)).status).toBe(200);
+    expect((await readOwn()).body).toMatchObject({ wall: { words: [{ examples: [] }] } });
+  });
+
+  test("refuses a visitor, a mismatched word, a foreign author, and invalid note inputs", async () => {
+    const { cookie, association, annotation, user } = await wordWithExample("PrivateExampleOwner");
+    const visitor = await signIn("ExampleVisitor");
+    const target = { association, annotation };
+    expect((await request("/examples/remove", target)).status).toBe(401);
+    expect((await request("/examples/update", { ...target, role: "EXAMPLE", note: "Another note." }, visitor)).status).toBe(404);
+    expect((await request("/examples/visibility", { ...target, visibility: "SHARED" }, visitor)).status).toBe(404);
+    expect((await request("/examples/remove", target, visitor)).status).toBe(404);
+    expect((await request("/examples/remove", { ...target, author: user }, visitor)).status).toBe(400);
+
+    const second = await request("/wall/associate", {
+      label: "Tense", description: "An unsettled melody.", visibility: "PRIVATE",
+    }, cookie);
+    const otherWord = (second.body as { association: string }).association;
+    expect((await request("/examples/remove", { annotation, association: otherWord }, cookie)).status).toBe(404);
+    expect((await request("/examples/update", { ...target, role: "unknown", note: "A note." }, cookie)).status).toBe(400);
+    expect((await request("/examples/update", { ...target, role: "EXAMPLE", note: "   " }, cookie)).status).toBe(400);
+
+    const { user: visitorId } = (await request("/auth/me", {}, visitor)).body as { user: string };
+    const foreign = await annotations.annotate({
+      author: visitorId, item: "another-interval", context: association, role: "EXAMPLE", note: "An independent explanation.",
+    });
+    expect((await request("/examples/remove", { ...target, ...foreign }, cookie)).status).toBe(403);
+    expect(await annotations._get({ annotation })).toMatchObject([{ note: "Gentle percussion.", visibility: "PRIVATE" }]);
+    expect((await request("/wall/public", { username: "PrivateExampleOwner" }, visitor)).body)
+      .toMatchObject({ wall: { words: [{ examples: [] }] } });
+  });
 });
