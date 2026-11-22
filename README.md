@@ -10,7 +10,8 @@ By Bhadra Rupesh, Sanskriti Singh, Rebecca Xiong, and Victor ([team](team.md)) f
 6.1040, Fall 2026.
 
 **Public app:** not deployed yet. **Demo recording:** not recorded yet.
-See [what is left](design/alpha-integration.md#before-the-alpha-is-complete).
+The [updated development plan](final-proj-deliverables/development-plan.md) says what
+is complete, what remains, who owns it, and how to deploy.
 
 ## What works today
 
@@ -50,7 +51,16 @@ Then open <http://127.0.0.1:3000>. `podman compose` works in place of
 | `PUBLIC_ORIGIN` | `http://127.0.0.1:<PORT>` | People open the app at any other address. No trailing slash. |
 | `HOST` | `127.0.0.1`, or `0.0.0.0` when `NODE_ENV=production` | You need to listen on another interface. |
 
-None of these is a secret, and no API keys are needed.
+None of these is a secret, and no API keys are needed. `MONGODB_URI` is accepted in
+place of `MONGODB_URL`. With `NODE_ENV=production`, the server refuses to start
+without `PUBLIC_ORIGIN` and a database variable, and says which one is missing.
+
+### Deploy
+
+On the course platform the settings are: runtime Bun, package directory `.`, no build
+script, start script `start`, port `3000`, health check `/health`, a MongoDB named
+`MONGODB_URL`, and `PUBLIC_ORIGIN` set to the app's https address. Step-by-step
+instructions and checks are in the [development plan](final-proj-deliverables/development-plan.md#41-deploy-before-the-alpha-deadline).
 
 ## Test it
 
@@ -73,6 +83,7 @@ Saved results and their limits: [design/verification](design/verification/README
 ## Design
 
 - [Product and implementation brief](final-proj-deliverables/mvp-product-and-implementation-brief.md): the plan this build follows.
+- [Updated development plan](final-proj-deliverables/development-plan.md): what is complete, what remains, and why the scope changed.
 - [Decision log](design/decisions.md): what changed while building, why, and how each change was checked.
 - [How the concepts meet](design/alpha-integration.md)
 - [Application types](design/types.md)
@@ -115,4 +126,4 @@ files under `design/`, the `design/` files describe the current app; the
   * [Color palette slide](final-proj-deliverables/visual-design/colorschemeslide1-visualdesign.png)
   * [Typography palette slide](final-proj-deliverables/visual-design/typographyslide2-visualdesign.png)
 * [Design summary](final-proj-deliverables/sound-it-out-f3.md#design-summary)
-* [Development plan](final-proj-deliverables/sound-it-out-f3.md#development-plan)
+* [Development plan](final-proj-deliverables/sound-it-out-f3.md#development-plan) (as submitted; [updated plan](final-proj-deliverables/development-plan.md))

@@ -52,9 +52,13 @@ sent to any model.
 
 ## Before the alpha is complete
 
+Owners and step-by-step instructions are in the
+[updated development plan](../final-proj-deliverables/development-plan.md#4-remaining-work).
+
 - **Deploy.** On the class host, use the root package, Bun, the `start` script, port
-  3000, and `/health`. Set `MONGODB_URL` and `PUBLIC_ORIGIN` in the hosting settings.
-  The database does not need transactions. See the
+  3000, and `/health`. Name the platform's database variable `MONGODB_URL`
+  (`MONGODB_URI` also works) and set `PUBLIC_ORIGIN`. The database does not need
+  transactions, and the server keeps at most 5 of its 10 allowed connections. See the
   [course deployment guide](https://61040.github.io/fa26/resources/deploying-apps/).
 - **Check the deployment** with `BASE_URL=<public URL> bun run test:e2e`, then sign in
   by hand in Safari and Firefox.

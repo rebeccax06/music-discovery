@@ -3,10 +3,23 @@ import { assembleApplication, createInstances } from "./assembly.ts";
 import { createApi } from "./http.ts";
 import { buildFrontend } from "../web/serve.ts";
 
+const production = process.env.NODE_ENV === "production";
 const port = Number(process.env.PORT ?? 3000);
-const publicOrigin = process.env.PUBLIC_ORIGIN ?? `http://127.0.0.1:${port}`;
-const mongoUrl = process.env.MONGODB_URL ?? "mongodb://dev:dev@127.0.0.1:27017/sound-it-out?authSource=admin";
-const client = new MongoClient(mongoUrl, { serverSelectionTimeoutMS: 3000 });
+
+/** A setting that has a local default but must be given explicitly when deployed. */
+function setting(names: string[], localDefault: string) {
+  const value = names.map(name => process.env[name]).find(Boolean);
+  if (value) return value;
+  if (production) throw new Error(`${names.join(" or ")} is not set. Add it in the hosting settings; see README.md.`);
+  return localDefault;
+}
+
+// Sign-in is accepted only from this address, so a deployment must name its own https address.
+const publicOrigin = setting(["PUBLIC_ORIGIN"], `http://127.0.0.1:${port}`).replace(/\/$/, "");
+// The course platform's database dialog suggests MONGODB_URI; either name works.
+const mongoUrl = setting(["MONGODB_URL", "MONGODB_URI"], "mongodb://dev:dev@127.0.0.1:27017/sound-it-out?authSource=admin");
+// The hosted database allows 10 connections, and a rolling deploy briefly runs two copies of the app.
+const client = new MongoClient(mongoUrl, { serverSelectionTimeoutMS: 3000, maxPoolSize: 5 });
 const db = client.db();
 const api = createApi(assembleApplication(createInstances(db)), publicOrigin);
 const frontend = await buildFrontend();
