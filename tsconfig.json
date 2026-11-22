@@ -11,5 +11,5 @@
     "types": ["bun", "node"],
     "paths": { "@design/*": ["./design/*"] }
   },
-  "include": ["src", "web", "tests", "generated", "generated.config.ts"]
+  "include": ["src", "web", "shared", "tests", "generated", "generated.config.ts"]
 }

@@ -1,6 +1,5 @@
 import { MongoServerError, type Collection, type Db } from "mongodb";
 
-export class InvalidNote extends Error {}
 export class AnnotationExists extends Error {}
 export class UnknownAnnotation extends Error {}
 export class NotAuthor extends Error {}
@@ -8,7 +7,7 @@ export class NotAuthor extends Error {}
 export type AnnotationRole = "EXAMPLE" | "COUNTEREXAMPLE";
 export type AnnotationVisibility = "PRIVATE" | "SHARED";
 
-type Explanation = { role: AnnotationRole; note: string };
+type Explanation = { role: AnnotationRole; note: string; qualities: string[] };
 type AuthorAction = { author: string; annotation: string };
 
 interface Annotation extends Explanation {
@@ -19,10 +18,8 @@ interface Annotation extends Explanation {
   visibility: AnnotationVisibility;
 }
 
-function requiredNote(note: string) {
-  const text = note.trim();
-  if (!text) throw new InvalidNote("Explain why this example matters.");
-  return text;
+function normalized(qualities: string[]) {
+  return [...new Set(qualities.map(quality => quality.trim().toLowerCase()).filter(Boolean))].sort();
 }
 
 export class AnnotatingConcept {
@@ -42,13 +39,14 @@ export class AnnotatingConcept {
     return this.#index;
   }
 
-  async annotate({ author, item, context, role, note }: Explanation & { author: string; item: string; context: string }) {
-    const text = requiredNote(note);
+  async annotate({ author, item, context, role, note, qualities }: Explanation & { author: string; item: string; context: string }) {
     await this.#ready();
 
     const annotation = crypto.randomUUID();
     try {
-      await this.annotations.insertOne({ _id: annotation, author, item, context, role, note: text, visibility: "PRIVATE" });
+      await this.annotations.insertOne({
+        _id: annotation, author, item, context, role, note: note.trim(), qualities: normalized(qualities), visibility: "PRIVATE",
+      });
     } catch (error) {
       if (error instanceof MongoServerError && error.code === 11000) {
         throw new AnnotationExists("This item is already included here.");
@@ -58,9 +56,11 @@ export class AnnotatingConcept {
     return { annotation };
   }
 
-  async update({ author, annotation, role, note }: AuthorAction & Explanation) {
+  async update({ author, annotation, role, note, qualities }: AuthorAction & Explanation) {
     const selector = await this.#byAuthor({ author, annotation });
-    const result = await this.annotations.updateOne(selector, { $set: { role, note: requiredNote(note) } });
+    const result = await this.annotations.updateOne(selector, {
+      $set: { role, note: note.trim(), qualities: normalized(qualities) },
+    });
     if (!result.matchedCount) throw new UnknownAnnotation("This annotation could not be found.");
     return {};
   }
@@ -87,14 +87,14 @@ export class AnnotatingConcept {
   async _get({ annotation }: { annotation: string }) {
     const row = await this.annotations.findOne({ _id: annotation });
     if (!row) return [];
-    const { author, item, context, role, note, visibility } = row;
-    return [{ author, item, context, role, note, visibility }];
+    const { author, item, context, role, note, qualities, visibility } = row;
+    return [{ author, item, context, role, note, qualities, visibility }];
   }
 
   async _forContext({ context }: { context: string }) {
     const rows = await this.annotations.find({ context }).toArray();
-    return rows.map(({ _id, author, item, role, note, visibility }) => ({
-      annotation: _id, author, item, role, note, visibility,
+    return rows.map(({ _id, author, item, role, note, qualities, visibility }) => ({
+      annotation: _id, author, item, role, note, qualities, visibility,
     }));
   }
 

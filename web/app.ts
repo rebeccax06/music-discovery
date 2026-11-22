@@ -1,73 +1,136 @@
-import { createApp, nextTick, onMounted, ref } from "vue/dist/vue.esm-bundler.js";
-import AccountAccess from "./components/AccountAccess.ts";
-import PublicWall from "./components/PublicWall.ts";
-import SoundWall from "./components/SoundWall.ts";
+import { computed, createApp, nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue/dist/vue.esm-bundler.js";
 import { useAccount } from "./account.ts";
+import AccountAccess from "./components/AccountAccess.ts";
+import FriendsPage from "./components/FriendsPage.ts";
+import OwnWall from "./components/OwnWall.ts";
+import PublicWallView from "./components/PublicWallView.ts";
+import { useFriends } from "./friends.ts";
+import { usePublicWall } from "./publicWall.ts";
+import { go, route } from "./route.ts";
+import { useSuggestions } from "./suggestions.ts";
+import { dismiss, toast } from "./toast.ts";
 import { useWall } from "./wall.ts";
 
 createApp({
-  components: { AccountAccess, PublicWall, SoundWall },
+  components: { AccountAccess, FriendsPage, OwnWall, PublicWallView },
   setup() {
     const session = useAccount();
-    const wall = useWall();
-    const title = ref<HTMLHeadingElement | null>(null);
+    const { account, restoreError } = session;
+    const expired = ref(false);
+    const sessionEnded = () => { expired.value = true; };
+    const wall = useWall(sessionEnded);
+    const visited = usePublicWall(() => !!account.value && !expired.value);
+    const suggestions = useSuggestions(sessionEnded);
+    const friends = useFriends(sessionEnded);
     const ready = ref(false);
     const signingOut = ref(false);
     const signOutError = ref("");
-    const showSignIn = ref(false);
+    const sameName = (a: string, b: string) => a.toLowerCase() === b.toLowerCase();
+    const visiting = computed(() => !!route.wall && !(account.value && sameName(route.wall, account.value.username)));
+    const onFriends = computed(() => !!account.value && route.friends && !route.wall);
+
+    /** A person's own wall has one address. Their public address leads back to it. */
+    function redirectOwnWall() {
+      if (!route.wall || !account.value || !sameName(route.wall, account.value.username)) return false;
+      go({ word: route.word }, { replace: true });
+      return true;
+    }
+
+    watch(() => route.wall, username => {
+      if (ready.value && !redirectOwnWall() && username) void visited.load(username);
+    });
+
+    /** What other people change (friend requests, suggestions, shared words) is picked up on return. */
+    async function refresh() {
+      if (!account.value || expired.value) return;
+      await Promise.all([
+        wall.load({ quiet: true }),
+        friends.load(),
+        visiting.value && route.wall ? visited.load(route.wall, { quiet: true }) : undefined,
+      ]);
+    }
+    const onVisible = () => { if (document.visibilityState === "visible") void refresh(); };
+    document.addEventListener("visibilitychange", onVisible);
+    onBeforeUnmount(() => document.removeEventListener("visibilitychange", onVisible));
+    watch(() => route.friends, () => { void refresh(); });
 
     async function signIn(username: string, password: string) {
       const failure = await session.signIn(username, password);
-      if (!failure) {
-        await wall.open(session.account.value ?? null);
-        await nextTick(() => title.value?.focus());
-      }
-      return failure;
+      if (failure) return failure;
+      expired.value = false;
+      redirectOwnWall();
+      await Promise.all([
+        wall.load(),
+        friends.load(),
+        // Signing in partway through a visit keeps the visitor where they were, now seeing what friends see.
+        visiting.value && route.wall ? visited.load(route.wall, { quiet: true }) : undefined,
+      ]);
     }
 
     async function signOut() {
       if (signingOut.value) return;
       signingOut.value = true;
       signOutError.value = "";
-      try {
-        const failure = await session.signOut();
-        if (failure) signOutError.value = "Could not sign out. Try again.";
-        else {
-          await wall.open(null);
-          await nextTick(() => title.value?.focus());
-        }
-      } catch {
-        signOutError.value = "Could not sign out. Check your connection and try again.";
-      } finally {
-        signingOut.value = false;
+      const failure = await session.signOut();
+      signingOut.value = false;
+      if (failure) {
+        signOutError.value = failure;
+        return;
       }
+      expired.value = false;
+      wall.clear();
+      suggestions.clear();
+      friends.clear();
+      if (route.wall) await visited.load(route.wall, { quiet: true });
+      else go({}, { replace: true });
+      await nextTick();
+      document.querySelector<HTMLElement>("main h1, main h2")?.focus();
     }
 
     async function start() {
       ready.value = false;
       await session.restore();
-      if (!session.restoreError.value) await wall.open(session.account.value ?? null);
+      if (!restoreError.value) {
+        const own = redirectOwnWall();
+        await Promise.all([
+          account.value ? wall.load() : undefined,
+          account.value ? friends.load() : undefined,
+          !own && route.wall ? visited.load(route.wall) : undefined,
+        ]);
+      }
       ready.value = true;
+    }
+
+    function follow() {
+      const next = toast.follow;
+      dismiss();
+      next?.run();
     }
 
     onMounted(start);
 
-    return { ...session, ...wall, title, ready, start, signIn, signOut, signingOut, signOutError, showSignIn };
+    return {
+      account, restoreError, session: { register: session.register, signIn }, wall, visited, suggestions, friends,
+      ready, expired, visiting, onFriends, signingOut, signOutError, start, signOut, toast, follow, go, route,
+    };
   },
   template: `
     <header class="site-header">
       <div class="header-inner">
-        <a class="wordmark" href="/">Sound It Out</a>
-        <div v-if="account" class="account-summary">
-          <span>{{ account.username }}</span>
+        <a class="wordmark" href="/" @click.prevent="go({})">Sound It Out</a>
+        <nav v-if="account" class="account-summary" aria-label="Main">
+          <a class="nav-link" href="/" :aria-current="!visiting && !onFriends ? 'page' : undefined" @click.prevent="go({})">Your wall</a>
+          <a class="nav-link" href="/?friends" :aria-current="onFriends ? 'page' : undefined" @click.prevent="go({ friends: true })">
+            Friends<span v-if="friends.waiting.value" class="badge" :aria-label="friends.waiting.value + ' waiting'">{{ friends.waiting.value }}</span>
+          </a>
+          <span class="who">{{ account.username }}</span>
           <button class="text-button" type="button" :disabled="signingOut" @click="signOut">
             {{ signingOut ? 'Signing out…' : 'Sign out' }}
           </button>
-        </div>
+        </nav>
       </div>
     </header>
     <main>
-      <h1 ref="title" tabindex="-1">{{ publicWall ? publicWall.owner + ''s Sound Wall' : 'Sound Wall' }}</h1>
       <p v-if="!ready" role="status">Checking your session…</p>
       <div v-else-if="restoreError" class="account-panel">
         <p class="error" role="alert">{{ restoreError }}</p>
@@ -75,22 +138,23 @@ createApp({
       </div>
       <template v-else>
         <p v-if="signOutError" class="error" role="alert">{{ signOutError }}</p>
-        <PublicWall v-if="publicWall" :wall="publicWall" :signed-in="!!account" @back="showOwnWall" />
-        <p v-else-if="wallUnavailable" class="error" role="alert">This Sound Wall could not be found.</p>
-        <button v-if="account && wallUnavailable && !publicWall" class="text-button" type="button" @click="showOwnWall">Your Sound Wall</button>
-        <SoundWall v-if="account && !publicWall"
-          :username="account.username" :words="words" :loading="loading" :load-error="loadError" :open-id="openId"
-          :reload="load" :create-word="createWord" :save-word="saveWord"
-          :set-visibility="setVisibility" :remove-word="removeWord" />
-        <div v-if="!account && publicWall && !showSignIn" class="visitor-invite">
-          <p class="meta">Define the words you use for music.</p>
-          <button class="primary" type="button" @click="showSignIn = true">Sign in</button>
-        </div>
-        <template v-else-if="!account">
-          <p class="lead">{{ publicWall ? 'Sign in to build your own Sound Wall.' : 'Sign in to build your Sound Wall.' }}</p>
-          <AccountAccess :sign-in="signIn" />
-        </template>
+        <section v-if="expired && account" class="session-ended" aria-label="Sign in again">
+          <p class="notice" role="alert">Your session has ended. Sign in again to continue. What you entered on this page is still here.</p>
+          <AccountAccess :register="session.register" :sign-in="session.signIn" />
+        </section>
+        <PublicWallView v-if="visiting" :visited="visited" :account="account" :session="session" :suggestions="suggestions" :friends="friends" />
+        <FriendsPage v-else-if="onFriends" :me="account.username" :friends="friends" :suggestions="suggestions" />
+        <OwnWall v-else-if="account" :username="account.username" :wall="wall" />
+        <section v-else class="welcome">
+          <h1 tabindex="-1">Show a friend what your music words sound like</h1>
+          <p class="lead">Pick a word like “dreamy,” add the songs that sound like it to you, and share it with friends. They can listen and suggest songs that fit.</p>
+          <AccountAccess :register="session.register" :sign-in="session.signIn" />
+        </section>
       </template>
     </main>
+    <div class="toast" :class="{ 'is-shown': toast.message }" role="status">
+      <span>{{ toast.message }}</span>
+      <button v-if="toast.follow" class="toast-action" type="button" @click="follow">{{ toast.follow.label }}</button>
+    </div>
   `,
 }).mount("#app");

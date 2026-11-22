@@ -53,6 +53,149 @@ export type SoundItOutWire = {
     };
     error: { error: AppWideError | "INVALID_INPUT" | "INVALID_PASSWORD" | "INVALID_USERNAME" | "USERNAME_TAKEN" };
   };
+  "/friends/accept": {
+    input: {
+      "session": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["UserAuthenticating"]["current"]>[0], ["session"]>>;
+      "username": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["UserAuthenticating"]["_byUsername"]>[0], ["username"]>>;
+    };
+    output: Record<string, never>;
+    error: { error: AppWideError | "INVALID_INPUT" | "NO_REQUEST" | "PERSON_NOT_FOUND" | "UNKNOWN_SESSION" };
+  };
+  "/friends/cancel": {
+    input: {
+      "session": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["UserAuthenticating"]["current"]>[0], ["session"]>>;
+      "username": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["UserAuthenticating"]["_byUsername"]>[0], ["username"]>>;
+    };
+    output: Record<string, never>;
+    error: { error: AppWideError | "INVALID_INPUT" | "NO_REQUEST" | "PERSON_NOT_FOUND" | "UNKNOWN_SESSION" };
+  };
+  "/friends/decline": {
+    input: {
+      "session": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["UserAuthenticating"]["current"]>[0], ["session"]>>;
+      "username": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["UserAuthenticating"]["_byUsername"]>[0], ["username"]>>;
+    };
+    output: Record<string, never>;
+    error: { error: AppWideError | "INVALID_INPUT" | "NO_REQUEST" | "PERSON_NOT_FOUND" | "UNKNOWN_SESSION" };
+  };
+  "/friends/list": {
+    input: {
+      "session": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["UserAuthenticating"]["current"]>[0], ["session"]>>;
+    };
+    output: {
+      "circle": {
+        "friends": {
+          "username": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["UserAuthenticating"]["_username"]>>>, ["username"]>>;
+          "wall": {
+            "words": {
+              "association": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Associating"]["_byUser"]>>>, ["association"]>>;
+              "description": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Associating"]["_byUser"]>>>, ["description"]>>;
+              "examples": {
+                "annotation": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Annotating"]["_forContext"]>>>, ["annotation"]>>;
+                "item": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Annotating"]["_forContext"]>>>, ["item"]>>;
+                "note": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Annotating"]["_forContext"]>>>, ["note"]>>;
+                "qualities": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Annotating"]["_forContext"]>>>, ["qualities"]>>;
+                "role": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Annotating"]["_forContext"]>>>, ["role"]>>;
+              }[];
+              "label": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Associating"]["_byUser"]>>>, ["label"]>>;
+              "visibility": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Associating"]["_byUser"]>>>, ["visibility"]>>;
+            }[];
+          };
+        }[];
+        "received": {
+          "username": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["UserAuthenticating"]["_username"]>>>, ["username"]>>;
+        }[];
+        "sent": {
+          "username": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["UserAuthenticating"]["_username"]>>>, ["username"]>>;
+        }[];
+      };
+    };
+    error: { error: AppWideError | "INVALID_INPUT" | "UNKNOWN_SESSION" };
+  };
+  "/friends/remove": {
+    input: {
+      "session": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["UserAuthenticating"]["current"]>[0], ["session"]>>;
+      "username": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["UserAuthenticating"]["_byUsername"]>[0], ["username"]>>;
+    };
+    output: Record<string, never>;
+    error: { error: AppWideError | "INVALID_INPUT" | "NOT_FRIENDS" | "PERSON_NOT_FOUND" | "UNKNOWN_SESSION" };
+  };
+  "/friends/request": {
+    input: {
+      "session": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["UserAuthenticating"]["current"]>[0], ["session"]>>;
+      "username": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["UserAuthenticating"]["_byUsername"]>[0], ["username"]>>;
+    };
+    output: Record<string, never>;
+    error: { error: AppWideError | "ALREADY_FRIENDS" | "INVALID_INPUT" | "PERSON_NOT_FOUND" | "REQUEST_EXISTS" | "REQUEST_WAITING" | "SELF_REQUEST" | "UNKNOWN_SESSION" };
+  };
+  "/suggestions/promote": {
+    input: {
+      "note": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Annotating"]["annotate"]>[0], ["note"]>>;
+      "pitch": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Pitching"]["_get"]>[0], ["pitch"]>>;
+      "qualities": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Annotating"]["annotate"]>[0], ["qualities"]>>;
+      "session": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["UserAuthenticating"]["current"]>[0], ["session"]>>;
+    };
+    output: {
+      "annotation": Jsonify<AtPath<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Annotating"]["annotate"]>>, ["annotation"]>>;
+      "word": {
+        "label": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Associating"]["_get"]>>>, ["label"]>> | null;
+      };
+    };
+    error: { error: AppWideError | "ANNOTATION_EXISTS" | "INVALID_INPUT" | "NOT_A_MATCH" | "UNKNOWN_SESSION" };
+  };
+  "/suggestions/review": {
+    input: {
+      "fit": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Pitching"]["review"]>[0], ["fit"]>>;
+      "pitch": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Pitching"]["review"]>[0], ["pitch"]>>;
+      "response": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Pitching"]["review"]>[0], ["response"]>>;
+      "session": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["UserAuthenticating"]["current"]>[0], ["session"]>>;
+    };
+    output: Record<string, never>;
+    error: { error: AppWideError | "INVALID_INPUT" | "INVALID_REVIEW" | "NOT_RECIPIENT" | "UNKNOWN_PITCH" | "UNKNOWN_SESSION" };
+  };
+  "/suggestions/send": {
+    input: {
+      "association": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Associating"]["_get"]>[0], ["association"]>>;
+      "item": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Pitching"]["pitch"]>[0], ["item"]>>;
+      "note": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Pitching"]["pitch"]>[0], ["note"]>>;
+      "session": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["UserAuthenticating"]["current"]>[0], ["session"]>>;
+    };
+    output: {
+      "pitch": Jsonify<AtPath<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Pitching"]["pitch"]>>, ["pitch"]>>;
+      "word": {
+        "label": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Associating"]["_get"]>>>, ["label"]>> | null;
+      };
+    } | {
+      "pitch": Jsonify<AtPath<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Pitching"]["pitch"]>>, ["pitch"]>>;
+      "word": {
+        "label": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Associating"]["_get"]>>>, ["label"]>> | null;
+      };
+    };
+    error: { error: AppWideError | "ALREADY_PITCHED" | "INVALID_INPUT" | "SELF_PITCH" | "UNKNOWN_SESSION" | "WORD_NOT_FOUND" };
+  };
+  "/suggestions/sent": {
+    input: {
+      "session": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["UserAuthenticating"]["current"]>[0], ["session"]>>;
+    };
+    output: {
+      "suggestions": {
+        "item": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Pitching"]["_sentBy"]>>>, ["item"]>>;
+        "note": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Pitching"]["_sentBy"]>>>, ["note"]>>;
+        "pitch": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Pitching"]["_sentBy"]>>>, ["pitch"]>>;
+        "reviewed": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Pitching"]["_sentBy"]>>>, ["reviewed"]>>;
+        "to": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["UserAuthenticating"]["_username"]>>>, ["username"]>>;
+        "word": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Pitching"]["_sentBy"]>>>, ["target"]>>;
+      }[];
+    };
+    error: { error: AppWideError | "INVALID_INPUT" | "UNKNOWN_SESSION" };
+  };
+  "/suggestions/withdraw": {
+    input: {
+      "pitch": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Pitching"]["withdraw"]>[0], ["pitch"]>>;
+      "session": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["UserAuthenticating"]["current"]>[0], ["session"]>>;
+    };
+    output: Record<string, never>;
+    error: { error: AppWideError | "ALREADY_REVIEWED" | "INVALID_INPUT" | "NOT_CONTRIBUTOR" | "UNKNOWN_PITCH" | "UNKNOWN_SESSION" };
+  };
   "/wall/associate": {
     input: {
       "description": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Associating"]["associate"]>[0], ["description"]>>;
@@ -65,6 +208,51 @@ export type SoundItOutWire = {
     };
     error: { error: AppWideError | "ASSOCIATION_EXISTS" | "INVALID_ASSOCIATION" | "INVALID_INPUT" | "UNKNOWN_SESSION" };
   };
+  "/wall/examples/add": {
+    input: {
+      "association": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Associating"]["_get"]>[0], ["association"]>>;
+      "item": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Annotating"]["annotate"]>[0], ["item"]>>;
+      "note": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Annotating"]["annotate"]>[0], ["note"]>>;
+      "qualities": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Annotating"]["annotate"]>[0], ["qualities"]>>;
+      "role": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Annotating"]["annotate"]>[0], ["role"]>>;
+      "session": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["UserAuthenticating"]["current"]>[0], ["session"]>>;
+    };
+    output: {
+      "annotation": Jsonify<AtPath<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Annotating"]["annotate"]>>, ["annotation"]>>;
+      "word": {
+        "label": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Associating"]["_get"]>>>, ["label"]>> | null;
+      };
+    };
+    error: { error: AppWideError | "ANNOTATION_EXISTS" | "INVALID_INPUT" | "UNKNOWN_SESSION" | "WORD_NOT_FOUND" };
+  };
+  "/wall/examples/remove": {
+    input: {
+      "annotation": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Annotating"]["remove"]>[0], ["annotation"]>>;
+      "session": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["UserAuthenticating"]["current"]>[0], ["session"]>>;
+    };
+    output: Record<string, never>;
+    error: { error: AppWideError | "INVALID_INPUT" | "NOT_AUTHOR" | "UNKNOWN_ANNOTATION" | "UNKNOWN_SESSION" };
+  };
+  "/wall/examples/update": {
+    input: {
+      "annotation": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Annotating"]["update"]>[0], ["annotation"]>>;
+      "note": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Annotating"]["update"]>[0], ["note"]>>;
+      "qualities": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Annotating"]["update"]>[0], ["qualities"]>>;
+      "role": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Annotating"]["update"]>[0], ["role"]>>;
+      "session": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["UserAuthenticating"]["current"]>[0], ["session"]>>;
+    };
+    output: Record<string, never>;
+    error: { error: AppWideError | "INVALID_INPUT" | "NOT_AUTHOR" | "UNKNOWN_ANNOTATION" | "UNKNOWN_SESSION" };
+  };
+  "/wall/examples/visibility": {
+    input: {
+      "annotation": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Annotating"]["setVisibility"]>[0], ["annotation"]>>;
+      "session": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["UserAuthenticating"]["current"]>[0], ["session"]>>;
+      "visibility": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Annotating"]["setVisibility"]>[0], ["visibility"]>>;
+    };
+    output: Record<string, never>;
+    error: { error: AppWideError | "INVALID_INPUT" | "NOT_AUTHOR" | "UNKNOWN_ANNOTATION" | "UNKNOWN_SESSION" };
+  };
   "/wall/list": {
     input: {
       "session": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["UserAuthenticating"]["current"]>[0], ["session"]>>;
@@ -76,11 +264,57 @@ export type SoundItOutWire = {
           "description": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Associating"]["_byUser"]>>>, ["description"]>>;
           "examples": {
             "annotation": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Annotating"]["_forContext"]>>>, ["annotation"]>>;
-            "author": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Annotating"]["_forContext"]>>>, ["author"]>>;
             "item": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Annotating"]["_forContext"]>>>, ["item"]>>;
             "note": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Annotating"]["_forContext"]>>>, ["note"]>>;
+            "qualities": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Annotating"]["_forContext"]>>>, ["qualities"]>>;
             "role": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Annotating"]["_forContext"]>>>, ["role"]>>;
             "visibility": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Annotating"]["_forContext"]>>>, ["visibility"]>>;
+          }[];
+          "label": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Associating"]["_byUser"]>>>, ["label"]>>;
+          "suggestions": {
+            "contributor": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["UserAuthenticating"]["_username"]>>>, ["username"]>>;
+            "fit": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Pitching"]["_forTarget"]>>>, ["fit"]>>;
+            "item": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Pitching"]["_forTarget"]>>>, ["item"]>>;
+            "note": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Pitching"]["_forTarget"]>>>, ["note"]>>;
+            "pitch": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Pitching"]["_forTarget"]>>>, ["pitch"]>>;
+            "response": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Pitching"]["_forTarget"]>>>, ["response"]>>;
+          }[];
+          "visibility": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Associating"]["_byUser"]>>>, ["visibility"]>>;
+        }[];
+      };
+    };
+    error: { error: AppWideError | "INVALID_INPUT" | "UNKNOWN_SESSION" };
+  };
+  "/wall/preview": {
+    input: {
+      "session": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["UserAuthenticating"]["current"]>[0], ["session"]>>;
+    };
+    output: {
+      "anyone": {
+        "words": {
+          "association": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Associating"]["_byUser"]>>>, ["association"]>>;
+          "description": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Associating"]["_byUser"]>>>, ["description"]>>;
+          "examples": {
+            "annotation": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Annotating"]["_forContext"]>>>, ["annotation"]>>;
+            "item": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Annotating"]["_forContext"]>>>, ["item"]>>;
+            "note": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Annotating"]["_forContext"]>>>, ["note"]>>;
+            "qualities": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Annotating"]["_forContext"]>>>, ["qualities"]>>;
+            "role": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Annotating"]["_forContext"]>>>, ["role"]>>;
+          }[];
+          "label": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Associating"]["_byUser"]>>>, ["label"]>>;
+          "visibility": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Associating"]["_byUser"]>>>, ["visibility"]>>;
+        }[];
+      };
+      "friends": {
+        "words": {
+          "association": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Associating"]["_byUser"]>>>, ["association"]>>;
+          "description": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Associating"]["_byUser"]>>>, ["description"]>>;
+          "examples": {
+            "annotation": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Annotating"]["_forContext"]>>>, ["annotation"]>>;
+            "item": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Annotating"]["_forContext"]>>>, ["item"]>>;
+            "note": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Annotating"]["_forContext"]>>>, ["note"]>>;
+            "qualities": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Annotating"]["_forContext"]>>>, ["qualities"]>>;
+            "role": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Annotating"]["_forContext"]>>>, ["role"]>>;
           }[];
           "label": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Associating"]["_byUser"]>>>, ["label"]>>;
           "visibility": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Associating"]["_byUser"]>>>, ["visibility"]>>;
@@ -103,9 +337,11 @@ export type SoundItOutWire = {
             "annotation": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Annotating"]["_forContext"]>>>, ["annotation"]>>;
             "item": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Annotating"]["_forContext"]>>>, ["item"]>>;
             "note": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Annotating"]["_forContext"]>>>, ["note"]>>;
+            "qualities": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Annotating"]["_forContext"]>>>, ["qualities"]>>;
             "role": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Annotating"]["_forContext"]>>>, ["role"]>>;
           }[];
           "label": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Associating"]["_byUser"]>>>, ["label"]>>;
+          "visibility": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Associating"]["_byUser"]>>>, ["visibility"]>>;
         }[];
       };
     };
@@ -113,7 +349,7 @@ export type SoundItOutWire = {
   };
   "/wall/remove": {
     input: {
-      "association": Jsonify<OneOf<[AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Associating"]["remove"]>[0], ["association"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Annotating"]["clearContext"]>[0], ["context"]>]>>;
+      "association": Jsonify<OneOf<[AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Associating"]["remove"]>[0], ["association"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Pitching"]["clearTarget"]>[0], ["target"]>]>>;
       "session": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["UserAuthenticating"]["current"]>[0], ["session"]>>;
     };
     output: Record<string, never>;
@@ -137,6 +373,48 @@ export type SoundItOutWire = {
     };
     output: Record<string, never>;
     error: { error: AppWideError | "INVALID_INPUT" | "NOT_OWNER" | "UNKNOWN_ASSOCIATION" | "UNKNOWN_SESSION" };
+  };
+  "/wall/visit": {
+    input: {
+      "session": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["UserAuthenticating"]["current"]>[0], ["session"]>>;
+      "username": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["UserAuthenticating"]["_byUsername"]>[0], ["username"]>>;
+    };
+    output: {
+      "owner": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["UserAuthenticating"]["_byUsername"]>>>, ["name"]>>;
+      "wall": {
+        "words": {
+          "association": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Associating"]["_byUser"]>>>, ["association"]>>;
+          "description": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Associating"]["_byUser"]>>>, ["description"]>>;
+          "examples": {
+            "annotation": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Annotating"]["_forContext"]>>>, ["annotation"]>>;
+            "item": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Annotating"]["_forContext"]>>>, ["item"]>>;
+            "note": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Annotating"]["_forContext"]>>>, ["note"]>>;
+            "qualities": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Annotating"]["_forContext"]>>>, ["qualities"]>>;
+            "role": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Annotating"]["_forContext"]>>>, ["role"]>>;
+          }[];
+          "label": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Associating"]["_byUser"]>>>, ["label"]>>;
+          "visibility": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Associating"]["_byUser"]>>>, ["visibility"]>>;
+        }[];
+      };
+    } | {
+      "owner": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["UserAuthenticating"]["_byUsername"]>>>, ["name"]>>;
+      "wall": {
+        "words": {
+          "association": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Associating"]["_byUser"]>>>, ["association"]>>;
+          "description": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Associating"]["_byUser"]>>>, ["description"]>>;
+          "examples": {
+            "annotation": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Annotating"]["_forContext"]>>>, ["annotation"]>>;
+            "item": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Annotating"]["_forContext"]>>>, ["item"]>>;
+            "note": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Annotating"]["_forContext"]>>>, ["note"]>>;
+            "qualities": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Annotating"]["_forContext"]>>>, ["qualities"]>>;
+            "role": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Annotating"]["_forContext"]>>>, ["role"]>>;
+          }[];
+          "label": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Associating"]["_byUser"]>>>, ["label"]>>;
+          "visibility": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Associating"]["_byUser"]>>>, ["visibility"]>>;
+        }[];
+      };
+    };
+    error: { error: AppWideError | "INVALID_INPUT" | "UNKNOWN_SESSION" | "WALL_NOT_FOUND" };
   };
 };
 
@@ -177,6 +455,136 @@ export type SoundItOutWireHttp = {
     };
     error: { error: HttpAppWideError | "CONFLICT" | "INVALID_REQUEST" };
   };
+  "/friends/accept": {
+    input: {
+      "username": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["UserAuthenticating"]["_byUsername"]>[0], ["username"]>>;
+    };
+    output: Record<string, never>;
+    error: { error: HttpAppWideError | "INVALID_REQUEST" | "NOT_FOUND" | "UNAUTHORIZED" };
+  };
+  "/friends/cancel": {
+    input: {
+      "username": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["UserAuthenticating"]["_byUsername"]>[0], ["username"]>>;
+    };
+    output: Record<string, never>;
+    error: { error: HttpAppWideError | "INVALID_REQUEST" | "NOT_FOUND" | "UNAUTHORIZED" };
+  };
+  "/friends/decline": {
+    input: {
+      "username": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["UserAuthenticating"]["_byUsername"]>[0], ["username"]>>;
+    };
+    output: Record<string, never>;
+    error: { error: HttpAppWideError | "INVALID_REQUEST" | "NOT_FOUND" | "UNAUTHORIZED" };
+  };
+  "/friends/list": {
+    input: Record<string, never>;
+    output: {
+      "circle": {
+        "friends": {
+          "username": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["UserAuthenticating"]["_username"]>>>, ["username"]>>;
+          "wall": {
+            "words": {
+              "association": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Associating"]["_byUser"]>>>, ["association"]>>;
+              "description": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Associating"]["_byUser"]>>>, ["description"]>>;
+              "examples": {
+                "annotation": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Annotating"]["_forContext"]>>>, ["annotation"]>>;
+                "item": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Annotating"]["_forContext"]>>>, ["item"]>>;
+                "note": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Annotating"]["_forContext"]>>>, ["note"]>>;
+                "qualities": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Annotating"]["_forContext"]>>>, ["qualities"]>>;
+                "role": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Annotating"]["_forContext"]>>>, ["role"]>>;
+              }[];
+              "label": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Associating"]["_byUser"]>>>, ["label"]>>;
+              "visibility": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Associating"]["_byUser"]>>>, ["visibility"]>>;
+            }[];
+          };
+        }[];
+        "received": {
+          "username": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["UserAuthenticating"]["_username"]>>>, ["username"]>>;
+        }[];
+        "sent": {
+          "username": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["UserAuthenticating"]["_username"]>>>, ["username"]>>;
+        }[];
+      };
+    };
+    error: { error: HttpAppWideError | "INVALID_REQUEST" | "UNAUTHORIZED" };
+  };
+  "/friends/remove": {
+    input: {
+      "username": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["UserAuthenticating"]["_byUsername"]>[0], ["username"]>>;
+    };
+    output: Record<string, never>;
+    error: { error: HttpAppWideError | "INVALID_REQUEST" | "NOT_FOUND" | "UNAUTHORIZED" };
+  };
+  "/friends/request": {
+    input: {
+      "username": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["UserAuthenticating"]["_byUsername"]>[0], ["username"]>>;
+    };
+    output: Record<string, never>;
+    error: { error: HttpAppWideError | "CONFLICT" | "INVALID_REQUEST" | "NOT_FOUND" | "UNAUTHORIZED" };
+  };
+  "/suggestions/promote": {
+    input: {
+      "note": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Annotating"]["annotate"]>[0], ["note"]>>;
+      "pitch": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Pitching"]["_get"]>[0], ["pitch"]>>;
+      "qualities": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Annotating"]["annotate"]>[0], ["qualities"]>>;
+    };
+    output: {
+      "annotation": Jsonify<AtPath<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Annotating"]["annotate"]>>, ["annotation"]>>;
+      "word": {
+        "label": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Associating"]["_get"]>>>, ["label"]>> | null;
+      };
+    };
+    error: { error: HttpAppWideError | "CONFLICT" | "INVALID_REQUEST" | "NOT_FOUND" | "UNAUTHORIZED" };
+  };
+  "/suggestions/review": {
+    input: {
+      "fit": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Pitching"]["review"]>[0], ["fit"]>>;
+      "pitch": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Pitching"]["review"]>[0], ["pitch"]>>;
+      "response": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Pitching"]["review"]>[0], ["response"]>>;
+    };
+    output: Record<string, never>;
+    error: { error: HttpAppWideError | "FORBIDDEN" | "INVALID_REQUEST" | "NOT_FOUND" | "UNAUTHORIZED" };
+  };
+  "/suggestions/send": {
+    input: {
+      "association": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Associating"]["_get"]>[0], ["association"]>>;
+      "item": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Pitching"]["pitch"]>[0], ["item"]>>;
+      "note": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Pitching"]["pitch"]>[0], ["note"]>>;
+    };
+    output: {
+      "pitch": Jsonify<AtPath<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Pitching"]["pitch"]>>, ["pitch"]>>;
+      "word": {
+        "label": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Associating"]["_get"]>>>, ["label"]>> | null;
+      };
+    } | {
+      "pitch": Jsonify<AtPath<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Pitching"]["pitch"]>>, ["pitch"]>>;
+      "word": {
+        "label": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Associating"]["_get"]>>>, ["label"]>> | null;
+      };
+    };
+    error: { error: HttpAppWideError | "CONFLICT" | "FORBIDDEN" | "INVALID_REQUEST" | "NOT_FOUND" | "UNAUTHORIZED" };
+  };
+  "/suggestions/sent": {
+    input: Record<string, never>;
+    output: {
+      "suggestions": {
+        "item": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Pitching"]["_sentBy"]>>>, ["item"]>>;
+        "note": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Pitching"]["_sentBy"]>>>, ["note"]>>;
+        "pitch": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Pitching"]["_sentBy"]>>>, ["pitch"]>>;
+        "reviewed": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Pitching"]["_sentBy"]>>>, ["reviewed"]>>;
+        "to": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["UserAuthenticating"]["_username"]>>>, ["username"]>>;
+        "word": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Pitching"]["_sentBy"]>>>, ["target"]>>;
+      }[];
+    };
+    error: { error: HttpAppWideError | "INVALID_REQUEST" | "UNAUTHORIZED" };
+  };
+  "/suggestions/withdraw": {
+    input: {
+      "pitch": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Pitching"]["withdraw"]>[0], ["pitch"]>>;
+    };
+    output: Record<string, never>;
+    error: { error: HttpAppWideError | "CONFLICT" | "FORBIDDEN" | "INVALID_REQUEST" | "NOT_FOUND" | "UNAUTHORIZED" };
+  };
   "/wall/associate": {
     input: {
       "description": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Associating"]["associate"]>[0], ["description"]>>;
@@ -188,6 +596,47 @@ export type SoundItOutWireHttp = {
     };
     error: { error: HttpAppWideError | "CONFLICT" | "INVALID_REQUEST" | "UNAUTHORIZED" };
   };
+  "/wall/examples/add": {
+    input: {
+      "association": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Associating"]["_get"]>[0], ["association"]>>;
+      "item": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Annotating"]["annotate"]>[0], ["item"]>>;
+      "note": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Annotating"]["annotate"]>[0], ["note"]>>;
+      "qualities": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Annotating"]["annotate"]>[0], ["qualities"]>>;
+      "role": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Annotating"]["annotate"]>[0], ["role"]>>;
+    };
+    output: {
+      "annotation": Jsonify<AtPath<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Annotating"]["annotate"]>>, ["annotation"]>>;
+      "word": {
+        "label": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Associating"]["_get"]>>>, ["label"]>> | null;
+      };
+    };
+    error: { error: HttpAppWideError | "CONFLICT" | "INVALID_REQUEST" | "NOT_FOUND" | "UNAUTHORIZED" };
+  };
+  "/wall/examples/remove": {
+    input: {
+      "annotation": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Annotating"]["remove"]>[0], ["annotation"]>>;
+    };
+    output: Record<string, never>;
+    error: { error: HttpAppWideError | "FORBIDDEN" | "INVALID_REQUEST" | "NOT_FOUND" | "UNAUTHORIZED" };
+  };
+  "/wall/examples/update": {
+    input: {
+      "annotation": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Annotating"]["update"]>[0], ["annotation"]>>;
+      "note": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Annotating"]["update"]>[0], ["note"]>>;
+      "qualities": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Annotating"]["update"]>[0], ["qualities"]>>;
+      "role": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Annotating"]["update"]>[0], ["role"]>>;
+    };
+    output: Record<string, never>;
+    error: { error: HttpAppWideError | "FORBIDDEN" | "INVALID_REQUEST" | "NOT_FOUND" | "UNAUTHORIZED" };
+  };
+  "/wall/examples/visibility": {
+    input: {
+      "annotation": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Annotating"]["setVisibility"]>[0], ["annotation"]>>;
+      "visibility": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Annotating"]["setVisibility"]>[0], ["visibility"]>>;
+    };
+    output: Record<string, never>;
+    error: { error: HttpAppWideError | "FORBIDDEN" | "INVALID_REQUEST" | "NOT_FOUND" | "UNAUTHORIZED" };
+  };
   "/wall/list": {
     input: Record<string, never>;
     output: {
@@ -197,11 +646,55 @@ export type SoundItOutWireHttp = {
           "description": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Associating"]["_byUser"]>>>, ["description"]>>;
           "examples": {
             "annotation": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Annotating"]["_forContext"]>>>, ["annotation"]>>;
-            "author": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Annotating"]["_forContext"]>>>, ["author"]>>;
             "item": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Annotating"]["_forContext"]>>>, ["item"]>>;
             "note": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Annotating"]["_forContext"]>>>, ["note"]>>;
+            "qualities": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Annotating"]["_forContext"]>>>, ["qualities"]>>;
             "role": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Annotating"]["_forContext"]>>>, ["role"]>>;
             "visibility": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Annotating"]["_forContext"]>>>, ["visibility"]>>;
+          }[];
+          "label": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Associating"]["_byUser"]>>>, ["label"]>>;
+          "suggestions": {
+            "contributor": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["UserAuthenticating"]["_username"]>>>, ["username"]>>;
+            "fit": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Pitching"]["_forTarget"]>>>, ["fit"]>>;
+            "item": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Pitching"]["_forTarget"]>>>, ["item"]>>;
+            "note": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Pitching"]["_forTarget"]>>>, ["note"]>>;
+            "pitch": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Pitching"]["_forTarget"]>>>, ["pitch"]>>;
+            "response": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Pitching"]["_forTarget"]>>>, ["response"]>>;
+          }[];
+          "visibility": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Associating"]["_byUser"]>>>, ["visibility"]>>;
+        }[];
+      };
+    };
+    error: { error: HttpAppWideError | "INVALID_REQUEST" | "UNAUTHORIZED" };
+  };
+  "/wall/preview": {
+    input: Record<string, never>;
+    output: {
+      "anyone": {
+        "words": {
+          "association": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Associating"]["_byUser"]>>>, ["association"]>>;
+          "description": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Associating"]["_byUser"]>>>, ["description"]>>;
+          "examples": {
+            "annotation": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Annotating"]["_forContext"]>>>, ["annotation"]>>;
+            "item": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Annotating"]["_forContext"]>>>, ["item"]>>;
+            "note": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Annotating"]["_forContext"]>>>, ["note"]>>;
+            "qualities": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Annotating"]["_forContext"]>>>, ["qualities"]>>;
+            "role": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Annotating"]["_forContext"]>>>, ["role"]>>;
+          }[];
+          "label": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Associating"]["_byUser"]>>>, ["label"]>>;
+          "visibility": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Associating"]["_byUser"]>>>, ["visibility"]>>;
+        }[];
+      };
+      "friends": {
+        "words": {
+          "association": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Associating"]["_byUser"]>>>, ["association"]>>;
+          "description": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Associating"]["_byUser"]>>>, ["description"]>>;
+          "examples": {
+            "annotation": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Annotating"]["_forContext"]>>>, ["annotation"]>>;
+            "item": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Annotating"]["_forContext"]>>>, ["item"]>>;
+            "note": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Annotating"]["_forContext"]>>>, ["note"]>>;
+            "qualities": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Annotating"]["_forContext"]>>>, ["qualities"]>>;
+            "role": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Annotating"]["_forContext"]>>>, ["role"]>>;
           }[];
           "label": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Associating"]["_byUser"]>>>, ["label"]>>;
           "visibility": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Associating"]["_byUser"]>>>, ["visibility"]>>;
@@ -224,9 +717,11 @@ export type SoundItOutWireHttp = {
             "annotation": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Annotating"]["_forContext"]>>>, ["annotation"]>>;
             "item": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Annotating"]["_forContext"]>>>, ["item"]>>;
             "note": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Annotating"]["_forContext"]>>>, ["note"]>>;
+            "qualities": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Annotating"]["_forContext"]>>>, ["qualities"]>>;
             "role": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Annotating"]["_forContext"]>>>, ["role"]>>;
           }[];
           "label": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Associating"]["_byUser"]>>>, ["label"]>>;
+          "visibility": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Associating"]["_byUser"]>>>, ["visibility"]>>;
         }[];
       };
     };
@@ -234,7 +729,7 @@ export type SoundItOutWireHttp = {
   };
   "/wall/remove": {
     input: {
-      "association": Jsonify<OneOf<[AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Associating"]["remove"]>[0], ["association"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Annotating"]["clearContext"]>[0], ["context"]>]>>;
+      "association": Jsonify<OneOf<[AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Associating"]["remove"]>[0], ["association"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Pitching"]["clearTarget"]>[0], ["target"]>]>>;
     };
     output: Record<string, never>;
     error: { error: HttpAppWideError | "FORBIDDEN" | "INVALID_REQUEST" | "NOT_FOUND" | "UNAUTHORIZED" };
@@ -255,5 +750,46 @@ export type SoundItOutWireHttp = {
     };
     output: Record<string, never>;
     error: { error: HttpAppWideError | "FORBIDDEN" | "INVALID_REQUEST" | "NOT_FOUND" | "UNAUTHORIZED" };
+  };
+  "/wall/visit": {
+    input: {
+      "username": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["UserAuthenticating"]["_byUsername"]>[0], ["username"]>>;
+    };
+    output: {
+      "owner": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["UserAuthenticating"]["_byUsername"]>>>, ["name"]>>;
+      "wall": {
+        "words": {
+          "association": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Associating"]["_byUser"]>>>, ["association"]>>;
+          "description": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Associating"]["_byUser"]>>>, ["description"]>>;
+          "examples": {
+            "annotation": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Annotating"]["_forContext"]>>>, ["annotation"]>>;
+            "item": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Annotating"]["_forContext"]>>>, ["item"]>>;
+            "note": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Annotating"]["_forContext"]>>>, ["note"]>>;
+            "qualities": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Annotating"]["_forContext"]>>>, ["qualities"]>>;
+            "role": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Annotating"]["_forContext"]>>>, ["role"]>>;
+          }[];
+          "label": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Associating"]["_byUser"]>>>, ["label"]>>;
+          "visibility": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Associating"]["_byUser"]>>>, ["visibility"]>>;
+        }[];
+      };
+    } | {
+      "owner": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["UserAuthenticating"]["_byUsername"]>>>, ["name"]>>;
+      "wall": {
+        "words": {
+          "association": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Associating"]["_byUser"]>>>, ["association"]>>;
+          "description": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Associating"]["_byUser"]>>>, ["description"]>>;
+          "examples": {
+            "annotation": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Annotating"]["_forContext"]>>>, ["annotation"]>>;
+            "item": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Annotating"]["_forContext"]>>>, ["item"]>>;
+            "note": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Annotating"]["_forContext"]>>>, ["note"]>>;
+            "qualities": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Annotating"]["_forContext"]>>>, ["qualities"]>>;
+            "role": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Annotating"]["_forContext"]>>>, ["role"]>>;
+          }[];
+          "label": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Associating"]["_byUser"]>>>, ["label"]>>;
+          "visibility": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Associating"]["_byUser"]>>>, ["visibility"]>>;
+        }[];
+      };
+    };
+    error: { error: HttpAppWideError | "INVALID_REQUEST" | "NOT_FOUND" | "UNAUTHORIZED" };
   };
 };

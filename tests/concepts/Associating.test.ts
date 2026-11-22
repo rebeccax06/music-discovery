@@ -82,7 +82,28 @@ describe("Associating", () => {
     expect(recreated.association).not.toBe(alex.association);
   });
 
-  test("refuses an empty word or description and leaves another person's definition unchanged", async () => {
+  test("accepts a word with no description, lets its owner write one and clear it, and stores a limited audience", async () => {
+    const { association } = await concept.associate({
+      user: "mira",
+      label: "Dreamy",
+      description: "  ",
+      visibility: "PRIVATE",
+    });
+    expect(await concept._get({ association })).toEqual([
+      { user: "mira", label: "Dreamy", description: "", visibility: "PRIVATE" },
+    ]);
+    await concept.update({ user: "mira", association, label: "Dreamy", description: " Far-away vocals. " });
+    expect((await concept._get({ association }))[0]!.description).toBe("Far-away vocals.");
+    await concept.setVisibility({ user: "mira", association, visibility: "LIMITED" });
+    expect((await concept._get({ association }))[0]!.visibility).toBe("LIMITED");
+    await concept.setVisibility({ user: "mira", association, visibility: "PRIVATE" });
+    await concept.update({ user: "mira", association, label: "Dreamy", description: "" });
+    expect(await concept._byUser({ user: "mira" })).toEqual([
+      { association, label: "Dreamy", description: "", visibility: "PRIVATE" },
+    ]);
+  });
+
+  test("refuses an empty word and leaves another person's definition unchanged", async () => {
     const input = {
       user: "alex",
       label: "dreamy",
@@ -91,9 +112,6 @@ describe("Associating", () => {
     };
     await expect(
       concept.associate({ ...input, label: " \n\t " }),
-    ).rejects.toBeInstanceOf(InvalidAssociation);
-    await expect(
-      concept.associate({ ...input, description: " " }),
     ).rejects.toBeInstanceOf(InvalidAssociation);
     const { association } = await concept.associate(input);
 
@@ -109,14 +127,6 @@ describe("Associating", () => {
       concept.setVisibility({ ...stranger, visibility: "PUBLIC" }),
     ).rejects.toBeInstanceOf(NotOwner);
     await expect(concept.remove(stranger)).rejects.toBeInstanceOf(NotOwner);
-    await expect(
-      concept.update({
-        user: input.user,
-        association,
-        label: "dreamy",
-        description: "  ",
-      }),
-    ).rejects.toBeInstanceOf(InvalidAssociation);
     await expect(
       concept.update({
         user: input.user,

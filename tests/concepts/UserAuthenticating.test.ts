@@ -26,6 +26,8 @@ describe("UserAuthenticating", () => {
     expect(await concept.current(second)).toEqual({ user, username: "Alex" });
     expect(await concept._byUsername({ username: " ALEX " })).toEqual([{ user, name: "Alex" }]);
     expect(await concept._byUsername({ username: "nobody" })).toEqual([]);
+    expect(await concept._username({ user })).toEqual([{ username: "Alex" }]);
+    expect(await concept._username({ user: "nobody" })).toEqual([]);
     await expect(concept.authenticate({ username: "Alex", password: password.trim() }))
       .rejects.toBeInstanceOf(InvalidCredentials);
   });

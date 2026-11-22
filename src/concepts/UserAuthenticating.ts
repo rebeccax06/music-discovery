@@ -109,6 +109,11 @@ export class UserAuthenticatingConcept {
     return account ? [{ user: account._id, name: account.username }] : [];
   }
 
+  async _username({ user }: { user: string }) {
+    const account = await this.accounts.findOne({ _id: user }, { projection: { username: 1 } });
+    return account ? [{ username: account.username }] : [];
+  }
+
   #activeSession(session: string | null) {
     if (!session) throw new UnknownSession("Sign in to continue.");
     return { _id: digest(session), expiresAt: { $gt: this.now() } };

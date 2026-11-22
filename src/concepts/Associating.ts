@@ -4,7 +4,7 @@ export class InvalidAssociation extends Error {}
 export class AssociationExists extends Error {}
 export class UnknownAssociation extends Error {}
 export class NotOwner extends Error {}
-export type AssociationVisibility = "PRIVATE" | "PUBLIC";
+export type AssociationVisibility = "PRIVATE" | "LIMITED" | "PUBLIC";
 
 type Definition = { label: string; description: string; visibility: AssociationVisibility };
 type OwnerAction = { user: string; association: string };
@@ -52,7 +52,7 @@ export class AssociatingConcept {
   async associate({ user, label, description, visibility }: Definition & { user: string }) {
     const shown = displayLabel(label);
     const text = description.trim();
-    if (!shown || !text) throw new InvalidAssociation("Provide a word and a description.");
+    if (!shown) throw new InvalidAssociation("Provide a word.");
     await this.#ready();
 
     const association = crypto.randomUUID();
@@ -78,7 +78,7 @@ export class AssociatingConcept {
     const selector = await this.#byOwner({ user, association }, "You cannot edit another user's definition.");
     const shown = displayLabel(label);
     const text = description.trim();
-    if (!shown || !text) throw new InvalidAssociation("Provide a word and a description.");
+    if (!shown) throw new InvalidAssociation("Provide a word.");
     await this.#ready();
     try {
       const result = await this.associations.updateOne(selector, {

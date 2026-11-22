@@ -1,10 +1,16 @@
 import { computed, defineComponent, nextTick, ref, type PropType } from "vue/dist/vue.esm-bundler.js";
-import { api } from "../api.ts";
-import type { useAccount } from "../account.ts";
+import type { AccountActions } from "../account.ts";
 
+let instances = 0;
+
+/** Signing in, or creating an account and signing in with it in one step. */
 export default defineComponent({
-  props: { signIn: { type: Function as PropType<ReturnType<typeof useAccount>["signIn"]>, required: true } },
+  props: {
+    register: { type: Function as PropType<AccountActions["register"]>, required: true },
+    signIn: { type: Function as PropType<AccountActions["signIn"]>, required: true },
+  },
   setup(props) {
+    const id = `account-${instances += 1}`;
     const creating = ref(false);
     const username = ref("");
     const password = ref("");
@@ -48,53 +54,42 @@ export default defineComponent({
       busy.value = true;
       try {
         if (creating.value) {
-          const result = await api.auth.register({ username: name, password: secret });
-          if ("error" in result) {
-            const messages: Record<string, string> = {
-              CONFLICT: "That username is taken. Choose another or sign in.",
-              INVALID_REQUEST: "Check your username and password and try again.",
-              NETWORK_ERROR: "Could not reach Sound It Out. Check your connection and try again.",
-            };
-            error.value = messages[result.error] ?? "Could not create your account. Try again.";
+          const refused = await props.register(name, secret);
+          if (refused) {
+            error.value = refused;
             return;
           }
+          // The account exists now. If signing in fails, the form offers sign-in with the same name.
           creating.value = false;
           notice.value = "Account created.";
         }
         const failure = await props.signIn(name, secret);
-        if (failure) {
-          error.value = failure === "UNAUTHORIZED"
-            ? "The username or password is incorrect. Check both and try again."
-            : "Could not sign in. Try again.";
-        } else {
-          password.value = "";
-        }
-      } catch {
-        error.value = "Could not reach Sound It Out. Check your connection and try again.";
+        if (failure) error.value = failure;
+        else password.value = "";
       } finally {
         busy.value = false;
       }
     }
 
-    return { creating, username, password, busy, error, notice, heading, title, toggleMode, submit };
+    return { id, creating, username, password, busy, error, notice, heading, title, toggleMode, submit };
   },
   template: `
-    <section class="account-panel" aria-labelledby="account-heading">
-      <h2 id="account-heading" ref="heading" tabindex="-1">{{ title }}</h2>
+    <section class="account-panel" :aria-labelledby="id">
+      <h2 :id="id" ref="heading" tabindex="-1">{{ title }}</h2>
       <form @submit.prevent="submit" :aria-busy="busy">
         <div class="field">
-          <label for="username">Username</label>
-          <input id="username" name="username" v-model="username" required
+          <label :for="id + '-username'">Username</label>
+          <input :id="id + '-username'" name="username" v-model="username" required
             autocomplete="username" autocapitalize="none" spellcheck="false"
-            :aria-describedby="creating ? 'username-hint' : undefined" :readonly="busy">
-          <p v-if="creating" id="username-hint" class="hint">3–32 letters, numbers, underscores, or hyphens</p>
+            :aria-describedby="creating ? id + '-username-hint' : undefined" :readonly="busy">
+          <p v-if="creating" :id="id + '-username-hint'" class="field-hint">3–32 letters, numbers, underscores, or hyphens</p>
         </div>
         <div class="field">
-          <label for="password">Password</label>
-          <input id="password" name="password" type="password" v-model="password" required
+          <label :for="id + '-password'">Password</label>
+          <input :id="id + '-password'" name="password" type="password" v-model="password" required
             :autocomplete="creating ? 'new-password' : 'current-password'"
-            :aria-describedby="creating ? 'password-hint' : undefined" :readonly="busy">
-          <p v-if="creating" id="password-hint" class="hint">8–128 characters</p>
+            :aria-describedby="creating ? id + '-password-hint' : undefined" :readonly="busy">
+          <p v-if="creating" :id="id + '-password-hint'" class="field-hint">8–128 characters</p>
         </div>
         <p v-if="notice" role="status">{{ notice }}</p>
         <p v-if="error" class="error" role="alert">{{ error }}</p>

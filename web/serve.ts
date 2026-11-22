@@ -12,7 +12,12 @@ export async function buildFrontend() {
   if (!homepage) throw new Error("The frontend bundle is missing its entry page.");
 
   return (request: Request) => {
-    const headers = { "Referrer-Policy": "same-origin", "X-Content-Type-Options": "nosniff" };
+    // The only frame the app embeds is SoundCloud's player, so no other origin may be framed.
+    const headers = {
+      "Content-Security-Policy": "frame-src https://w.soundcloud.com",
+      "Referrer-Policy": "same-origin",
+      "X-Content-Type-Options": "nosniff",
+    };
     if (request.method !== "GET" && request.method !== "HEAD") {
       return new Response(null, { status: 405, headers: { ...headers, Allow: "GET, HEAD" } });
     }

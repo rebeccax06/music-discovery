@@ -16,6 +16,8 @@ export default {
       new URL("./design/types.md", import.meta.url),
       new URL("./design/compositions/Accounts.md", import.meta.url),
       new URL("./design/compositions/SoundWall.md", import.meta.url),
+      new URL("./design/compositions/Suggestions.md", import.meta.url),
+      new URL("./design/compositions/Friends.md", import.meta.url),
     ],
   },
   projections: [httpWire({ policy: soundItOutPolicy("http://127.0.0.1:3000"), name: "SoundItOutWireHttp" })],
