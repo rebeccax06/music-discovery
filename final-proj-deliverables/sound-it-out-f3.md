@@ -757,7 +757,7 @@ We will prioritize implementing simplified versions of all core concepts before 
 ### 6. Update after the alpha build (November 22, 2026)
 
 The plan above is the F3 submission and is kept as written. The current plan is the
-[updated development plan](development-plan.md). In summary, the alpha build changed
+[updated development plan](f4-development-plan.md). In summary, the alpha build changed
 it as follows; each change, its reason, and its check are in the [decision log](../design/decisions.md).
 
 - **Built:** accounts, words without required descriptions, songs from a checked

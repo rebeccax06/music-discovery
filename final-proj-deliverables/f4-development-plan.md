@@ -1,8 +1,9 @@
-# Development plan: updated for the alpha
+# Sound It Out F4 development plan
 
-**Updated:** November 22, 2026, at commit `bb09f35`.  
+**Updated:** November 22, 2026, at commit `1c71a5f`.  
 **Replaces:** the forward-looking plan in [F3](sound-it-out-f3.md#development-plan),
-which is kept unchanged as the submitted record.  
+which is kept unchanged as the submitted record, and the earlier draft of this file
+(commit `92f420e`), which planned excerpt intervals before the music-first build.  
 **Team:** Bhadra Rupesh, Sanskriti Singh, Rebecca Xiong, and Victor.
 
 This plan states what is complete, what remains, and why the scope changed. The

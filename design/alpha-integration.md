@@ -65,7 +65,7 @@ sent to any model.
 ## Before the alpha is complete
 
 Owners and step-by-step instructions are in the
-[updated development plan](../final-proj-deliverables/development-plan.md#4-remaining-work).
+[updated development plan](../final-proj-deliverables/f4-development-plan.md#4-remaining-work).
 
 - **Deploy.** On the class host, use the root package, Bun, the `start` script, port
   3000, and `/health`. Name the platform's database variable `MONGODB_URL`

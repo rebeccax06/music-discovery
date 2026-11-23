@@ -75,6 +75,6 @@ and how that was discovered and corrected.
   in Safari or Firefox, or that it plays in other regions. One run had a track stall.
 - **No sessions with people yet.** Whether people understand the three audiences, find
   the Friends page, and see that a match is not added until they add it can only come
-  from watching them ([plan](../../final-proj-deliverables/development-plan.md#43-sessions-with-people-before-the-beta)).
+  from watching them ([plan](../../final-proj-deliverables/f4-development-plan.md#43-sessions-with-people-before-the-beta)).
 - **Accessibility.** Keyboard use of the chips, focus movement after errors, and
   contrast are checked. No screen-reader pass or full audit was done.
