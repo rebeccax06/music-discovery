@@ -14,7 +14,7 @@ By Bhadra Rupesh, Sanskriti Singh, Rebecca Xiong, and Victor ([team](team.md)) f
 | Deliverable | Where | Status |
 | --- | --- | --- |
 | Deployed app | **https://sound-it-out.mit-sdg.dev** | Live. 27 of 27 browser-journey steps passed against it on November 23 ([deployed checks](design/verification/deployed/README.md)) |
-| Narrated screen recording | [videos/f4-video.mov](videos/f4-video.mov) | Recorded |
+| Narrated screen recording | [Watch on YouTube](https://youtu.be/KxDq6lYIB6s) | Recorded |
 | Source code | [Backend](src/) · [Frontend](web/) · [Shared](shared/) · [Tests](tests/) | Deployed from commit `f43cca4` |
 | Updated designs | [Concepts](#design) · [Compositions](#design) · [Generated API docs](generated/sound-it-out.md) | `bun run check` fails if they disagree with the code |
 | Design changes and reasons | [Decision log](design/decisions.md) | D1 to D11, each with how it was checked |

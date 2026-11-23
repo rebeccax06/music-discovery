@@ -3,3 +3,6 @@ node_modules/
 .env.*
 *.log
 .DS_Store
+
+# Demo videos live on YouTube; see the README. The course platform rejects commits over 50 MB.
+videos/

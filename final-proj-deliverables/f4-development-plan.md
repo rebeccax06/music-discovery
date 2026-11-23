@@ -32,7 +32,7 @@ reasons behind each change, and how each was checked, are in the
 | Counterexamples in the interface | Beta | **Deferred** (the concept supports them) | See §3 |
 | Sharing a review with its contributor | Beta | **Deferred** | See §3 |
 | Public deployment | Alpha | **Done and checked:** 27 of 27 browser-journey steps and 14 of 14 tracks against the live site, November 23 | [Sound It Out](https://sound-it-out.mit-sdg.dev/), [deployed checks](../design/verification/deployed/README.md) |
-| Narrated recording | Alpha | **Recorded.** Verify the demonstrated flow on the deployed build. | [Alpha recording](../videos/f4-video.mov) |
+| Narrated recording | Alpha | **Recorded.** Verify the demonstrated flow on the deployed build. | [Alpha recording](https://youtu.be/KxDq6lYIB6s) |
 | Sessions with people | Alpha and beta | **Two team members tested the journey**; observations and outside-user sessions remain, §4.3 | [Verification](../design/verification/README.md#deployed-app) |
 
 ## 2. Why the scope changed
