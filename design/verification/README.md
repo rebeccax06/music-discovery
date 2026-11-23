@@ -119,9 +119,10 @@ and how that was discovered and corrected.
 - **Playback.** The check confirms that each track is ready, not blocked, and advancing
   in Chrome from one network. It does not show that a person can hear it, that it plays
   in Safari or Firefox, or that it plays in other regions. One run had a track stall.
-- **User observation.** The reported two-person journey involved team members; its
-  observations have not yet been recorded. Understanding the audiences, finding Friends, and adding a match
-  should be checked by watching people use the app
-  ([plan](../../final-proj-deliverables/f4-development-plan.md#43-sessions-with-people-before-the-beta)).
+- **User observation.** The reported two-person walkthrough involved team members,
+  and its observations still need to be written up. During the four post-beta
+  sessions, observe whether people understand the audiences, find Friends, and
+  understand that adding a match takes a separate action.
+  [F6 user-testing plan](../../final-proj-deliverables/f4-development-plan.md#44-user-testing-after-beta)
 - **Accessibility.** Keyboard use of the chips, focus movement after errors, and
   contrast are checked. No screen-reader pass or full audit was done.

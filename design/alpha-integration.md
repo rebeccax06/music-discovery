@@ -74,5 +74,7 @@ Owners and step-by-step instructions are in the
   deployed app.
 - **Check the recording** linked in the README against the deployed build and confirm
   its narration and demonstrated version.
-- **Document the two-person journey** and run any remaining sessions with people
-  outside the team as the F3 validation plan describes.
+- **Document the two-person team walkthrough.**
+
+After beta, each teammate recruits and runs one of the four
+[F6 user-testing sessions](../final-proj-deliverables/f4-development-plan.md#44-user-testing-after-beta).

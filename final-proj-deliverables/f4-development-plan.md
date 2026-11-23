@@ -33,7 +33,7 @@ reasons behind each change, and how each was checked, are in the
 | Sharing a review with its contributor | Beta | **Deferred** | See §3 |
 | Public deployment | Alpha | **Done and checked:** commit `1dbe55a`; 28 of 28 browser-journey steps and 14 of 14 tracks against the live site, November 23 | [Sound It Out](https://sound-it-out.mit-sdg.dev/), [deployed checks](../design/verification/deployed/README.md) |
 | Narrated recording | Alpha | **Done.** Unlisted on YouTube; the normal journey it shows is unchanged in the deployed version ([details](../design/verification/deployed/README.md#the-recording)). | [Alpha recording](https://youtu.be/KxDq6lYIB6s) |
-| Sessions with people | Alpha and beta | **Two team members tested the journey**; observations and outside-user sessions remain, §4.3 | [Verification](../design/verification/README.md#deployed-app) |
+| Sessions with people | Alpha and beta | **Two teammates tested the deployed journey.** Four outside-user sessions are planned after beta, one per teammate. | [Verification](../design/verification/README.md#deployed-app) · [F6 user-testing plan](#44-user-testing-after-beta) |
 
 ## 2. Why the scope changed
 
@@ -123,10 +123,20 @@ use two browser windows to show both the owner and the visitor experience.
 Add the verified deployed URL to the README, then submit the deployed commit, public
 URL, and recording link in Commons.
 
-### 4.3 Sessions with people (before the beta)
+### 4.3 Beta (November 30)
 
-Owner: Bhadra; every team member observes one session. At least three people outside
-the team, in pairs where possible, as the F3 validation plan describes.
+- Run through creating, sharing, and reviewing a word on the deployed beta. Fix any
+  blockers that would prevent a participant from attempting the tasks below.
+- Agree on the task prompts and have each teammate book their own session.
+- Repeat the deployed check after every deployment.
+
+### 4.4 User testing after beta
+
+Each teammate recruits a friend outside the project team and runs one session, for
+four sessions total. Where two friends can participate together, they can try both
+roles. For a session with one participant, the teammate can play the other role using
+a separate test account. Aim to run the sessions December 1–3 using the deployed beta
+and finish the team’s findings by the December 7 F6 deadline.
 
 | Step | Creator's task | Friend's task |
 | --- | --- | --- |
@@ -134,28 +144,24 @@ the team, in pairs where possible, as the F3 validation plan describes.
 | 2 | — | "Find your friend's word and suggest a song that fits." |
 | 3 | "Decide whether their song fits." | "Say in your own words what *hype* means to your friend." |
 
-Do not coach. For each person record: completed or not, time, every hesitation or
-wrong turn and where it happened, and whether the friend's restatement matches what
-the creator meant. Ask afterward whether this was clearer than their usual chat.
-Record observations in `design/user-testing.md`, then file each problem as a change
-with its priority. Get consent before recording anything personal.
+Give participants the task prompts and let them work through the app. Record task
+completion, time, hesitations or wrong turns, and whether the friend’s restatement
+matches what the creator meant. Ask afterward whether this was clearer than their
+usual chat. Each teammate contributes their session notes to `design/user-testing.md`.
+Review the four sessions together and prioritize the issues. Get consent before
+recording a session.
 
 Watch whether people understand the three audiences, realize a shared song includes
 its note and picked qualities, and find the Friends page. Check whether the draft
 description helps and whether reviewers understand that adding a match takes a
 separate action.
 
-### 4.4 Beta (November 30)
+### 4.5 Final demo and report (December 9)
 
-- Fix the highest-priority problems from 4.3, and retest them with at least one new
-  person.
-- Reconsider the deferred items in §3 against what the sessions showed.
-- Repeat the deployed check after every deployment.
-
-### 4.5 Final (December 7 and 9)
-
-- Second round of sessions; keyboard-only and screen-reader passes; check that each
-  catalog track still plays and update its date.
+- Use the F6 findings to prioritize fixes and reconsider the deferred items in §3.
+  Retest the highest-impact changes if time allows.
+- Run keyboard-only and screen-reader checks. Check catalog playback again and
+  record the date.
 - Final recording, README, and decision log.
 
 ## 5. Risks now
