@@ -31,8 +31,8 @@ reasons behind each change, and how each was checked, are in the
 | Excerpts (Excerpting) | Yes | **Deferred** | See §3 |
 | Counterexamples in the interface | Beta | **Deferred** (the concept supports them) | See §3 |
 | Sharing a review with its contributor | Beta | **Deferred** | See §3 |
-| Public deployment | Alpha | **Done and checked:** 27 of 27 browser-journey steps and 14 of 14 tracks against the live site, November 23 | [Sound It Out](https://sound-it-out.mit-sdg.dev/), [deployed checks](../design/verification/deployed/README.md) |
-| Narrated recording | Alpha | **Recorded.** Verify the demonstrated flow on the deployed build. | [Alpha recording](https://youtu.be/KxDq6lYIB6s) |
+| Public deployment | Alpha | **Done and checked:** commit `1dbe55a`; 28 of 28 browser-journey steps and 14 of 14 tracks against the live site, November 23 | [Sound It Out](https://sound-it-out.mit-sdg.dev/), [deployed checks](../design/verification/deployed/README.md) |
+| Narrated recording | Alpha | **Done.** Unlisted on YouTube; the normal journey it shows is unchanged in the deployed version ([details](../design/verification/deployed/README.md#the-recording)). | [Alpha recording](https://youtu.be/KxDq6lYIB6s) |
 | Sessions with people | Alpha and beta | **Two team members tested the journey**; observations and outside-user sessions remain, §4.3 | [Verification](../design/verification/README.md#deployed-app) |
 
 ## 2. Why the scope changed
@@ -68,7 +68,7 @@ reasons behind each change, and how each was checked, are in the
 Owner: Sanskriti. Reviewer: Rebecca. The course platform is 6.1040 Apps at
 `mit-sdg.dev` ([course guide](https://61040.github.io/fa26/resources/deploying-apps/)).
 The app is deployed at [sound-it-out.mit-sdg.dev](https://sound-it-out.mit-sdg.dev/).
-It runs commit `f43cca4`. On November 23 the full browser journeys (27 of 27) and the
+It runs commit `1dbe55a`. On November 23 the full browser journeys (28 of 28) and the
 playback check (14 of 14) passed against it; results are in
 [deployed checks](../design/verification/deployed/README.md). The steps below are kept for
 redeploying, and every redeploy should repeat step 6.

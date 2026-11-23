@@ -13,13 +13,13 @@ By Bhadra Rupesh, Sanskriti Singh, Rebecca Xiong, and Victor ([team](team.md)) f
 
 | Deliverable | Where | Status |
 | --- | --- | --- |
-| Deployed app | **https://sound-it-out.mit-sdg.dev** | Live. 27 of 27 browser-journey steps passed against it on November 23 ([deployed checks](design/verification/deployed/README.md)) |
-| Narrated screen recording | [Watch on YouTube](https://youtu.be/KxDq6lYIB6s) | Recorded |
-| Source code | [Backend](src/) · [Frontend](web/) · [Shared](shared/) · [Tests](tests/) | Deployed from commit `f43cca4` |
+| Deployed app | **https://sound-it-out.mit-sdg.dev** | Live. 28 of 28 browser-journey steps passed against it on November 23 ([deployed checks](design/verification/deployed/README.md)) |
+| Narrated screen recording | [Watch on YouTube](https://youtu.be/KxDq6lYIB6s) | 82 seconds, unlisted; [what it shows and what changed since](design/verification/deployed/README.md#the-recording) |
+| Source code | [Backend](src/) · [Frontend](web/) · [Shared](shared/) · [Tests](tests/) | Deployed from commit `1dbe55a` |
 | Updated designs | [Concepts](#design) · [Compositions](#design) · [Generated API docs](generated/sound-it-out.md) | `bun run check` fails if they disagree with the code |
 | Design changes and reasons | [Decision log](design/decisions.md) | D1 to D11, each with how it was checked |
 | Updated development plan | [F4 development plan](final-proj-deliverables/f4-development-plan.md) | What is done, what remains, who owns it |
-| Test results | [Verification](design/verification/README.md) | 60 tests; 13 of 13 planted bugs caught; 28 browser steps locally and 27 on the live site; 14 of 14 tracks play |
+| Test results | [Verification](design/verification/README.md) | 60 tests; 13 of 13 planted bugs caught; 28 browser steps locally and on the live site; 14 of 14 tracks play |
 
 ### Start here (five minutes)
 

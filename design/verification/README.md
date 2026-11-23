@@ -2,8 +2,9 @@
 
 What was checked, how to run it again, and what each check does not show.
 
-**Deployed app:** checked on November 23, 2026, at https://sound-it-out.mit-sdg.dev with
-the full browser journeys: **27 passed, 0 failed**, and all 14 tracks play. Details and
+**Deployed app:** commit `1dbe55a`, checked on November 23, 2026, at
+https://sound-it-out.mit-sdg.dev with the full browser journeys: **28 passed, 0 failed**,
+and all 14 tracks play. Details and
 limits are in [deployed/](deployed/README.md).  
 **Local runs:** commit `7c7c96c`, on November 23, 2026, on macOS with Bun 1.4.0 (the
 project pins 1.4.2), MongoDB 8.0 in Docker, and Google Chrome through Playwright.
@@ -28,15 +29,15 @@ test that weakens later is found.
 | Check | Command | Result | Output |
 | --- | --- | --- | --- |
 | Health | `curl https://sound-it-out.mit-sdg.dev/health` | `200 {"status":"ok"}` | [deployed/health.txt](deployed/health.txt) |
-| Browser journeys A to D, four sessions | `BASE_URL=https://sound-it-out.mit-sdg.dev bun run test:e2e` | 27 passed, 0 failed; SoundCloud player ready | [deployed/browser-journeys.txt](deployed/browser-journeys.txt), [screens](deployed/screens/) |
+| Browser journeys A to D, four sessions | `BASE_URL=https://sound-it-out.mit-sdg.dev bun run test:e2e` | 28 passed, 0 failed; SoundCloud player ready and playing | [deployed/browser-journeys.txt](deployed/browser-journeys.txt), [screens](deployed/screens/) |
 | Catalog playback | `bun run check:tracks` | 14 of 14 play | [deployed/tracks.txt](deployed/tracks.txt) |
 | Cookie, origin, and frame rules | `curl` against the live site | `__Host-`, `Secure`, `HttpOnly`, `SameSite=Strict`; sign-in from another origin refused with `403`; frames limited to SoundCloud | [deployed/README.md](deployed/README.md) |
 
-The deployed commit is `f43cca4`, the newest on `main` when the team deployed; no code
-has changed since. The platform's deployment identifier
-(`7d1a11fe-875a-4a60-8c88-a6726745df6a`) is not a Git commit. Before these automated
-runs, the team also walked through a two-person journey on the deployment by hand; its
-steps were not recorded.
+The deployed commit is `1dbe55a`, whose code is identical to `7c7c96c`. The live script
+was confirmed to contain the message that commit added. The previous deployment,
+`f43cca4`, passed 27 of 27 earlier the same day. Before any automated runs, the team also
+walked through a two-person journey on the deployment by hand; its steps were not
+recorded.
 
 ## Local runs
 

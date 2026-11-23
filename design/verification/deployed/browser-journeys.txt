@@ -5,7 +5,7 @@ tests/e2e/journeys.e2e.ts:
 Browser journeys against https://sound-it-out.mit-sdg.dev (deployed)
 SoundCloud player reported READY for Chill Day: yes
 
- 27 pass
+ 28 pass
  0 fail
- 66 expect() calls
-Ran 27 tests across 1 file. [46.86s]
+ 68 expect() calls
+Ran 28 tests across 1 file. [63.51s]

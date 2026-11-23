@@ -68,7 +68,7 @@ Owners and step-by-step instructions are in the
 [updated development plan](../final-proj-deliverables/f4-development-plan.md#4-remaining-work).
 
 - **Deployed and checked.** [Sound It Out](https://sound-it-out.mit-sdg.dev/) runs
-  commit `f43cca4`. On November 23 all 27 browser-journey steps passed against it, and
+  commit `1dbe55a`. On November 23 all 28 browser-journey steps passed against it, and
   all 14 tracks played ([deployed checks](verification/deployed/README.md)).
 - **Still to do by hand:** sign in and listen to a track in Safari and Firefox on the
   deployed app.
