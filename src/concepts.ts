@@ -1,11 +1,12 @@
 import { conceptSet, registerConcept } from "@mit-sdg/sync-engine/assembly";
-import authenticatingSpec from "@design/concepts/UserAuthenticating.md" with { type: "text" };
+import authenticatingSpec from "@design/concepts/Authenticating.md" with { type: "text" };
+import registeringSpec from "@design/concepts/Registering.md" with { type: "text" };
+import sessioningSpec from "@design/concepts/Sessioning.md" with { type: "text" };
 import annotatingSpec from "@design/concepts/Annotating.md" with { type: "text" };
 import associatingSpec from "@design/concepts/Associating.md" with { type: "text" };
-import {
-  InvalidCredentials, InvalidPassword, InvalidUsername, UnknownSession,
-  UserAuthenticatingConcept, UsernameTaken,
-} from "./concepts/UserAuthenticating.ts";
+import { AuthenticatingConcept, InvalidCredentials, InvalidPassword, PasswordSet } from "./concepts/Authenticating.ts";
+import { InvalidUsername, RegisteringConcept, UsernameTaken } from "./concepts/Registering.ts";
+import { NotSignedIn, SessionEnded, SessioningConcept } from "./concepts/Sessioning.ts";
 import friendingSpec from "@design/concepts/Friending.md" with { type: "text" };
 import pitchingSpec from "@design/concepts/Pitching.md" with { type: "text" };
 import { AnnotatingConcept, AnnotationExists, NotAuthor, UnknownAnnotation } from "./concepts/Annotating.ts";
@@ -19,15 +20,31 @@ import {
   AlreadyPitched, AlreadyReviewed, InvalidReview, NotContributor, NotRecipient, PitchingConcept, SelfPitch, UnknownPitch,
 } from "./concepts/Pitching.ts";
 
-const authenticating = registerConcept({
-  class: UserAuthenticatingConcept,
-  spec: authenticatingSpec,
+const registering = registerConcept({
+  class: RegisteringConcept,
+  spec: registeringSpec,
   refusals: {
     INVALID_USERNAME: InvalidUsername,
-    INVALID_PASSWORD: InvalidPassword,
     USERNAME_TAKEN: UsernameTaken,
+  },
+});
+
+const authenticating = registerConcept({
+  class: AuthenticatingConcept,
+  spec: authenticatingSpec,
+  refusals: {
+    INVALID_PASSWORD: InvalidPassword,
+    PASSWORD_SET: PasswordSet,
     INVALID_CREDENTIALS: InvalidCredentials,
-    UNKNOWN_SESSION: UnknownSession,
+  },
+});
+
+const sessioning = registerConcept({
+  class: SessioningConcept,
+  spec: sessioningSpec,
+  refusals: {
+    NOT_SIGNED_IN: NotSignedIn,
+    SESSION_ENDED: SessionEnded,
   },
 });
 
@@ -79,11 +96,21 @@ const friending = registerConcept({
   },
 });
 
+/**
+ * The instant at which the current request is handled. Each flow that starts, uses, or ends a
+ * session binds it once and passes it to Sessioning, so Sessioning never reads a clock.
+ */
+function currentInstant(_input: Record<string, never>): Date {
+  return new Date();
+}
+
 export const applicationConceptSet = conceptSet({
-  UserAuthenticating: authenticating,
+  Registering: registering,
+  Authenticating: authenticating,
+  Sessioning: sessioning,
   Associating: associating,
   Annotating: annotating,
   Pitching: pitching,
   Friending: friending,
-});
-export const { concepts } = applicationConceptSet;
+}, { currentInstant });
+export const { concepts, computations } = applicationConceptSet;

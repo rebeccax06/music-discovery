@@ -93,6 +93,17 @@ createApp({
     async function signIn(username: string, password: string) {
       const failure = await session.signIn(username, password);
       if (failure) return failure;
+      await signedIn();
+    }
+
+    /** Creating an account signs the person in, so it ends the same way signing in does. */
+    async function register(username: string, password: string) {
+      const outcome = await session.register(username, password);
+      if (outcome) return outcome;
+      await signedIn();
+    }
+
+    async function signedIn() {
       // Signing in again after a session ended must not replace the page: what the person entered
       // is still on it, and the interface promised to keep it.
       const resuming = expired.value;
@@ -158,7 +169,7 @@ createApp({
     onMounted(start);
 
     return {
-      account, restoreError, session: { register: session.register, signIn }, wall, visited, suggestions, friends,
+      account, restoreError, session: { register, signIn }, wall, visited, suggestions, friends,
       ready, expired, visiting, onFriends, signingOut, signOutError, accountMenuOpen, accountMenu, accountButton,
       start, signOut, toast, follow, go, route,
     };

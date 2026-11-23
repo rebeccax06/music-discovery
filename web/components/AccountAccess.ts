@@ -3,7 +3,7 @@ import type { AccountActions } from "../account.ts";
 
 let instances = 0;
 
-/** Signing in, or creating an account and signing in with it in one step. */
+/** Signing in, or creating an account, which signs the person in with it. */
 export default defineComponent({
   props: {
     register: { type: Function as PropType<AccountActions["register"]>, required: true },
@@ -16,7 +16,6 @@ export default defineComponent({
     const password = ref("");
     const busy = ref(false);
     const error = ref("");
-    const notice = ref("");
     const heading = ref<HTMLHeadingElement | null>(null);
     const title = computed(() => creating.value ? "Create account" : "Sign in");
 
@@ -24,7 +23,6 @@ export default defineComponent({
       creating.value = !creating.value;
       password.value = "";
       error.value = "";
-      notice.value = "";
       await nextTick();
       heading.value?.focus();
     }
@@ -32,7 +30,6 @@ export default defineComponent({
     async function submit() {
       if (busy.value) return;
       error.value = "";
-      notice.value = "";
       const name = username.value.trim();
       const secret = password.value;
       if (!name || !secret) {
@@ -54,14 +51,18 @@ export default defineComponent({
       busy.value = true;
       try {
         if (creating.value) {
-          const refused = await props.register(name, secret);
-          if (refused) {
-            error.value = refused;
-            return;
+          // Creating an account signs the person in, so success needs nothing more here.
+          const outcome = await props.register(name, secret);
+          if (!outcome) {
+            password.value = "";
+          } else if ("refused" in outcome) {
+            error.value = outcome.refused;
+          } else {
+            // The account may exist now, so offer sign-in with the same name instead of creating it again.
+            creating.value = false;
+            error.value = outcome.recover;
           }
-          // The account exists now. If signing in fails, the form offers sign-in with the same name.
-          creating.value = false;
-          notice.value = "Account created.";
+          return;
         }
         const failure = await props.signIn(name, secret);
         if (failure) error.value = failure;
@@ -71,7 +72,7 @@ export default defineComponent({
       }
     }
 
-    return { id, creating, username, password, busy, error, notice, heading, title, toggleMode, submit };
+    return { id, creating, username, password, busy, error, heading, title, toggleMode, submit };
   },
   template: `
     <section class="account-panel" :aria-labelledby="id">
@@ -91,7 +92,6 @@ export default defineComponent({
             :aria-describedby="creating ? id + '-password-hint' : undefined" :readonly="busy">
           <p v-if="creating" :id="id + '-password-hint'" class="field-hint">8–128 characters</p>
         </div>
-        <p v-if="notice" role="status">{{ notice }}</p>
         <p v-if="error" class="error" role="alert">{{ error }}</p>
         <button class="primary" :disabled="busy">
           {{ busy ? (creating ? 'Creating account…' : 'Signing in…') : title }}

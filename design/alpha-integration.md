@@ -18,14 +18,18 @@ results are in [verification](verification/README.md).
 
 ## Accounts
 
-F3 described setting a password for an existing identity. The implementation creates
-the user and writes its verifier in one registration action, and a second action
-proves the password and issues a session. Registration therefore cannot half-succeed.
-If signing in fails after registering, the form keeps the username and offers sign-in
-again.
+F3 described one account concept. The implementation splits it into three concepts
+adopted from ConceptBox: Registering owns usernames, Authenticating owns password
+verifiers, and Sessioning owns sessions. Registration checks the password's length,
+then registers the username, sets the password, and starts a session, so a new user is
+signed in by the same request. These are separate writes that the engine does not undo,
+so an infrastructure failure part way through can leave an account behind; if
+registering fails for any reason other than an invalid username, an invalid password,
+or a taken username, the form keeps the username and offers sign-in. Neither register
+nor sign-in answers with the display username; the browser asks Me for it.
 
-Every protected reaction resolves its actor with `UserAuthenticating.current` from the
-session cookie. No route accepts a user identity in the request body. The HTTP adapter
+Every protected reaction resolves its actor with `Sessioning.use` from the session
+cookie. No route accepts a user identity in the request body. The HTTP adapter
 supplies the session from an HttpOnly cookie and checks the request origin on routes
 that use it.
 
@@ -33,7 +37,9 @@ that use it.
 
 | Concept | Owns | Receives from the application |
 | --- | --- | --- |
-| [UserAuthenticating](concepts/UserAuthenticating.md) | Accounts and sessions | — |
+| [Registering](concepts/Registering.md) | Usernames and the user identity | — |
+| [Authenticating](concepts/Authenticating.md) | Password verifiers | The user's identity |
+| [Sessioning](concepts/Sessioning.md) | Sessions and when they end | The user's identity as the session's subject |
 | [Associating](concepts/Associating.md) | Words, their descriptions, and who may open them | The owner's identity |
 | [Annotating](concepts/Annotating.md) | Songs in a word: role, note, qualities, shown or not | Author, track, and word as opaque identities |
 | [Pitching](concepts/Pitching.md) | Suggestions and their private reviews | Contributor, recipient, word, and track as opaque identities |

@@ -1,6 +1,6 @@
 # Engine advisories
 
-`bun run check` passes, and the sync-engine checker also reports 30 advisories: 26
+`bun run check` passes, and the sync-engine checker also reports 31 advisories: 27
 warnings and 4 notices. Each was reviewed. None is a defect, for the reasons below, and
 each reason names the test that would catch it if it stopped being true.
 
@@ -10,14 +10,14 @@ It compares the checker's advisories with the reviewed list in
 reported. A change that introduces an advisory cannot pass until someone reviews it,
 explains it here, and runs `bun scripts/advisories.ts --update`.
 
-## `MISSING_ENDPOINT_FALLBACK` (26 warnings, one per endpoint path)
+## `MISSING_ENDPOINT_FALLBACK` (27 warnings, one per endpoint path)
 
 > Endpoint … has no recognized total answer path; an admitted request can time out when
 > every answer guard drops.
 
 **What the checker can prove.** Its coverage proof recognizes a chain of actions only
 when every action's output pattern is empty. Every endpoint in this app first runs
-`UserAuthenticating.current({ session }).responds({ user })` or a similar step that
+`Sessioning.use({ session, at }).responds({ subject: user })` or a similar step that
 binds a result, so the checker cannot follow the chain and reports every endpoint.
 The engine's documentation says the analyzer "does not prove arbitrary view,
 computation, validator, action-outcome, or concurrent-state logic"
@@ -35,7 +35,7 @@ exactly one record.
 
 | Endpoint | Path |
 | --- | --- |
-| Accounts.Register, Login, Me | `/auth/register`, `/auth/login`, `/auth/me` |
+| Accounts.Me, Logout | `/auth/me`, `/auth/logout` |
 | SoundWall.Definitions.* | `/wall/associate`, `/wall/update`, `/wall/visibility`, `/wall/remove` |
 | SoundWall.Examples.UpdateExample, SetExampleVisibility, RemoveExample | `/wall/examples/update`, `/wall/examples/visibility`, `/wall/examples/remove` |
 | SoundWall.Reading.ListWall, PreviewWall | `/wall/list`, `/wall/preview` |
@@ -43,11 +43,13 @@ exactly one record.
 | Suggestions.Reviewing.Review | `/suggestions/review` |
 | Friends.Circle.List | `/friends/list` |
 
-*Branched endpoints.* After the session step, sibling branches split the cases. Each
+*Branched endpoints.* After the session step (or, for register and sign-in, at the start), sibling branches split the cases. Each
 set of guards is complementary: for any stored state, exactly one branch matches.
 
 | Endpoint | Branches and guards | Complement |
 | --- | --- | --- |
+| `/auth/register` | `acceptable-password`: `Authenticating._acceptable` is `true`. `unacceptable-password`: it is `false` | A flag has exactly one value |
+| `/auth/login` | `known-username`: the username exists. `unknown-username`: `no(` the same `)` | Exact negation |
 | `/wall/public` | `ReadPublicWall`: the username exists. `MissingWall`: `no(` the username exists `)` | Exact negation |
 | `/wall/examples/add` | `own-word`: the word's owner is the actor. `not-own-word`: `no(` the same `)` | Exact negation |
 | `/wall/visit` | `friend`: owner exists and is a friend. `not-friend`: owner exists and `no(` friend `)`. `no-wall`: `no(` owner exists `)` | Partition of three cases |

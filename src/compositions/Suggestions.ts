@@ -1,10 +1,10 @@
 import { endpoint, receive, respond } from "@mit-sdg/sync-engine/boundary";
-import { each, former, no, reaction, view, when, where } from "@mit-sdg/sync-engine/language";
-import { concepts } from "../concepts.ts";
+import { compute, each, former, no, reaction, view, when, where } from "@mit-sdg/sync-engine/language";
+import { computations, concepts } from "../concepts.ts";
 import { WordAfterWrite } from "./SoundWall.ts";
 import { boundedText, catalogTrack, identity, note, pickedQualities, session, validator } from "./validators.ts";
 
-const { Annotating, Associating, Friending, Pitching, UserAuthenticating } = concepts;
+const { Annotating, Associating, Friending, Pitching, Registering, Sessioning } = concepts;
 
 const MAX_RESPONSE = 280;
 
@@ -52,7 +52,7 @@ const SuggestionsSent = former(
   "the suggestions (user) has sent",
   ({ user }, { pitch, recipient, to, target, item, note, reviewed }) =>
     each(Pitching._sentBy({ contributor: user }).is({ pitch, recipient, target, item, note, reviewed }))
-      .where(UserAuthenticating._username({ user: recipient }).is({ username: to }))
+      .where(Registering._username({ user: recipient }).is({ username: to }))
       .arranged(pitch)
       .form({ pitch, to, word: target, item, note, reviewed }),
 );
@@ -63,9 +63,10 @@ const SuggestionsSent = former(
  * does not exist get the same answer. Whether the song is already a private example is deliberately
  * not checked: refusing would tell the contributor that the example exists.
  */
-const Send = endpoint("/suggestions/send", ({ session, user, association, item, note, owner, pitch }) =>
+const Send = endpoint("/suggestions/send", ({ session, user, association, item, note, owner, pitch, at }) =>
   receive({ session, association, item, note })
-    .then(UserAuthenticating.current({ session }).responds({ user }))
+    .where(compute(computations.currentInstant, {}, at))
+    .then(Sessioning.use({ session, at }).responds({ subject: user }))
     .then(
       where(Associating._get({ association }).is({ user: owner, visibility: "PUBLIC" }))
         .then(Pitching.pitch({ contributor: user, recipient: owner, target: association, item, note }).responds({ pitch }))
@@ -86,21 +87,24 @@ const Send = endpoint("/suggestions/send", ({ session, user, association, item, 
         .named("no-open-word"),
     ), { input: { required: ["session", "association", "item", "note"] }, validators: { input: sendInput } });
 
-const ListSent = endpoint("/suggestions/sent", ({ session, user }) =>
+const ListSent = endpoint("/suggestions/sent", ({ session, user, at }) =>
   receive({ session })
-    .then(UserAuthenticating.current({ session }).responds({ user }))
+    .where(compute(computations.currentInstant, {}, at))
+    .then(Sessioning.use({ session, at }).responds({ subject: user }))
     .then(respond({ suggestions: SuggestionsSent({ user }) })), { input: { required: ["session"] }, validators: { input: sessionOnly } });
 
 /** Pitching enforces who may withdraw and who may review; these endpoints supply the session's user. */
-const Withdraw = endpoint("/suggestions/withdraw", ({ session, user, pitch }) =>
+const Withdraw = endpoint("/suggestions/withdraw", ({ session, user, pitch, at }) =>
   receive({ session, pitch })
-    .then(UserAuthenticating.current({ session }).responds({ user }))
+    .where(compute(computations.currentInstant, {}, at))
+    .then(Sessioning.use({ session, at }).responds({ subject: user }))
     .then(Pitching.withdraw({ contributor: user, pitch }).responds({}))
     .then(respond({})), { input: { required: ["session", "pitch"] }, validators: { input: pitchInput } });
 
-const Review = endpoint("/suggestions/review", ({ session, user, pitch, fit, response }) =>
+const Review = endpoint("/suggestions/review", ({ session, user, pitch, fit, response, at }) =>
   receive({ session, pitch, fit, response })
-    .then(UserAuthenticating.current({ session }).responds({ user }))
+    .where(compute(computations.currentInstant, {}, at))
+    .then(Sessioning.use({ session, at }).responds({ subject: user }))
     .then(Pitching.review({ recipient: user, pitch, fit, response }).responds({}))
     .then(respond({})), { input: { required: ["session", "pitch", "fit", "response"] }, validators: { input: reviewInput } });
 
@@ -108,9 +112,10 @@ const Review = endpoint("/suggestions/review", ({ session, user, pitch, fit, res
  * Adds a reviewed match to the recipient's examples, as a separate step from reviewing it.
  * Annotating allows one annotation per word and song, so promoting twice adds once.
  */
-const Promote = endpoint("/suggestions/promote", ({ session, user, pitch, note, qualities, target, item, annotation }) =>
+const Promote = endpoint("/suggestions/promote", ({ session, user, pitch, note, qualities, target, item, annotation, at }) =>
   receive({ session, pitch, note, qualities })
-    .then(UserAuthenticating.current({ session }).responds({ user }))
+    .where(compute(computations.currentInstant, {}, at))
+    .then(Sessioning.use({ session, at }).responds({ subject: user }))
     .then(
       where(Pitching._get({ pitch }).is({ recipient: user, target, item, fit: "MATCH" }))
         .then(Annotating.annotate({ author: user, item, context: target, role: "EXAMPLE", note, qualities }).responds({ annotation }))

@@ -12,8 +12,10 @@ export function soundItOutPolicy(publicOrigin: string) {
       INVALID_USERNAME: "INVALID_REQUEST",
       INVALID_PASSWORD: "INVALID_REQUEST",
       USERNAME_TAKEN: "CONFLICT",
+      PASSWORD_SET: "CONFLICT",
       INVALID_CREDENTIALS: "UNAUTHORIZED",
-      UNKNOWN_SESSION: "UNAUTHORIZED",
+      NOT_SIGNED_IN: "UNAUTHORIZED",
+      SESSION_ENDED: "UNAUTHORIZED",
       INVALID_ASSOCIATION: "INVALID_REQUEST",
       ASSOCIATION_EXISTS: "CONFLICT",
       UNKNOWN_ASSOCIATION: "NOT_FOUND",
@@ -44,7 +46,10 @@ export function soundItOutPolicy(publicOrigin: string) {
       session: {
         name: "sound-it-out-session",
         input: "session",
-        issue: [{ path: "/auth/login", value: "session", expires: "expiresAt" }],
+        issue: [
+          { path: "/auth/register", value: "session", expires: "expiresAt" },
+          { path: "/auth/login", value: "session", expires: "expiresAt" },
+        ],
         clear: ["/auth/logout"],
       },
     },
