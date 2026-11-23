@@ -164,6 +164,18 @@ describe("Journey A: build a word from music", () => {
     expect(await example(alex, "").count()).toBe(3);
   });
 
+  test("editing a private song note keeps it private and saves it across a reload", async () => {
+    const card = example(alex, "Blue Boi");
+    await card.getByRole("button", { name: "Edit what you hear in this song" }).click();
+    await card.getByLabel("Anything else?").fill("The opening notes trail off gently.");
+    await card.getByRole("button", { name: "Save", exact: true }).click();
+    await visible(card.getByText("The opening notes trail off gently."));
+    await visible(card.getByText("Only you"));
+    await alex.reload();
+    await visible(card.getByText("The opening notes trail off gently."));
+    await visible(card.getByText("Only you"));
+  });
+
   test("sharing with friends shows exactly what friends and everyone else will see", async () => {
     await alex.getByRole("button", { name: "Share…" }).click();
     await alex.getByLabel(/Your friends/).check();
@@ -188,6 +200,72 @@ describe("Journey A: build a word from music", () => {
 
     wordLink = await alex.getByLabel("Link to this word").inputValue();
     expect(wordLink).toBe(`${target.url}/?wall=${alexName}&word=dreamy`);
+  });
+
+  test("a failed attempt to hide a shared song leaves the checkbox honest and can be retried", async () => {
+    const panel = alex.getByRole("region", { name: "Share", exact: true });
+    const setting = panel.getByRole("checkbox", { name: "Chill Day by LAKEY INSPIRED" });
+    const endpoint = "**/api/wall/examples/visibility";
+    await alexContext.route(endpoint, route => route.abort(), { times: 1 });
+
+    await setting.click();
+    await visible(panel.getByRole("alert").filter({ hasText: "Could not reach Sound It Out" }));
+    expect(await setting.isChecked()).toBe(true);
+    await visible(panel.locator(".preview").getByText("Chill Day"));
+
+    await setting.click();
+    await visible(example(alex, "Chill Day").getByText("Only you"));
+    expect(await setting.isChecked()).toBe(false);
+    await gone(panel.locator(".preview").getByText("Chill Day"));
+    await setting.click();
+    await visible(example(alex, "Chill Day").getByText("Shared"));
+    await visible(panel.locator(".preview").getByText("Chill Day"));
+  });
+
+  test("narrowing a public word to friends protects the songs before sharing them", async () => {
+    const context = await browser.newContext();
+    context.setDefaultTimeout(WAIT);
+    const owner = await context.newPage();
+    const visitor = await strangerContext.newPage();
+    const username = `audience-${run}`;
+    const note = "A note intended for friends.";
+    try {
+      await owner.goto(target.url);
+      await createAccount(owner, username);
+      await owner.getByLabel("Or your own word").fill("Lush");
+      await owner.locator("form").getByRole("button", { name: "Add word", exact: true }).click();
+      const track = song(owner, "Chill Day");
+      await track.getByRole("button", { name: "Choose Chill Day" }).click();
+      await track.getByLabel("Anything else?").fill(note);
+      await track.getByRole("button", { name: "Add to Lush" }).click();
+      await visible(example(owner, "Chill Day").getByText("Only you"));
+
+      await owner.getByRole("button", { name: "Share…" }).click();
+      const panel = owner.getByRole("region", { name: "Share", exact: true });
+      await panel.getByLabel(/Anyone with the link/).check();
+      await panel.getByRole("button", { name: "Share only the word" }).click();
+      await visible(owner.getByText("Public · 0 of 1 song shown"));
+      const link = await panel.getByLabel("Link to this word").inputValue();
+
+      await context.route("**/api/wall/visibility", route => route.abort(), { times: 1 });
+      await panel.getByLabel(/Your friends/).check();
+      await panel.getByRole("button", { name: "Show the song too" }).click();
+      await visible(panel.getByRole("alert").filter({ hasText: "Could not reach Sound It Out" }));
+      await visitor.goto(link);
+      await visible(visitor.getByRole("heading", { name: `${username}’s Lush`, level: 1 }));
+      expect(await visitor.getByText(note).count()).toBe(0);
+      expect(await panel.getByRole("checkbox").isChecked()).toBe(false);
+
+      await panel.getByLabel(/Your friends/).check();
+      await panel.getByRole("button", { name: "Show the song too" }).click();
+      await visible(owner.getByText("Shared with friends · 1 of 1 song shown"));
+      await visitor.reload();
+      await visible(visitor.getByText(`If ${username} shared it with friends, sign in to see it.`));
+      expect(await visitor.getByText(note).count()).toBe(0);
+    } finally {
+      await visitor.close();
+      await context.close();
+    }
   });
 
   test("the owner's own words replace the draft, and changing songs never touches them", async () => {

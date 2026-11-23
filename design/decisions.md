@@ -101,14 +101,21 @@ understand.
 
 **Decision.** One Share panel on the word page holds both choices and shows the view
 the server actually returns, from `/wall/preview`, never a simulation in the browser.
-When one action changes both, songs are shared first and the word opened second, so a
-failure partway leaves less visible than intended. The record-shelf "Public" switch was
-removed: with three audiences it could not say which one it meant.
+When one action broadens access and shares songs, the song settings are saved before
+the word opens to the new audience. Switching a public word to friends while sharing
+songs narrows access first. A failure to save the narrower audience therefore leaves
+each song's prior sharing setting in place.
 
 **Bug found and fixed.** The browser journey chose "Your friends", cancelled the "no
 songs are shown" question, and then could not choose it again: the radio stayed
 selected although the word was still private. The panel now keeps its own selection
 that resets to the saved audience on cancel or failure. The journey asserts the reset.
+
+Two follow-up browser tests forced failures while hiding a song and while switching a
+public word to friends. The song checkbox now returns to its last confirmed setting
+when a change fails. The audience test opens the public address as a signed-out visitor
+and checks that they cannot read the private song note after the failed change or the
+successful retry.
 
 ## D6. A suggestion never reveals a private example
 

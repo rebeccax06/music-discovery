@@ -64,14 +64,18 @@ export default defineComponent({
       else notify(done);
     }
 
-    function toggleSong(example: Example) {
+    async function toggleSong(example: Example, event: Event) {
+      const checkbox = event.currentTarget as HTMLInputElement;
       const next = example.visibility === "SHARED" ? "PRIVATE" : "SHARED";
       const open = props.word.visibility !== "PRIVATE";
-      void run(
+      await run(
         example.annotation,
         () => props.wall.setExampleVisibility(example.annotation, next),
         next === "SHARED" ? (open ? "This song is now shown with the word" : "Marked to show when you share the word") : "This song is hidden again",
       );
+      // The browser toggles the checkbox before the request. Use the saved value even when it did not change.
+      const saved = props.word.examples.find(song => song.annotation === example.annotation);
+      checkbox.checked = saved?.visibility === "SHARED";
     }
 
     function choose(audience: Audience) {
@@ -143,7 +147,7 @@ export default defineComponent({
         <legend>Songs shown with the word</legend>
         <p class="field-hint">Your note and the qualities you picked are shown with a song.<template v-if="word.visibility === 'PRIVATE'"> Nobody sees them until you share the word.</template></p>
         <label v-for="example in word.examples" :key="example.annotation" class="check">
-          <input type="checkbox" :checked="example.visibility === 'SHARED'" @change="toggleSong(example)">
+          <input type="checkbox" :checked="example.visibility === 'SHARED'" @change="toggleSong(example, $event)">
           <span>{{ title(example) }}</span>
         </label>
       </fieldset>

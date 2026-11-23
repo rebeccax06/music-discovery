@@ -78,21 +78,29 @@ export function useWall(sessionEnded: () => void) {
     change("promote", () => api.suggestions.promote({ pitch, note, qualities }));
 
   /**
-   * Shares every listed song and then opens the word to `audience`, in that order, so that stopping
-   * partway leaves less visible than intended and never more.
+   * Narrow access before sharing any songs. When opening a word to more people, share the songs
+   * before changing the audience so the new audience sees the intended examples when it gets access.
    */
   async function shareAllAndOpen(word: Word, audience: Exclude<Audience, "PRIVATE">): Promise<Failure> {
+    const narrowFirst = word.visibility === "PUBLIC" && audience === "LIMITED";
+    if (narrowFirst) {
+      const failure = await setWordVisibility(word.association, audience);
+      if (failure) return failure;
+    }
+
     const unshared = word.examples.filter(example => example.visibility !== "SHARED");
     let done = 0;
     for (const example of unshared) {
       const failure = await setExampleVisibility(example.annotation, "SHARED");
       if (failure) {
-        return `${failure} ${done} of ${unshared.length} songs were marked shared. The word is still ${word.visibility === "PRIVATE" ? "private" : "as it was"}, so nothing new is visible.`;
+        return `${failure} Confirmed ${done} of ${unshared.length} song sharing changes.`;
       }
       done += 1;
     }
+
+    if (narrowFirst) return;
     const failure = await setWordVisibility(word.association, audience);
-    if (failure) return `${failure} Your songs are marked shared, but who can open the word has not changed.`;
+    if (failure) return `${failure} Your song sharing settings were saved. Check who can open the word before trying again.`;
   }
 
   /** One of this person's words as their friends and as everyone else receive it, from the server. */

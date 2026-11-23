@@ -17,6 +17,16 @@ deployment**; see [limits](#limits-of-this-evidence).
 | Catalog playback | `bun run check:tracks` | 14 of 14 played on `bb09f35` and again on `1c71a5f`; one earlier run had 13 of 14 | [tracks.md](tracks.md) |
 | Text contrast | `bun scripts/contrast.ts` | All 13 pairs pass | [contrast.md](contrast.md) |
 
+## Follow-up on the merged alpha
+
+On November 22, the merged music-first build (`ea11c8c`) passed 60 local concept and
+HTTP tests. The follow-up with the sharing fixes passed 27 browser checks in Chrome,
+including a real SoundCloud player reporting ready. The new checks verified that a
+private note survives editing and reload, a failed attempt to hide a song restores
+its checkbox, and a signed-out visitor cannot see a song when switching a public
+word to friends fails. The two failure cases both reproduced before their fixes.
+[Sharing decisions](../decisions.md#d5-one-share-panel-over-two-stored-facts-changed-in-fail-closed-order)
+
 ## One defect, end to end
 
 [Case study](case-study/README.md): a song reported as added to a word that no longer
