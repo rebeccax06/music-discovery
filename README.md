@@ -6,9 +6,6 @@ one. The app writes a draft description from those picks. You share the word wit
 friends or with anyone. Friends listen and suggest songs, and you review each
 suggestion privately and decide whether it joins your examples.
 
-By Bhadra Rupesh, Sanskriti Singh, Rebecca Xiong, and Victor ([team](team.md)) for
-6.1040, Fall 2026.
-
 ## F4 alpha deliverables
 
 | Deliverable | Where | Status |
