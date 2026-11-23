@@ -517,4 +517,20 @@ describe("Journey D: recovering when things go wrong", () => {
     expect(await sam.locator(".word-page .suggestion").filter({ hasText: "Arcade" }).count()).toBe(0);
     await snap(sam, "d4-word-removed");
   });
+
+  test("the account menu reveals sign out, closes with Escape, and signs out", async () => {
+    const account = sam.getByRole("button", { name: samName, exact: true });
+    const signOut = sam.getByRole("button", { name: "Sign out", exact: true });
+    expect(await signOut.count()).toBe(0);
+    await account.click();
+    expect(await account.getAttribute("aria-expanded")).toBe("true");
+    await visible(signOut);
+    await sam.keyboard.press("Escape");
+    expect(await account.getAttribute("aria-expanded")).toBe("false");
+    await sam.waitForFunction(() => document.activeElement?.getAttribute("aria-expanded") === "false");
+    await account.click();
+    await signOut.click();
+    await gone(sam.getByRole("navigation", { name: "Main" }));
+    expect(await account.count()).toBe(0);
+  });
 });

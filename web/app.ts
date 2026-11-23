@@ -43,6 +43,24 @@ createApp({
     const ready = ref(false);
     const signingOut = ref(false);
     const signOutError = ref("");
+    const accountMenuOpen = ref(false);
+    const accountMenu = ref<HTMLElement | null>(null);
+    const accountButton = ref<HTMLButtonElement | null>(null);
+    function closeAccountMenu(event: MouseEvent) {
+      if (!accountMenu.value?.contains(event.target as Node)) accountMenuOpen.value = false;
+    }
+    function escapeAccountMenu(event: KeyboardEvent) {
+      if (event.key === "Escape" && accountMenuOpen.value) {
+        accountMenuOpen.value = false;
+        accountButton.value?.focus();
+      }
+    }
+    document.addEventListener("click", closeAccountMenu);
+    document.addEventListener("keydown", escapeAccountMenu);
+    onBeforeUnmount(() => {
+      document.removeEventListener("click", closeAccountMenu);
+      document.removeEventListener("keydown", escapeAccountMenu);
+    });
     const sameName = (a: string, b: string) => a.toLowerCase() === b.toLowerCase();
     const visiting = computed(() => !!route.wall && !(account.value && sameName(route.wall, account.value.username)));
     const onFriends = computed(() => !!account.value && route.friends && !route.wall);
@@ -106,6 +124,7 @@ createApp({
         signOutError.value = failure;
         return;
       }
+      accountMenuOpen.value = false;
       expired.value = false;
       wall.clear();
       suggestions.clear();
@@ -140,23 +159,31 @@ createApp({
 
     return {
       account, restoreError, session: { register: session.register, signIn }, wall, visited, suggestions, friends,
-      ready, expired, visiting, onFriends, signingOut, signOutError, start, signOut, toast, follow, go, route,
+      ready, expired, visiting, onFriends, signingOut, signOutError, accountMenuOpen, accountMenu, accountButton,
+      start, signOut, toast, follow, go, route,
     };
   },
   template: `
     <header class="site-header">
       <div class="header-inner">
         <a class="wordmark" href="/" @click.prevent="go({})">Sound It Out</a>
-        <nav v-if="account" class="account-summary" aria-label="Main">
+        <nav v-if="account" class="main-nav" aria-label="Main">
           <a class="nav-link" href="/" :aria-current="!visiting && !onFriends ? 'page' : undefined" @click.prevent="go({})">Your wall</a>
           <a class="nav-link" href="/?friends" :aria-current="onFriends ? 'page' : undefined" @click.prevent="go({ friends: true })">
             Friends<span v-if="friends.waiting.value" class="badge" :aria-label="friends.waiting.value + ' waiting'">{{ friends.waiting.value }}</span>
           </a>
-          <span class="who">{{ account.username }}</span>
-          <button class="text-button" type="button" :disabled="signingOut" @click="signOut">
-            {{ signingOut ? 'Signing out…' : 'Sign out' }}
-          </button>
         </nav>
+        <div v-if="account" ref="accountMenu" class="account-menu">
+          <button ref="accountButton" class="account-toggle" type="button" aria-controls="account-options"
+            :aria-expanded="accountMenuOpen" @click="accountMenuOpen = !accountMenuOpen">
+            <span>{{ account.username }}</span><span aria-hidden="true">▾</span>
+          </button>
+          <div v-if="accountMenuOpen" id="account-options" class="account-options">
+            <button class="account-signout" type="button" :disabled="signingOut" @click="signOut">
+              {{ signingOut ? 'Signing out…' : 'Sign out' }}
+            </button>
+          </div>
+        </div>
       </div>
     </header>
     <main>

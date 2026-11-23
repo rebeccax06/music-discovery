@@ -111,7 +111,6 @@ main {
 .header-inner {
   display: flex;
   align-items: center;
-  justify-content: space-between;
   gap: var(--space-4);
   min-height: 4rem;
 }
@@ -123,15 +122,60 @@ main {
   font-size: 1.125rem;
   font-weight: 680;
 }
-.account-summary {
+.main-nav {
   display: flex;
   align-items: center;
   gap: var(--space-3);
   font-size: var(--text-control);
-  overflow-wrap: anywhere;
 }
-.who {
-  color: var(--muted);
+.account-menu {
+  position: relative;
+  margin-left: auto;
+  min-width: 0;
+}
+.account-toggle {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  max-width: 14rem;
+  min-height: var(--target);
+  border: 0;
+  background: transparent;
+  color: var(--ink);
+  cursor: pointer;
+  font: inherit;
+  font-size: var(--text-control);
+}
+.account-toggle span:first-child {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.account-options {
+  position: absolute;
+  z-index: 10;
+  right: 0;
+  min-width: 9rem;
+  padding: var(--space-1);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  box-shadow: 0 6px 18px rgb(40 33 50 / 12%);
+}
+.account-signout {
+  width: 100%;
+  min-height: var(--target);
+  padding: 0 var(--space-3);
+  text-align: left;
+  border: 0;
+  border-radius: var(--radius-card);
+  background: transparent;
+  color: var(--ink);
+  cursor: pointer;
+  font: inherit;
+}
+.account-signout:hover {
+  background: var(--accent-soft);
 }
 main {
   padding-block: clamp(2rem, 6vw, 4rem);
@@ -1079,13 +1123,17 @@ button.chip:hover:enabled {
 
 @media (max-width: 40rem) {
   .header-inner {
+    flex-wrap: wrap;
+    column-gap: var(--space-3);
+    row-gap: 0;
+  }
+  .main-nav {
+    order: 3;
+    width: 100%;
     gap: var(--space-3);
   }
-  .account-summary {
-    gap: var(--space-3);
-  }
-  .account-summary .who {
-    display: none;
+  .account-toggle {
+    max-width: min(10rem, 40vw);
   }
 }
 @media (max-width: 30rem) {
