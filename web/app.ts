@@ -17,7 +17,25 @@ createApp({
     const session = useAccount();
     const { account, restoreError } = session;
     const expired = ref(false);
-    const sessionEnded = () => { expired.value = true; };
+    // Where the person was when their session ended, so signing in again can return them there. A
+    // button disables itself while its request runs and loses focus, so remember the last focus.
+    let lastFocused: HTMLElement | null = null;
+    const remember = (event: FocusEvent) => {
+      if (event.target instanceof HTMLElement && !event.target.closest(".session-ended")) lastFocused = event.target;
+    };
+    document.addEventListener("focusin", remember);
+    onBeforeUnmount(() => document.removeEventListener("focusin", remember));
+    let interrupted: HTMLElement | null = null;
+    const sessionEnded = () => {
+      if (expired.value) return;
+      interrupted = lastFocused;
+      expired.value = true;
+      void nextTick(() => {
+        const panel = document.querySelector<HTMLElement>(".session-ended");
+        panel?.scrollIntoView({ block: "start", behavior: "smooth" });
+        panel?.querySelector<HTMLInputElement>("input")?.focus({ preventScroll: true });
+      });
+    };
     const wall = useWall(sessionEnded);
     const visited = usePublicWall(() => !!account.value && !expired.value);
     const suggestions = useSuggestions(sessionEnded);
@@ -57,10 +75,21 @@ createApp({
     async function signIn(username: string, password: string) {
       const failure = await session.signIn(username, password);
       if (failure) return failure;
+      // Signing in again after a session ended must not replace the page: what the person entered
+      // is still on it, and the interface promised to keep it.
+      const resuming = expired.value;
       expired.value = false;
       redirectOwnWall();
+      if (resuming && interrupted?.isConnected) {
+        const place = interrupted;
+        void nextTick(() => {
+          place.scrollIntoView({ block: "center", behavior: "smooth" });
+          place.focus({ preventScroll: true });
+        });
+      }
+      interrupted = null;
       await Promise.all([
-        wall.load(),
+        wall.load({ quiet: resuming }),
         friends.load(),
         // Signing in partway through a visit keeps the visitor where they were, now seeing what friends see.
         visiting.value && route.wall ? visited.load(route.wall, { quiet: true }) : undefined,
@@ -139,7 +168,7 @@ createApp({
       <template v-else>
         <p v-if="signOutError" class="error" role="alert">{{ signOutError }}</p>
         <section v-if="expired && account" class="session-ended" aria-label="Sign in again">
-          <p class="notice" role="alert">Your session has ended. Sign in again to continue. What you entered on this page is still here.</p>
+          <p class="notice" role="alert">Your session has ended. Sign in again to continue. What you entered on this page is still here, and you’ll go back to it.</p>
           <AccountAccess :register="session.register" :sign-in="session.signIn" />
         </section>
         <PublicWallView v-if="visiting" :visited="visited" :account="account" :session="session" :suggestions="suggestions" :friends="friends" />

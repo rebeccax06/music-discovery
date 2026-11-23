@@ -1,6 +1,7 @@
 import { MongoClient } from "mongodb";
 import { assembleApplication, createInstances } from "./assembly.ts";
 import { createApi } from "./http.ts";
+import { clearOrphans } from "./maintenance.ts";
 import { buildFrontend } from "../web/serve.ts";
 
 const production = process.env.NODE_ENV === "production";
@@ -21,7 +22,8 @@ const mongoUrl = setting(["MONGODB_URL", "MONGODB_URI"], "mongodb://dev:dev@127.
 // The hosted database allows 10 connections, and a rolling deploy briefly runs two copies of the app.
 const client = new MongoClient(mongoUrl, { serverSelectionTimeoutMS: 3000, maxPoolSize: 5 });
 const db = client.db();
-const api = createApi(assembleApplication(createInstances(db)), publicOrigin);
+const application = assembleApplication(createInstances(db));
+const api = createApi(application, publicOrigin);
 const frontend = await buildFrontend();
 
 async function ping() {
@@ -33,6 +35,12 @@ try {
 } catch (error) {
   await client.close();
   throw new Error("Could not connect to MongoDB. Check MONGODB_URL and that MongoDB is running.", { cause: error });
+}
+
+// Recover from any repair that failed before this start. A deployment restarts the server.
+const cleared = await clearOrphans(application.concepts);
+if (cleared.songs || cleared.suggestions) {
+  console.warn(`Cleared songs for ${cleared.songs} and suggestions for ${cleared.suggestions} removed words left by a failed repair.`);
 }
 
 const server = Bun.serve({

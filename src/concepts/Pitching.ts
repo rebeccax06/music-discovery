@@ -97,6 +97,11 @@ export class PitchingConcept {
     return [{ contributor, recipient, target, item, note, fit, response }];
   }
 
+  async _targets(_: Record<string, never> = {}) {
+    const targets = await this.pitches.distinct("target");
+    return targets.map(target => ({ target }));
+  }
+
   async _forTarget({ target }: { target: string }) {
     const rows = await this.pitches.find({ target }).toArray();
     return rows.map(({ _id, contributor, item, note, fit, response }) => ({

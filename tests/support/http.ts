@@ -24,9 +24,14 @@ export async function startApplication() {
     /** Resolves once every reaction started by earlier requests has finished. */
     settled: () => application.whenIdle(),
 
-    /** Assembles the application again over the same database, as a server restart would. */
-    restart() {
+    /**
+     * Assembles the application again over the same database, as a server restart would. `adjust`
+     * can wrap concept methods first: the engine binds them when it assembles, so a wrapper added
+     * afterward is never called.
+     */
+    restart(adjust?: (fresh: ReturnType<typeof createInstances>) => void) {
       instances = createInstances(storage.db);
+      adjust?.(instances);
       application = assembleApplication(instances);
       handler = createApi(application, origin);
     },
@@ -59,3 +64,18 @@ export async function startApplication() {
 }
 
 export type Application = Awaited<ReturnType<typeof startApplication>>;
+
+/**
+ * Replaces one method of a concept instance for a test, keeping its name: the engine recognizes
+ * actions and queries by method name. Use inside `restart(adjust)`, before assembly.
+ */
+export function around<T extends object, K extends keyof T & string>(
+  target: T,
+  name: K,
+  wrap: (original: T[K]) => T[K],
+) {
+  const original = (target[name] as Function).bind(target) as T[K];
+  const replacement = wrap(original) as Function;
+  Object.defineProperty(replacement, "name", { value: name });
+  target[name] = replacement as T[K];
+}

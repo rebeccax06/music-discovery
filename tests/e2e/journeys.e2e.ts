@@ -407,3 +407,97 @@ describe("Journey C: review and accept a suggestion", () => {
     await visible(alex.getByRole("heading", { name: "Choose a word" }));
   });
 });
+
+describe("Journey D: recovering when things go wrong", () => {
+  const samName = `sam-${run}`;
+  let sam: Page;
+  let warmLink = "";
+
+  test("a track that will not load says so and offers SoundCloud, and can still be added", async () => {
+    await visible(alex.getByRole("heading", { name: "Choose a word" }));
+    await alex.getByRole("button", { name: "Warm", exact: true }).click();
+    await visible(alex.getByRole("heading", { name: "Add a song to Warm" }));
+
+    await alexContext.route("https://w.soundcloud.com/**", route => route.abort());
+    const row = song(alex, "Better Days");
+    await row.getByRole("button", { name: "Play Better Days by LAKEY INSPIRED" }).click();
+    await visible(row.getByText("This track isn’t loading here."));
+    expect(await row.locator("iframe").isVisible()).toBe(false);
+    expect(await row.getByRole("link", { name: "Open it on SoundCloud" }).getAttribute("href"))
+      .toBe("https://soundcloud.com/lakeyinspired/better-days");
+    await snap(alex, "d1-playback-unavailable");
+    await row.getByRole("button", { name: "Choose Better Days" }).click();
+    await row.getByRole("button", { name: "Add to Warm" }).click();
+    await visible(example(alex, "Better Days"));
+    await alexContext.unroute("https://w.soundcloud.com/**");
+  });
+
+  test("a session that ends mid-task keeps what was entered, and the task finishes after signing in again", async () => {
+    const row = song(alex, "Journeyman");
+    await row.getByRole("button", { name: "Choose Journeyman" }).click();
+    await chip(row, "warm bass").click();
+    await row.getByLabel("Anything else?").fill("The low end.");
+    await alexContext.clearCookies();
+
+    await row.getByRole("button", { name: "Add to Warm" }).click();
+    await visible(alex.getByText("Your session has ended. Sign in again to continue. What you entered on this page is still here, and you’ll go back to it."));
+    // The sign-in form comes to the person instead of waiting at the top of a long page.
+    await alex.waitForFunction(() => document.activeElement?.closest(".session-ended") !== null);
+    expect(await chip(row, "warm bass").getAttribute("aria-pressed")).toBe("true");
+    expect(await row.getByLabel("Anything else?").inputValue()).toBe("The low end.");
+    await snap(alex, "d2-session-ended");
+
+    const panel = alex.locator(".session-ended");
+    await panel.getByLabel("Username").fill(alexName);
+    await panel.getByLabel("Password").fill(password);
+    await panel.getByRole("button", { name: "Sign in" }).click();
+    await gone(panel);
+    // Signing in returns the person to the button they pressed.
+    await alex.waitForFunction(() => document.activeElement?.textContent?.trim() === "Add to Warm");
+    await row.getByRole("button", { name: "Add to Warm" }).click();
+    await visible(example(alex, "Journeyman").getByText("The low end."));
+    await alex.getByRole("button", { name: "Done" }).click();
+  });
+
+  test("a song someone else already suggested is refused with a way forward, keeping the person's place", async () => {
+    await alex.getByRole("button", { name: "Share…" }).click();
+    await alex.getByLabel(/Anyone with the link/).check();
+    await alex.getByRole("button", { name: "Show all 2 songs too" }).click();
+    await visible(alex.getByText("Public · 2 of 2 songs shown"));
+    warmLink = await alex.getByLabel("Link to this word").inputValue();
+
+    await daniel.goto(warmLink);
+    await daniel.getByRole("button", { name: "Suggest a song" }).click();
+    const first = song(daniel, "Flickermood");
+    await first.getByRole("button", { name: "Choose Flickermood" }).click();
+    await first.getByRole("button", { name: "Send suggestion" }).click();
+    await visible(daniel.locator(".word-page .suggestion").filter({ hasText: "Flickermood" }));
+
+    sam = await strangerContext.newPage();
+    await sam.goto(warmLink);
+    await sam.getByRole("button", { name: "Sign in or create an account" }).click().catch(() => {});
+    await sam.getByRole("button", { name: "Suggest a song" }).click();
+    await createAccount(sam.locator(".word-page"), samName);
+    const row = song(sam, "Flickermood");
+    await row.getByRole("button", { name: "Choose Flickermood" }).click();
+    await row.getByLabel("Why this song?").fill("Same idea.");
+    await row.getByRole("button", { name: "Send suggestion" }).click();
+    await visible(row.getByRole("alert").filter({ hasText: "This song has already been suggested for this word. Pick another?" }));
+    expect(await row.getByLabel("Why this song?").inputValue()).toBe("Same idea.");
+    await snap(sam, "d3-duplicate-suggestion");
+  });
+
+  test("a word removed while someone is suggesting for it is reported plainly, not as sent", async () => {
+    const row = song(sam, "Arcade");
+    await row.getByRole("button", { name: "Choose Arcade" }).click();
+
+    await alex.getByRole("button", { name: "Remove word" }).click();
+    await alex.locator(".confirm").getByRole("button", { name: "Remove word" }).click();
+    await visible(alex.getByRole("heading", { name: "Choose a word" }));
+
+    await row.getByRole("button", { name: "Send suggestion" }).click();
+    await visible(row.getByRole("alert").filter({ hasText: "You can no longer open this word." }));
+    expect(await sam.getByText(/Sent to/).count()).toBe(0);
+    await snap(sam, "d4-word-removed");
+  });
+});

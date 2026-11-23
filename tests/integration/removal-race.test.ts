@@ -1,5 +1,5 @@
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
-import { startApplication, type Application } from "../support/http.ts";
+import { around, startApplication, type Application } from "../support/http.ts";
 
 const chillDay = "soundcloud:296089690";
 const TRIALS = 60;
@@ -54,6 +54,36 @@ describe("Adding to a word while it is being removed", () => {
     expect((await app.request("/wall/remove", { association }, owner.cookie)).status).toBe(200);
     return association;
   }
+
+  test("an add whose word is removed just before the song is written is answered as not kept", async () => {
+    // Forces the interleaving the race tests only hit by chance: the add passes its ownership check,
+    // then the owner removes the word, then the song is written. Before D9 this answered as an
+    // ordinary success, so the person was told a song was added to a word that no longer existed.
+    const owner = await app.signIn("ForcedRace");
+    const created = await app.request("/wall/associate", { label: "Fleeting", description: "", visibility: "PRIVATE" }, owner.cookie);
+    const association = created.body.association as string;
+    let removal: Promise<{ status: number }> | undefined;
+    let forced = false;
+    app.restart(fresh => around(fresh.Annotating, "annotate", write => async input => {
+      removal = app.request("/wall/remove", { association }, owner.cookie);
+      while ((await app.concepts.Associating._get({ association })).length) await Bun.sleep(1);
+      forced = true;
+      return write(input);
+    }));
+    try {
+      const added = await app.request("/wall/examples/add", { association, item: chillDay, role: "EXAMPLE", note: "", qualities: [] }, owner.cookie);
+      // Proves the interleaving happened, so this test cannot pass without exercising it.
+      expect(forced).toBe(true);
+      expect(added.status).toBe(200);
+      expect(added.body.word).toEqual({ label: null });
+      expect((await removal)!.status).toBe(200);
+    } finally {
+      app.restart();
+    }
+    await app.settled();
+    expect(await app.concepts.Annotating._forContext({ context: association })).toEqual([]);
+    expect((await app.request("/wall/list", {}, owner.cookie)).body).toEqual({ wall: { words: [] } });
+  });
 
   test("an example written after its word's cleanup is cleared by the repair reaction", async () => {
     const owner = await app.signIn("LateExample");

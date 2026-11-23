@@ -110,6 +110,9 @@ clearContext(context: Context) : returns ()
 _get(annotation: Annotation) : optional (author: Author, item: Item, context: Context, role: Role, note: String, qualities: Qualities, visibility: Visibility)
   Returns the annotation's contents and context, with its qualities in ascending order, or no rows when absent.
 
+_contexts() : many (context: Context)
+  Returns every context that has at least one annotation, each once, in unspecified order. Returns no rows when there are no annotations.
+
 _forContext(context: Context) : many (annotation: Annotation, author: Author, item: Item, role: Role, note: String, qualities: Qualities, visibility: Visibility)
   Returns every annotation for context in unspecified order, each with its qualities in ascending order. Returns no rows when the context has none.
 ```

@@ -91,6 +91,11 @@ export class AnnotatingConcept {
     return [{ author, item, context, role, note, qualities, visibility }];
   }
 
+  async _contexts(_: Record<string, never> = {}) {
+    const contexts = await this.annotations.distinct("context");
+    return contexts.map(context => ({ context }));
+  }
+
   async _forContext({ context }: { context: string }) {
     const rows = await this.annotations.find({ context }).toArray();
     return rows.map(({ _id, author, item, role, note, qualities, visibility }) => ({

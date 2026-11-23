@@ -71,7 +71,8 @@ No single concept owns this relation, so it is recorded here.
    reached: every read starts from a word that exists, word identities are random and
    never reused, and adding the same label again creates a new identity. The person
    who added it was told the word no longer exists, so nothing claims it was saved.
-   Storage for such a row is not reclaimed; that is accepted for this release.
+   The server sweeps for such rows at every start, using Annotating's `_contexts`
+   query and its `clearContext` action, and logs what it clears.
 6. **Automatic.** Yes.
 
 ## Reading

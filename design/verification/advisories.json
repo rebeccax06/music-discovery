@@ -1,0 +1,122 @@
+[
+  {
+    "code": "MISSING_ENDPOINT_FALLBACK",
+    "message": "Endpoint \"Accounts.Login\" at \"/auth/login\" has no recognized total answer path; an admitted request can time out when every answer guard drops."
+  },
+  {
+    "code": "MISSING_ENDPOINT_FALLBACK",
+    "message": "Endpoint \"Accounts.Me\" at \"/auth/me\" has no recognized total answer path; an admitted request can time out when every answer guard drops."
+  },
+  {
+    "code": "MISSING_ENDPOINT_FALLBACK",
+    "message": "Endpoint \"Accounts.Register\" at \"/auth/register\" has no recognized total answer path; an admitted request can time out when every answer guard drops."
+  },
+  {
+    "code": "MISSING_ENDPOINT_FALLBACK",
+    "message": "Endpoint \"Friends.Circle.List\" at \"/friends/list\" has no recognized total answer path; an admitted request can time out when every answer guard drops."
+  },
+  {
+    "code": "MISSING_ENDPOINT_FALLBACK",
+    "message": "Endpoint \"Friends.Leaving.Remove\" at \"/friends/remove\" has no recognized total answer path; an admitted request can time out when every answer guard drops."
+  },
+  {
+    "code": "MISSING_ENDPOINT_FALLBACK",
+    "message": "Endpoint \"Friends.Requests.Accept\" at \"/friends/accept\" has no recognized total answer path; an admitted request can time out when every answer guard drops."
+  },
+  {
+    "code": "MISSING_ENDPOINT_FALLBACK",
+    "message": "Endpoint \"Friends.Requests.Cancel\" at \"/friends/cancel\" has no recognized total answer path; an admitted request can time out when every answer guard drops."
+  },
+  {
+    "code": "MISSING_ENDPOINT_FALLBACK",
+    "message": "Endpoint \"Friends.Requests.Decline\" at \"/friends/decline\" has no recognized total answer path; an admitted request can time out when every answer guard drops."
+  },
+  {
+    "code": "MISSING_ENDPOINT_FALLBACK",
+    "message": "Endpoint \"Friends.Requests.Request\" at \"/friends/request\" has no recognized total answer path; an admitted request can time out when every answer guard drops."
+  },
+  {
+    "code": "MISSING_ENDPOINT_FALLBACK",
+    "message": "Endpoint \"SoundWall.Definitions.Associate\" at \"/wall/associate\" has no recognized total answer path; an admitted request can time out when every answer guard drops."
+  },
+  {
+    "code": "MISSING_ENDPOINT_FALLBACK",
+    "message": "Endpoint \"SoundWall.Definitions.RemoveWord\" at \"/wall/remove\" has no recognized total answer path; an admitted request can time out when every answer guard drops."
+  },
+  {
+    "code": "MISSING_ENDPOINT_FALLBACK",
+    "message": "Endpoint \"SoundWall.Definitions.SetVisibility\" at \"/wall/visibility\" has no recognized total answer path; an admitted request can time out when every answer guard drops."
+  },
+  {
+    "code": "MISSING_ENDPOINT_FALLBACK",
+    "message": "Endpoint \"SoundWall.Definitions.UpdateWord\" at \"/wall/update\" has no recognized total answer path; an admitted request can time out when every answer guard drops."
+  },
+  {
+    "code": "MISSING_ENDPOINT_FALLBACK",
+    "message": "Endpoint \"SoundWall.Examples.AddExample\" at \"/wall/examples/add\" has no recognized total answer path; an admitted request can time out when every answer guard drops."
+  },
+  {
+    "code": "MISSING_ENDPOINT_FALLBACK",
+    "message": "Endpoint \"SoundWall.Examples.RemoveExample\" at \"/wall/examples/remove\" has no recognized total answer path; an admitted request can time out when every answer guard drops."
+  },
+  {
+    "code": "MISSING_ENDPOINT_FALLBACK",
+    "message": "Endpoint \"SoundWall.Examples.SetExampleVisibility\" at \"/wall/examples/visibility\" has no recognized total answer path; an admitted request can time out when every answer guard drops."
+  },
+  {
+    "code": "MISSING_ENDPOINT_FALLBACK",
+    "message": "Endpoint \"SoundWall.Examples.UpdateExample\" at \"/wall/examples/update\" has no recognized total answer path; an admitted request can time out when every answer guard drops."
+  },
+  {
+    "code": "MISSING_ENDPOINT_FALLBACK",
+    "message": "Endpoint \"SoundWall.Reading.ListWall\" at \"/wall/list\" has no recognized total answer path; an admitted request can time out when every answer guard drops."
+  },
+  {
+    "code": "MISSING_ENDPOINT_FALLBACK",
+    "message": "Endpoint \"SoundWall.Reading.MissingWall, SoundWall.Reading.ReadPublicWall\" at \"/wall/public\" has no recognized total answer path; an admitted request can time out when every answer guard drops."
+  },
+  {
+    "code": "MISSING_ENDPOINT_FALLBACK",
+    "message": "Endpoint \"SoundWall.Reading.PreviewWall\" at \"/wall/preview\" has no recognized total answer path; an admitted request can time out when every answer guard drops."
+  },
+  {
+    "code": "MISSING_ENDPOINT_FALLBACK",
+    "message": "Endpoint \"SoundWall.Reading.VisitWall\" at \"/wall/visit\" has no recognized total answer path; an admitted request can time out when every answer guard drops."
+  },
+  {
+    "code": "MISSING_ENDPOINT_FALLBACK",
+    "message": "Endpoint \"Suggestions.Reviewing.Promote\" at \"/suggestions/promote\" has no recognized total answer path; an admitted request can time out when every answer guard drops."
+  },
+  {
+    "code": "MISSING_ENDPOINT_FALLBACK",
+    "message": "Endpoint \"Suggestions.Reviewing.Review\" at \"/suggestions/review\" has no recognized total answer path; an admitted request can time out when every answer guard drops."
+  },
+  {
+    "code": "MISSING_ENDPOINT_FALLBACK",
+    "message": "Endpoint \"Suggestions.Sending.ListSent\" at \"/suggestions/sent\" has no recognized total answer path; an admitted request can time out when every answer guard drops."
+  },
+  {
+    "code": "MISSING_ENDPOINT_FALLBACK",
+    "message": "Endpoint \"Suggestions.Sending.Send\" at \"/suggestions/send\" has no recognized total answer path; an admitted request can time out when every answer guard drops."
+  },
+  {
+    "code": "MISSING_ENDPOINT_FALLBACK",
+    "message": "Endpoint \"Suggestions.Sending.Withdraw\" at \"/suggestions/withdraw\" has no recognized total answer path; an admitted request can time out when every answer guard drops."
+  },
+  {
+    "code": "ORDER_SENSITIVE_FORMER",
+    "message": "Former \"the friends and requests of (user)\" contains a source-order-sensitive selection."
+  },
+  {
+    "code": "ORDER_SENSITIVE_FORMER",
+    "message": "Former \"the personal sound wall (user)\" contains a source-order-sensitive selection."
+  },
+  {
+    "code": "ORDER_SENSITIVE_FORMER",
+    "message": "Former \"the sound wall of (user) open to (levels)\" contains a source-order-sensitive selection."
+  },
+  {
+    "code": "ORDER_SENSITIVE_FORMER",
+    "message": "Former \"the suggestions (user) has sent\" contains a source-order-sensitive selection."
+  }
+]

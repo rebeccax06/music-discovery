@@ -174,14 +174,23 @@ later removal clears the song as part of that removal.
 not allow a branch inside a branch, which this needs, because ownership is checked
 before the write.
 
-**Accepted limitation.** If the repair reaction itself faults, the stray row stays in
-storage. Nothing can reach it, and the person was told it was not kept.
+**Recovery if the repair fails.** A row the repair missed cannot be reached, but it
+should not be left to argument. The server sweeps at every start (`src/maintenance.ts`).
+Using only Annotating's and Pitching's queries (`_contexts`, `_targets`, added for this)
+and Associating's `_get`, it finds songs and suggestions whose word no longer exists,
+clears them through the concepts' own actions, and logs what it cleared. Clearing is
+always safe, because word identities are never reused.
 
-**Checked by.** Two deterministic tests write after a word's removal through the
-engine and assert that the repair clears it, and that without the repair nothing
-reaches it. Two race tests run 60 trials each and print how many interleavings took
-each path. One saved run caught the late write once, and that add was answered
-"word gone".
+**Checked by.**
+- A forced-race test over HTTP removes the word at the exact moment the song is
+  written. It fails on the code before this decision and passes after; both outputs
+  are saved in the [case study](verification/case-study/README.md), which also records
+  that the first version of this test could not fail and how that was discovered.
+- Two deterministic tests write after a word's removal through the engine and assert
+  that the repair clears the write.
+- `orphans.test.ts` reproduces the state a failed repair leaves, and asserts that the
+  sweep clears it and nothing else.
+- Two race tests run 60 trials each and print how many interleavings took each path.
 
 ## D10. The draft and the rest of the page use the same vocabulary
 
@@ -189,6 +198,25 @@ Quality labels are stored as shown on the chips, for example "driving beat". The
 uses a noun phrase for each, such as "a driving beat", kept beside the label in
 `shared/qualities.ts`. A quality later removed from the offer still displays and can
 be unpicked.
+
+## D11. Recovering from an ended session keeps the person's place
+
+The browser journeys exercise recovery as well as success: a track that will not load,
+a failed save, a session that ends mid-task, a duplicate suggestion, and a word removed
+while someone is suggesting for it. Two defects surfaced:
+
+- **Lost work after signing in again.** The interface said "What you entered on this
+  page is still here", but signing in reloaded the wall with a full loading screen,
+  which discarded the song, qualities, and note being added. Re-authentication now
+  reloads quietly in place.
+- **Losing one's place.** The sign-in form appeared at the top of a long page while
+  the person was far down at their song. The form now scrolls into view and takes
+  focus. After signing in, focus returns to the control the person last used, which
+  is remembered from focus events because a button loses focus while it is disabled
+  during a request.
+
+A track that fails to load now hides its empty player instead of leaving a blank gap
+above the message. Journey D asserts each of these.
 
 ## How generated code was checked
 
@@ -201,11 +229,18 @@ Most code in this increment was written with a coding agent. Before building on 
      privacy sweep.
    - Removing the example repair reaction and accepting suggestions for private words
      failed three tests, including the deterministic repair test.
-3. The browser journeys found four real defects that unit and HTTP tests had passed:
+3. The browser journeys found six real defects that unit and HTTP tests had passed:
    - Creating a word did not open it, because the add screen unmounted before it
      could navigate.
    - The share panel radio did not reset after cancel (D5).
    - The phone header broke words mid-word.
    - Track status text squeezed track titles on phones.
-4. Screens from each journey were reviewed at desktop and phone widths
+   - Signing in after a session ended discarded the person's unsaved song (D11).
+   - Focus was not returned after signing in again (D11).
+4. A test was made to fail on purpose by running it against the pre-fix code. That
+   run is what exposed a regression test that could not fail
+   ([case study](verification/case-study/README.md)).
+5. Screens from each journey were reviewed at desktop and phone widths
    ([screens](verification/screens/)).
+6. The 30 advisories from the engine's checker were each reviewed and explained
+   ([advisories](verification/advisories.md)). `bun run check` fails on any new one.

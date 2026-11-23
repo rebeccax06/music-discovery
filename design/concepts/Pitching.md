@@ -103,6 +103,9 @@ clearTarget(target: Target) : returns ()
 _get(pitch: Pitch) : optional (contributor: Person, recipient: Person, target: Target, item: Item, note: String, fit: Fit, response: String)
   Returns the pitch's contents, or no rows when absent.
 
+_targets() : many (target: Target)
+  Returns every target that has at least one pitch, each once, in unspecified order. Returns no rows when there are no pitches.
+
 _forTarget(target: Target) : many (pitch: Pitch, contributor: Person, item: Item, note: String, fit: Fit, response: String)
   Returns every pitch for target in unspecified order. Returns no rows when the target has none.
 

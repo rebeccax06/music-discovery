@@ -30,6 +30,7 @@ Defined in [Annotating](../design/concepts/Annotating.md), line 1.
 #### Queries
 
 - `_get(annotation: Annotation) : optional (author: Author, item: Item, context: Context, role: Role, note: String, qualities: Qualities, visibility: Visibility)`
+- `_contexts() : many (context: Context)`
 - `_forContext(context: Context) : many (annotation: Annotation, author: Author, item: Item, role: Role, note: String, qualities: Qualities, visibility: Visibility)`
 
 #### Instances
@@ -124,6 +125,7 @@ Defined in [Pitching](../design/concepts/Pitching.md), line 1.
 #### Queries
 
 - `_get(pitch: Pitch) : optional (contributor: Person, recipient: Person, target: Target, item: Item, note: String, fit: Fit, response: String)`
+- `_targets() : many (target: Target)`
 - `_forTarget(target: Target) : many (pitch: Pitch, contributor: Person, item: Item, note: String, fit: Fit, response: String)`
 - `_sentBy(contributor: Person) : many (pitch: Pitch, recipient: Person, target: Target, item: Item, note: String, reviewed: Flag)`
 
@@ -191,7 +193,7 @@ _the authored explanation; this section records the generated shape._
 
 Authored path: `SoundWall.Reading.VisibleWall`.
 - Covered by [Friends](../design/compositions/Friends.md), line 16.
-- Covered by [Sound Wall](../design/compositions/SoundWall.md), line 87.
+- Covered by [Sound Wall](../design/compositions/SoundWall.md), line 88.
 
 ```former
 Former "the sound wall of (user) open to (levels)" — inputs (user, levels); bindings (association, label, description, visibility, annotation, item, role, note, qualities); promises exactly one record — forms:
@@ -243,7 +245,7 @@ Former "the friends and requests of (user)" — inputs (user); bindings (friend,
 ### the personal sound wall (user)
 
 Authored path: `SoundWall.Reading.PersonalWall`.
-- Covered by [Sound Wall](../design/compositions/SoundWall.md), line 80.
+- Covered by [Sound Wall](../design/compositions/SoundWall.md), line 81.
 
 ```former
 Former "the personal sound wall (user)" — inputs (user); bindings (association, label, description, visibility, annotation, item, role, note, qualities, exampleVisibility, pitch, contributor, contributorName, pitchedItem, pitchNote, fit, response); promises exactly one record — forms:
@@ -1124,8 +1126,8 @@ then
 ### SoundWall.Reading.ListWall
 
 Authored path: `SoundWall.Reading.ListWall`.
-- Covered by [Sound Wall](../design/compositions/SoundWall.md), line 79.
-- Covered by [Sound Wall](../design/compositions/SoundWall.md), line 108.
+- Covered by [Sound Wall](../design/compositions/SoundWall.md), line 80.
+- Covered by [Sound Wall](../design/compositions/SoundWall.md), line 109.
 
 ```reaction
 when RequestBoundary.request (path: "/wall/list", requestId, session)
@@ -1136,8 +1138,8 @@ then
 ### SoundWall.Reading.ListWall#2
 
 Authored path: `SoundWall.Reading.ListWall`.
-- Covered by [Sound Wall](../design/compositions/SoundWall.md), line 79.
-- Covered by [Sound Wall](../design/compositions/SoundWall.md), line 108.
+- Covered by [Sound Wall](../design/compositions/SoundWall.md), line 80.
+- Covered by [Sound Wall](../design/compositions/SoundWall.md), line 109.
 
 ```reaction
 when UserAuthenticating.current (session, user), asked by SoundWall.Reading.ListWall
@@ -1150,8 +1152,8 @@ then
 ### SoundWall.Reading.MissingWall
 
 Authored path: `SoundWall.Reading.MissingWall`.
-- Covered by [Sound Wall](../design/compositions/SoundWall.md), line 98.
-- Covered by [Sound Wall](../design/compositions/SoundWall.md), line 110.
+- Covered by [Sound Wall](../design/compositions/SoundWall.md), line 99.
+- Covered by [Sound Wall](../design/compositions/SoundWall.md), line 111.
 
 ```reaction
 when RequestBoundary.request (path: "/wall/public", requestId, username)
@@ -1164,8 +1166,8 @@ then
 ### SoundWall.Reading.PreviewWall
 
 Authored path: `SoundWall.Reading.PreviewWall`.
-- Covered by [Sound Wall](../design/compositions/SoundWall.md), line 103.
-- Covered by [Sound Wall](../design/compositions/SoundWall.md), line 112.
+- Covered by [Sound Wall](../design/compositions/SoundWall.md), line 104.
+- Covered by [Sound Wall](../design/compositions/SoundWall.md), line 113.
 
 ```reaction
 when RequestBoundary.request (path: "/wall/preview", requestId, session)
@@ -1176,8 +1178,8 @@ then
 ### SoundWall.Reading.PreviewWall#2
 
 Authored path: `SoundWall.Reading.PreviewWall`.
-- Covered by [Sound Wall](../design/compositions/SoundWall.md), line 103.
-- Covered by [Sound Wall](../design/compositions/SoundWall.md), line 112.
+- Covered by [Sound Wall](../design/compositions/SoundWall.md), line 104.
+- Covered by [Sound Wall](../design/compositions/SoundWall.md), line 113.
 
 ```reaction
 when UserAuthenticating.current (session, user), asked by SoundWall.Reading.PreviewWall
@@ -1190,8 +1192,8 @@ then
 ### SoundWall.Reading.ReadPublicWall
 
 Authored path: `SoundWall.Reading.ReadPublicWall`.
-- Covered by [Sound Wall](../design/compositions/SoundWall.md), line 95.
-- Covered by [Sound Wall](../design/compositions/SoundWall.md), line 109.
+- Covered by [Sound Wall](../design/compositions/SoundWall.md), line 96.
+- Covered by [Sound Wall](../design/compositions/SoundWall.md), line 110.
 
 ```reaction
 when RequestBoundary.request (path: "/wall/public", requestId, username)
@@ -1204,8 +1206,8 @@ then
 ### SoundWall.Reading.VisitWall
 
 Authored path: `SoundWall.Reading.VisitWall`.
-- Covered by [Sound Wall](../design/compositions/SoundWall.md), line 99.
-- Covered by [Sound Wall](../design/compositions/SoundWall.md), line 111.
+- Covered by [Sound Wall](../design/compositions/SoundWall.md), line 100.
+- Covered by [Sound Wall](../design/compositions/SoundWall.md), line 112.
 
 ```reaction
 when RequestBoundary.request (path: "/wall/visit", requestId, session, username)
@@ -1216,8 +1218,8 @@ then
 ### SoundWall.Reading.VisitWall:friend#2
 
 Authored path: `SoundWall.Reading.VisitWall`.
-- Covered by [Sound Wall](../design/compositions/SoundWall.md), line 99.
-- Covered by [Sound Wall](../design/compositions/SoundWall.md), line 111.
+- Covered by [Sound Wall](../design/compositions/SoundWall.md), line 100.
+- Covered by [Sound Wall](../design/compositions/SoundWall.md), line 112.
 
 ```reaction
 when UserAuthenticating.current (session, user), asked by SoundWall.Reading.VisitWall
@@ -1232,8 +1234,8 @@ then
 ### SoundWall.Reading.VisitWall:no-wall#2
 
 Authored path: `SoundWall.Reading.VisitWall`.
-- Covered by [Sound Wall](../design/compositions/SoundWall.md), line 99.
-- Covered by [Sound Wall](../design/compositions/SoundWall.md), line 111.
+- Covered by [Sound Wall](../design/compositions/SoundWall.md), line 100.
+- Covered by [Sound Wall](../design/compositions/SoundWall.md), line 112.
 
 ```reaction
 when UserAuthenticating.current (session, user), asked by SoundWall.Reading.VisitWall
@@ -1247,8 +1249,8 @@ then
 ### SoundWall.Reading.VisitWall:not-friend#2
 
 Authored path: `SoundWall.Reading.VisitWall`.
-- Covered by [Sound Wall](../design/compositions/SoundWall.md), line 99.
-- Covered by [Sound Wall](../design/compositions/SoundWall.md), line 111.
+- Covered by [Sound Wall](../design/compositions/SoundWall.md), line 100.
+- Covered by [Sound Wall](../design/compositions/SoundWall.md), line 112.
 
 ```reaction
 when UserAuthenticating.current (session, user), asked by SoundWall.Reading.VisitWall
@@ -1263,8 +1265,8 @@ then
 ### Suggestions.Reviewing.Promote
 
 Authored path: `Suggestions.Reviewing.Promote`.
-- Covered by [Suggestions](../design/compositions/Suggestions.md), line 65.
-- Covered by [Suggestions](../design/compositions/Suggestions.md), line 75.
+- Covered by [Suggestions](../design/compositions/Suggestions.md), line 67.
+- Covered by [Suggestions](../design/compositions/Suggestions.md), line 77.
 
 ```reaction
 when RequestBoundary.request (note, path: "/suggestions/promote", pitch, qualities, requestId, session)
@@ -1275,8 +1277,8 @@ then
 ### Suggestions.Reviewing.Promote:not-own-match#2
 
 Authored path: `Suggestions.Reviewing.Promote`.
-- Covered by [Suggestions](../design/compositions/Suggestions.md), line 65.
-- Covered by [Suggestions](../design/compositions/Suggestions.md), line 75.
+- Covered by [Suggestions](../design/compositions/Suggestions.md), line 67.
+- Covered by [Suggestions](../design/compositions/Suggestions.md), line 77.
 
 ```reaction
 when UserAuthenticating.current (session, user), asked by Suggestions.Reviewing.Promote
@@ -1290,8 +1292,8 @@ then
 ### Suggestions.Reviewing.Promote:own-match#2
 
 Authored path: `Suggestions.Reviewing.Promote`.
-- Covered by [Suggestions](../design/compositions/Suggestions.md), line 65.
-- Covered by [Suggestions](../design/compositions/Suggestions.md), line 75.
+- Covered by [Suggestions](../design/compositions/Suggestions.md), line 67.
+- Covered by [Suggestions](../design/compositions/Suggestions.md), line 77.
 
 ```reaction
 when UserAuthenticating.current (session, user), asked by Suggestions.Reviewing.Promote
@@ -1305,8 +1307,8 @@ then
 ### Suggestions.Reviewing.Promote:own-match#3
 
 Authored path: `Suggestions.Reviewing.Promote`.
-- Covered by [Suggestions](../design/compositions/Suggestions.md), line 65.
-- Covered by [Suggestions](../design/compositions/Suggestions.md), line 75.
+- Covered by [Suggestions](../design/compositions/Suggestions.md), line 67.
+- Covered by [Suggestions](../design/compositions/Suggestions.md), line 77.
 
 ```reaction
 when Annotating.annotate (author: user, context: target, item, note, qualities, role: "EXAMPLE", annotation), asked by Suggestions.Reviewing.Promote:own-match#2
@@ -1319,8 +1321,8 @@ then
 ### Suggestions.Reviewing.Review
 
 Authored path: `Suggestions.Reviewing.Review`.
-- Covered by [Suggestions](../design/compositions/Suggestions.md), line 59.
-- Covered by [Suggestions](../design/compositions/Suggestions.md), line 74.
+- Covered by [Suggestions](../design/compositions/Suggestions.md), line 61.
+- Covered by [Suggestions](../design/compositions/Suggestions.md), line 76.
 
 ```reaction
 when RequestBoundary.request (fit, path: "/suggestions/review", pitch, requestId, response, session)
@@ -1331,8 +1333,8 @@ then
 ### Suggestions.Reviewing.Review#2
 
 Authored path: `Suggestions.Reviewing.Review`.
-- Covered by [Suggestions](../design/compositions/Suggestions.md), line 59.
-- Covered by [Suggestions](../design/compositions/Suggestions.md), line 74.
+- Covered by [Suggestions](../design/compositions/Suggestions.md), line 61.
+- Covered by [Suggestions](../design/compositions/Suggestions.md), line 76.
 
 ```reaction
 when UserAuthenticating.current (session, user), asked by Suggestions.Reviewing.Review
@@ -1345,8 +1347,8 @@ then
 ### Suggestions.Reviewing.Review#3
 
 Authored path: `Suggestions.Reviewing.Review`.
-- Covered by [Suggestions](../design/compositions/Suggestions.md), line 59.
-- Covered by [Suggestions](../design/compositions/Suggestions.md), line 74.
+- Covered by [Suggestions](../design/compositions/Suggestions.md), line 61.
+- Covered by [Suggestions](../design/compositions/Suggestions.md), line 76.
 
 ```reaction
 when Pitching.review (fit, pitch, recipient: user, response), asked by Suggestions.Reviewing.Review#2

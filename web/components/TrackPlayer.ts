@@ -75,7 +75,7 @@ export default defineComponent({
         <slot></slot>
       </div>
       <template v-if="entry && state !== 'idle'">
-        <iframe ref="frame" class="player-frame" :title="'SoundCloud player: ' + entry.title + ' by ' + entry.artist"
+        <iframe v-show="state !== 'failed'" ref="frame" class="player-frame" :title="'SoundCloud player: ' + entry.title + ' by ' + entry.artist"
           :src="address" allow="autoplay" scrolling="no"></iframe>
         <p v-if="state === 'loading'" class="meta" role="status">Loading the player…</p>
         <p v-if="state === 'failed'" class="meta" role="status">

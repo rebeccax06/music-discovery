@@ -4,6 +4,18 @@ How the concepts are connected in the running app, and what is left before the a
 is complete. Decisions and their checks are in the [decision log](decisions.md);
 results are in [verification](verification/README.md).
 
+## Scope of this build
+
+- **Songs are whole tracks.** Excerpting from F3 is deferred; nothing in this build
+  selects or plays part of a track ([D4](decisions.md#d4-whole-tracks-now-excerpting-later)).
+- **Descriptions come from picked qualities, not from the audio.** The draft is a
+  sentence built from the qualities the owner tapped. No model listens to, analyzes, or
+  receives any SoundCloud content ([D1](decisions.md#d1-the-draft-description-is-computed-never-stored)).
+- **The library is 14 checked tracks**, not a search of SoundCloud.
+- **The specifications match this commit.** `bun run check` fails if the concept
+  specifications, the compositions, and the generated API documentation disagree with
+  the code, or if an engine advisory has not been reviewed.
+
 ## Accounts
 
 F3 described setting a password for an existing identity. The implementation creates

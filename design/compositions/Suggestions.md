@@ -51,7 +51,9 @@ nothing was kept.
 4. **How long it can be false.** From the late write until the repair runs, within the
    same request flow.
 5. **If the repair refuses or faults.** The suggestion stays in storage and cannot be
-   reached through a word. Its contributor can still withdraw it.
+   reached through a word; its contributor can still withdraw it. The server sweeps
+   for such rows at every start, using Pitching's `_targets` query and its
+   `clearTarget` action, and logs what it clears.
 6. **Automatic.** Yes.
 
 ## Reviewing
