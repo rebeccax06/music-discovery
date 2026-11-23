@@ -6,7 +6,7 @@ What was checked, how to run it again, and what each check does not show.
 https://sound-it-out.mit-sdg.dev with the full browser journeys: **28 passed, 0 failed**,
 and all 14 tracks play. Details and
 limits are in [deployed/](deployed/README.md).  
-**Local runs:** commit `7c7c96c`, on November 23, 2026, on macOS with Bun 1.4.0 (the
+**Local runs:** commit `3def53f`, on November 23, 2026, on macOS with Bun 1.4.0 (the
 project pins 1.4.2), MongoDB 8.0 in Docker, and Google Chrome through Playwright.
 
 ## Two failures, diagnosed and fixed
@@ -49,7 +49,8 @@ recorded.
 | Planted bugs caught | `bun run check:mutations` | 13 of 13 | [mutations.md](mutations.md) |
 | Browser journeys A to D | `bun run test:e2e` | 28 passed, 0 failed | [browser-journeys.txt](browser-journeys.txt), [screens](screens/) |
 | Catalog playback | `bun run check:tracks` | 14 of 14, with time to ready and to sound; one earlier stall diagnosed | [tracks.md](tracks.md) |
-| Text contrast | `bun scripts/contrast.ts` | All 13 pairs pass | [contrast.md](contrast.md) |
+| Text contrast | `bun scripts/contrast.ts` | All 15 pairs pass | [contrast.md](contrast.md) |
+| Visual changes | Screens before and after [D13](../decisions.md#d13-the-music-is-quieter-than-the-word) | — | [visual/](visual/) |
 
 ## Follow-up on the merged alpha
 

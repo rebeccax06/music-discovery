@@ -13,3 +13,5 @@
 | White on the primary button | `--surface` | `--accent` | 6.04 | 4.5 | pass |
 | White on a danger button | `--surface` | `--danger` | 8.12 | 4.5 | pass |
 | Control boundaries | `--control-border` | `--surface` | 3.48 | 3 | pass |
+| Play icon on its circle | `--accent` | `--accent-soft` | 5.24 | 3 | pass |
+| Remove word, in red | `--danger` | `--canvas` | 7.78 | 4.5 | pass |
