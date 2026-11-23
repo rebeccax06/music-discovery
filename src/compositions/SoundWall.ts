@@ -1,10 +1,10 @@
 import { endpoint, receive, respond } from "@mit-sdg/sync-engine/boundary";
-import { each, form, former, is, no, reaction, when, where, whether } from "@mit-sdg/sync-engine/language";
+import { compute, each, form, former, is, no, reaction, when, where, whether } from "@mit-sdg/sync-engine/language";
 import { MAX_DESCRIPTION, MAX_WORD } from "../../shared/limits.ts";
-import { concepts } from "../concepts.ts";
+import { computations, concepts } from "../concepts.ts";
 import { boundedText, catalogTrack, identity, note, pickedQualities, session, username, validator } from "./validators.ts";
 
-const { Annotating, Associating, Friending, Pitching, UserAuthenticating } = concepts;
+const { Annotating, Associating, Friending, Pitching, Registering, Sessioning } = concepts;
 
 function wordVisibility(value: unknown) {
   return value === "PRIVATE" || value === "LIMITED" || value === "PUBLIC";
@@ -122,7 +122,7 @@ const PersonalWall = former(
           suggestions: each(Pitching._forTarget({ target: association }).is({
             pitch, contributor, item: pitchedItem, note: pitchNote, fit, response,
           }))
-            .where(UserAuthenticating._username({ user: contributor }).is({ username: contributorName }))
+            .where(Registering._username({ user: contributor }).is({ username: contributorName }))
             .arranged(pitch)
             .form({ pitch, contributor: contributorName, item: pitchedItem, note: pitchNote, fit, response }),
         }),
@@ -153,32 +153,37 @@ export const VisibleWall = former(
     }),
 );
 
-const ListWall = endpoint("/wall/list", ({ session, user }) =>
+const ListWall = endpoint("/wall/list", ({ session, user, at }) =>
   receive({ session })
-    .then(UserAuthenticating.current({ session }).responds({ user }))
+    .where(compute(computations.currentInstant, {}, at))
+    .then(Sessioning.use({ session, at }).responds({ subject: user }))
     .then(respond({ wall: PersonalWall({ user }) })), { input: { required: ["session"] }, validators: { input: sessionOnly } });
 
-const Associate = endpoint("/wall/associate", ({ session, user, label, description, visibility, association }) =>
+const Associate = endpoint("/wall/associate", ({ session, user, label, description, visibility, association, at }) =>
   receive({ session, label, description, visibility })
-    .then(UserAuthenticating.current({ session }).responds({ user }))
+    .where(compute(computations.currentInstant, {}, at))
+    .then(Sessioning.use({ session, at }).responds({ subject: user }))
     .then(Associating.associate({ user, label, description, visibility }).responds({ association }))
     .then(respond({ association })), { input: { required: ["session", "label", "description", "visibility"] }, validators: { input: associateInput } });
 
-const UpdateWord = endpoint("/wall/update", ({ session, user, association, label, description }) =>
+const UpdateWord = endpoint("/wall/update", ({ session, user, association, label, description, at }) =>
   receive({ session, association, label, description })
-    .then(UserAuthenticating.current({ session }).responds({ user }))
+    .where(compute(computations.currentInstant, {}, at))
+    .then(Sessioning.use({ session, at }).responds({ subject: user }))
     .then(Associating.update({ user, association, label, description }).responds({}))
     .then(respond({})), { input: { required: ["session", "association", "label", "description"] }, validators: { input: updateInput } });
 
-const SetVisibility = endpoint("/wall/visibility", ({ session, user, association, visibility }) =>
+const SetVisibility = endpoint("/wall/visibility", ({ session, user, association, visibility, at }) =>
   receive({ session, association, visibility })
-    .then(UserAuthenticating.current({ session }).responds({ user }))
+    .where(compute(computations.currentInstant, {}, at))
+    .then(Sessioning.use({ session, at }).responds({ subject: user }))
     .then(Associating.setVisibility({ user, association, visibility }).responds({}))
     .then(respond({})), { input: { required: ["session", "association", "visibility"] }, validators: { input: visibilityInput } });
 
-const RemoveWord = endpoint("/wall/remove", ({ session, user, association }) =>
+const RemoveWord = endpoint("/wall/remove", ({ session, user, association, at }) =>
   receive({ session, association })
-    .then(UserAuthenticating.current({ session }).responds({ user }))
+    .where(compute(computations.currentInstant, {}, at))
+    .then(Sessioning.use({ session, at }).responds({ subject: user }))
     .then(Associating.remove({ user, association }).responds({}))
     .then(Annotating.clearContext({ context: association }).responds({}))
     .then(Pitching.clearTarget({ target: association }).responds({}))
@@ -193,9 +198,10 @@ const RemoveWord = endpoint("/wall/remove", ({ session, user, association }) =>
  * was not kept. A label therefore means the word still existed after the song was stored, so any
  * later removal of the word clears the song as part of that removal.
  */
-const AddExample = endpoint("/wall/examples/add", ({ session, user, association, item, role, note, qualities, annotation }) =>
+const AddExample = endpoint("/wall/examples/add", ({ session, user, association, item, role, note, qualities, annotation, at }) =>
   receive({ session, association, item, role, note, qualities })
-    .then(UserAuthenticating.current({ session }).responds({ user }))
+    .where(compute(computations.currentInstant, {}, at))
+    .then(Sessioning.use({ session, at }).responds({ subject: user }))
     .then(
       where(Associating._get({ association }).is({ user }))
         .then(Annotating.annotate({ author: user, item, context: association, role, note, qualities }).responds({ annotation }))
@@ -210,21 +216,24 @@ const AddExample = endpoint("/wall/examples/add", ({ session, user, association,
  * Annotating enforces its own author rule, and only a word's owner ever authors an example in it.
  * These endpoints pass the session's user as the author and let the concept answer.
  */
-const UpdateExample = endpoint("/wall/examples/update", ({ session, user, annotation, role, note, qualities }) =>
+const UpdateExample = endpoint("/wall/examples/update", ({ session, user, annotation, role, note, qualities, at }) =>
   receive({ session, annotation, role, note, qualities })
-    .then(UserAuthenticating.current({ session }).responds({ user }))
+    .where(compute(computations.currentInstant, {}, at))
+    .then(Sessioning.use({ session, at }).responds({ subject: user }))
     .then(Annotating.update({ author: user, annotation, role, note, qualities }).responds({}))
     .then(respond({})), { input: { required: ["session", "annotation", "role", "note", "qualities"] }, validators: { input: updateExampleInput } });
 
-const SetExampleVisibility = endpoint("/wall/examples/visibility", ({ session, user, annotation, visibility }) =>
+const SetExampleVisibility = endpoint("/wall/examples/visibility", ({ session, user, annotation, visibility, at }) =>
   receive({ session, annotation, visibility })
-    .then(UserAuthenticating.current({ session }).responds({ user }))
+    .where(compute(computations.currentInstant, {}, at))
+    .then(Sessioning.use({ session, at }).responds({ subject: user }))
     .then(Annotating.setVisibility({ author: user, annotation, visibility }).responds({}))
     .then(respond({})), { input: { required: ["session", "annotation", "visibility"] }, validators: { input: exampleVisibilityInput } });
 
-const RemoveExample = endpoint("/wall/examples/remove", ({ session, user, annotation }) =>
+const RemoveExample = endpoint("/wall/examples/remove", ({ session, user, annotation, at }) =>
   receive({ session, annotation })
-    .then(UserAuthenticating.current({ session }).responds({ user }))
+    .where(compute(computations.currentInstant, {}, at))
+    .then(Sessioning.use({ session, at }).responds({ subject: user }))
     .then(Annotating.remove({ author: user, annotation }).responds({}))
     .then(respond({})), { input: { required: ["session", "annotation"] }, validators: { input: exampleInput } });
 
@@ -240,43 +249,45 @@ const ClearExamplesOfMissingWord = reaction(({ context }) =>
 
 const ReadPublicWall = endpoint("/wall/public", ({ username, user, name }) =>
   receive({ username })
-    .where(UserAuthenticating._byUsername({ username }).is({ user, name }))
+    .where(Registering._byUsername({ username }).is({ user, username: name }))
     .then(respond({ owner: name, wall: VisibleWall({ user, levels: FOR_ANYONE }) })), { input: { required: ["username"] }, validators: { input: publicInput } });
 
 const MissingWall = endpoint("/wall/public", ({ username }) =>
   receive({ username })
-    .where(no(UserAuthenticating._byUsername({ username })))
+    .where(no(Registering._byUsername({ username })))
     .then(respond({ error: "WALL_NOT_FOUND" })));
 
 /**
  * A signed-in person opening someone's wall. Friending says whether the two are friends; that
  * decides which words the same former returns.
  */
-const VisitWall = endpoint("/wall/visit", ({ session, username, user, owner, name }) =>
+const VisitWall = endpoint("/wall/visit", ({ session, username, user, owner, name, at }) =>
   receive({ session, username })
-    .then(UserAuthenticating.current({ session }).responds({ user }))
+    .where(compute(computations.currentInstant, {}, at))
+    .then(Sessioning.use({ session, at }).responds({ subject: user }))
     .then(
       where(
-        UserAuthenticating._byUsername({ username }).is({ user: owner, name }),
+        Registering._byUsername({ username }).is({ user: owner, username: name }),
         Friending._friendship({ person: user, other: owner }),
       )
         .then(respond({ owner: name, wall: VisibleWall({ user: owner, levels: FOR_FRIENDS }) }))
         .named("friend"),
       where(
-        UserAuthenticating._byUsername({ username }).is({ user: owner, name }),
+        Registering._byUsername({ username }).is({ user: owner, username: name }),
         no(Friending._friendship({ person: user, other: owner })),
       )
         .then(respond({ owner: name, wall: VisibleWall({ user: owner, levels: FOR_ANYONE }) }))
         .named("not-friend"),
-      where(no(UserAuthenticating._byUsername({ username })))
+      where(no(Registering._byUsername({ username })))
         .then(respond({ error: "WALL_NOT_FOUND" }))
         .named("no-wall"),
     ), { input: { required: ["session", "username"] }, validators: { input: visitInput } });
 
 /** The owner's own wall as friends and as everyone else receive it, from the former they read through. */
-const PreviewWall = endpoint("/wall/preview", ({ session, user }) =>
+const PreviewWall = endpoint("/wall/preview", ({ session, user, at }) =>
   receive({ session })
-    .then(UserAuthenticating.current({ session }).responds({ user }))
+    .where(compute(computations.currentInstant, {}, at))
+    .then(Sessioning.use({ session, at }).responds({ subject: user }))
     .then(respond({
       friends: VisibleWall({ user, levels: FOR_FRIENDS }),
       anyone: VisibleWall({ user, levels: FOR_ANYONE }),

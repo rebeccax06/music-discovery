@@ -1,7 +1,9 @@
 import { assemble } from "@mit-sdg/sync-engine/assembly";
 import type { Db } from "mongodb";
 import { applicationConceptSet } from "./concepts.ts";
-import { UserAuthenticatingConcept } from "./concepts/UserAuthenticating.ts";
+import { RegisteringConcept } from "./concepts/Registering.ts";
+import { AuthenticatingConcept } from "./concepts/Authenticating.ts";
+import { SessioningConcept } from "./concepts/Sessioning.ts";
 import { AssociatingConcept } from "./concepts/Associating.ts";
 import { AnnotatingConcept } from "./concepts/Annotating.ts";
 import { PitchingConcept } from "./concepts/Pitching.ts";
@@ -13,7 +15,9 @@ import { composition as Friends } from "./compositions/Friends.ts";
 
 export function createInstances(db: Db) {
   return {
-    UserAuthenticating: new UserAuthenticatingConcept(db),
+    Registering: new RegisteringConcept(db),
+    Authenticating: new AuthenticatingConcept(db),
+    Sessioning: new SessioningConcept(db),
     Associating: new AssociatingConcept(db),
     Annotating: new AnnotatingConcept(db),
     Pitching: new PitchingConcept(db),

@@ -5,6 +5,7 @@ import type { applicationConceptSet as ApplicationConceptSet } from "../src/conc
 
 type AtPath<T, P extends readonly string[]> = P extends readonly [infer H extends string, ...infer R extends string[]] ? H extends keyof T ? AtPath<T[H], R> : H extends `${number}` ? T extends readonly (infer Item)[] ? AtPath<Item, R> : never : never : T;
 type QueryRow<T> = T extends readonly (infer Row)[] ? Row : T;
+type AllOf<T extends readonly unknown[]> = T extends readonly [infer Head, ...infer Rest] ? Head & AllOf<Rest> : unknown;
 type OneOf<T extends readonly unknown[]> = T[number];
 type Jsonify<T> = T extends Date ? string : T extends null | boolean | number | string ? T : T extends (...args: never[]) => unknown ? never : T extends readonly (infer Item)[] ? Jsonify<Item>[] : T extends object ? { [K in keyof T]: Jsonify<T[K]> } : never;
 
@@ -15,76 +16,77 @@ export type AppWideError = never;
 export type SoundItOutWire = {
   "/auth/login": {
     input: {
-      "password": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["UserAuthenticating"]["authenticate"]>[0], ["password"]>>;
-      "username": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["UserAuthenticating"]["authenticate"]>[0], ["username"]>>;
+      "password": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Authenticating"]["authenticate"]>[0], ["password"]>>;
+      "username": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Registering"]["_byUsername"]>[0], ["username"]>>;
     };
     output: {
-      "expiresAt": Jsonify<AtPath<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["UserAuthenticating"]["authenticate"]>>, ["expiresAt"]>>;
-      "session": Jsonify<AtPath<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["UserAuthenticating"]["authenticate"]>>, ["session"]>>;
-      "user": Jsonify<AtPath<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["UserAuthenticating"]["authenticate"]>>, ["user"]>>;
-      "username": Jsonify<AtPath<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["UserAuthenticating"]["authenticate"]>>, ["username"]>>;
+      "expiresAt": Jsonify<AtPath<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Sessioning"]["start"]>>, ["expiresAt"]>>;
+      "session": Jsonify<AtPath<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Sessioning"]["start"]>>, ["session"]>>;
+      "user": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Sessioning"]["start"]>[0], ["subject"]>>;
     };
     error: { error: AppWideError | "INVALID_CREDENTIALS" | "INVALID_INPUT" };
   };
   "/auth/logout": {
     input: {
-      "session": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["UserAuthenticating"]["logout"]>[0], ["session"]>>;
+      "session": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Sessioning"]["end"]>[0], ["session"]>>;
     };
     output: Record<string, never>;
-    error: { error: AppWideError | "INVALID_INPUT" | "UNKNOWN_SESSION" };
+    error: { error: AppWideError | "INVALID_INPUT" | "SESSION_ENDED" };
   };
   "/auth/me": {
     input: {
-      "session": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["UserAuthenticating"]["current"]>[0], ["session"]>>;
+      "session": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Sessioning"]["use"]>[0], ["session"]>>;
     };
     output: {
-      "user": Jsonify<AtPath<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["UserAuthenticating"]["current"]>>, ["user"]>>;
-      "username": Jsonify<AtPath<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["UserAuthenticating"]["current"]>>, ["username"]>>;
+      "user": Jsonify<AllOf<[AtPath<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Sessioning"]["use"]>>, ["subject"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Registering"]["_username"]>[0], ["user"]>]>>;
+      "username": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Registering"]["_username"]>>>, ["username"]>>;
     };
-    error: { error: AppWideError | "INVALID_INPUT" | "UNKNOWN_SESSION" };
+    error: { error: AppWideError | "INVALID_INPUT" | "NOT_SIGNED_IN" };
   };
   "/auth/register": {
     input: {
-      "password": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["UserAuthenticating"]["register"]>[0], ["password"]>>;
-      "username": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["UserAuthenticating"]["register"]>[0], ["username"]>>;
+      "password": Jsonify<OneOf<[AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Authenticating"]["_acceptable"]>[0], ["password"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Authenticating"]["set"]>[0], ["password"]>]>>;
+      "username": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Registering"]["register"]>[0], ["username"]>>;
     };
     output: {
-      "user": Jsonify<AtPath<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["UserAuthenticating"]["register"]>>, ["user"]>>;
+      "expiresAt": Jsonify<AtPath<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Sessioning"]["start"]>>, ["expiresAt"]>>;
+      "session": Jsonify<AtPath<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Sessioning"]["start"]>>, ["session"]>>;
+      "user": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Sessioning"]["start"]>[0], ["subject"]>>;
     };
-    error: { error: AppWideError | "INVALID_INPUT" | "INVALID_PASSWORD" | "INVALID_USERNAME" | "USERNAME_TAKEN" };
+    error: { error: AppWideError | "INVALID_INPUT" | "INVALID_PASSWORD" | "INVALID_USERNAME" | "PASSWORD_SET" | "USERNAME_TAKEN" };
   };
   "/friends/accept": {
     input: {
-      "session": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["UserAuthenticating"]["current"]>[0], ["session"]>>;
-      "username": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["UserAuthenticating"]["_byUsername"]>[0], ["username"]>>;
+      "session": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Sessioning"]["use"]>[0], ["session"]>>;
+      "username": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Registering"]["_byUsername"]>[0], ["username"]>>;
     };
     output: Record<string, never>;
-    error: { error: AppWideError | "INVALID_INPUT" | "NO_REQUEST" | "PERSON_NOT_FOUND" | "UNKNOWN_SESSION" };
+    error: { error: AppWideError | "INVALID_INPUT" | "NOT_SIGNED_IN" | "NO_REQUEST" | "PERSON_NOT_FOUND" };
   };
   "/friends/cancel": {
     input: {
-      "session": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["UserAuthenticating"]["current"]>[0], ["session"]>>;
-      "username": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["UserAuthenticating"]["_byUsername"]>[0], ["username"]>>;
+      "session": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Sessioning"]["use"]>[0], ["session"]>>;
+      "username": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Registering"]["_byUsername"]>[0], ["username"]>>;
     };
     output: Record<string, never>;
-    error: { error: AppWideError | "INVALID_INPUT" | "NO_REQUEST" | "PERSON_NOT_FOUND" | "UNKNOWN_SESSION" };
+    error: { error: AppWideError | "INVALID_INPUT" | "NOT_SIGNED_IN" | "NO_REQUEST" | "PERSON_NOT_FOUND" };
   };
   "/friends/decline": {
     input: {
-      "session": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["UserAuthenticating"]["current"]>[0], ["session"]>>;
-      "username": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["UserAuthenticating"]["_byUsername"]>[0], ["username"]>>;
+      "session": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Sessioning"]["use"]>[0], ["session"]>>;
+      "username": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Registering"]["_byUsername"]>[0], ["username"]>>;
     };
     output: Record<string, never>;
-    error: { error: AppWideError | "INVALID_INPUT" | "NO_REQUEST" | "PERSON_NOT_FOUND" | "UNKNOWN_SESSION" };
+    error: { error: AppWideError | "INVALID_INPUT" | "NOT_SIGNED_IN" | "NO_REQUEST" | "PERSON_NOT_FOUND" };
   };
   "/friends/list": {
     input: {
-      "session": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["UserAuthenticating"]["current"]>[0], ["session"]>>;
+      "session": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Sessioning"]["use"]>[0], ["session"]>>;
     };
     output: {
       "circle": {
         "friends": {
-          "username": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["UserAuthenticating"]["_username"]>>>, ["username"]>>;
+          "username": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Registering"]["_username"]>>>, ["username"]>>;
           "wall": {
             "words": {
               "association": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Associating"]["_byUser"]>>>, ["association"]>>;
@@ -102,37 +104,37 @@ export type SoundItOutWire = {
           };
         }[];
         "received": {
-          "username": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["UserAuthenticating"]["_username"]>>>, ["username"]>>;
+          "username": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Registering"]["_username"]>>>, ["username"]>>;
         }[];
         "sent": {
-          "username": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["UserAuthenticating"]["_username"]>>>, ["username"]>>;
+          "username": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Registering"]["_username"]>>>, ["username"]>>;
         }[];
       };
     };
-    error: { error: AppWideError | "INVALID_INPUT" | "UNKNOWN_SESSION" };
+    error: { error: AppWideError | "INVALID_INPUT" | "NOT_SIGNED_IN" };
   };
   "/friends/remove": {
     input: {
-      "session": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["UserAuthenticating"]["current"]>[0], ["session"]>>;
-      "username": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["UserAuthenticating"]["_byUsername"]>[0], ["username"]>>;
+      "session": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Sessioning"]["use"]>[0], ["session"]>>;
+      "username": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Registering"]["_byUsername"]>[0], ["username"]>>;
     };
     output: Record<string, never>;
-    error: { error: AppWideError | "INVALID_INPUT" | "NOT_FRIENDS" | "PERSON_NOT_FOUND" | "UNKNOWN_SESSION" };
+    error: { error: AppWideError | "INVALID_INPUT" | "NOT_FRIENDS" | "NOT_SIGNED_IN" | "PERSON_NOT_FOUND" };
   };
   "/friends/request": {
     input: {
-      "session": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["UserAuthenticating"]["current"]>[0], ["session"]>>;
-      "username": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["UserAuthenticating"]["_byUsername"]>[0], ["username"]>>;
+      "session": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Sessioning"]["use"]>[0], ["session"]>>;
+      "username": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Registering"]["_byUsername"]>[0], ["username"]>>;
     };
     output: Record<string, never>;
-    error: { error: AppWideError | "ALREADY_FRIENDS" | "INVALID_INPUT" | "PERSON_NOT_FOUND" | "REQUEST_EXISTS" | "REQUEST_WAITING" | "SELF_REQUEST" | "UNKNOWN_SESSION" };
+    error: { error: AppWideError | "ALREADY_FRIENDS" | "INVALID_INPUT" | "NOT_SIGNED_IN" | "PERSON_NOT_FOUND" | "REQUEST_EXISTS" | "REQUEST_WAITING" | "SELF_REQUEST" };
   };
   "/suggestions/promote": {
     input: {
       "note": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Annotating"]["annotate"]>[0], ["note"]>>;
       "pitch": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Pitching"]["_get"]>[0], ["pitch"]>>;
       "qualities": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Annotating"]["annotate"]>[0], ["qualities"]>>;
-      "session": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["UserAuthenticating"]["current"]>[0], ["session"]>>;
+      "session": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Sessioning"]["use"]>[0], ["session"]>>;
     };
     output: {
       "annotation": Jsonify<AtPath<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Annotating"]["annotate"]>>, ["annotation"]>>;
@@ -140,24 +142,24 @@ export type SoundItOutWire = {
         "label": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Associating"]["_get"]>>>, ["label"]>> | null;
       };
     };
-    error: { error: AppWideError | "ANNOTATION_EXISTS" | "INVALID_INPUT" | "NOT_A_MATCH" | "UNKNOWN_SESSION" };
+    error: { error: AppWideError | "ANNOTATION_EXISTS" | "INVALID_INPUT" | "NOT_A_MATCH" | "NOT_SIGNED_IN" };
   };
   "/suggestions/review": {
     input: {
       "fit": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Pitching"]["review"]>[0], ["fit"]>>;
       "pitch": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Pitching"]["review"]>[0], ["pitch"]>>;
       "response": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Pitching"]["review"]>[0], ["response"]>>;
-      "session": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["UserAuthenticating"]["current"]>[0], ["session"]>>;
+      "session": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Sessioning"]["use"]>[0], ["session"]>>;
     };
     output: Record<string, never>;
-    error: { error: AppWideError | "INVALID_INPUT" | "INVALID_REVIEW" | "NOT_RECIPIENT" | "UNKNOWN_PITCH" | "UNKNOWN_SESSION" };
+    error: { error: AppWideError | "INVALID_INPUT" | "INVALID_REVIEW" | "NOT_RECIPIENT" | "NOT_SIGNED_IN" | "UNKNOWN_PITCH" };
   };
   "/suggestions/send": {
     input: {
       "association": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Associating"]["_get"]>[0], ["association"]>>;
       "item": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Pitching"]["pitch"]>[0], ["item"]>>;
       "note": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Pitching"]["pitch"]>[0], ["note"]>>;
-      "session": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["UserAuthenticating"]["current"]>[0], ["session"]>>;
+      "session": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Sessioning"]["use"]>[0], ["session"]>>;
     };
     output: {
       "pitch": Jsonify<AtPath<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Pitching"]["pitch"]>>, ["pitch"]>>;
@@ -170,11 +172,11 @@ export type SoundItOutWire = {
         "label": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Associating"]["_get"]>>>, ["label"]>> | null;
       };
     };
-    error: { error: AppWideError | "ALREADY_PITCHED" | "INVALID_INPUT" | "SELF_PITCH" | "UNKNOWN_SESSION" | "WORD_NOT_FOUND" };
+    error: { error: AppWideError | "ALREADY_PITCHED" | "INVALID_INPUT" | "NOT_SIGNED_IN" | "SELF_PITCH" | "WORD_NOT_FOUND" };
   };
   "/suggestions/sent": {
     input: {
-      "session": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["UserAuthenticating"]["current"]>[0], ["session"]>>;
+      "session": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Sessioning"]["use"]>[0], ["session"]>>;
     };
     output: {
       "suggestions": {
@@ -182,31 +184,31 @@ export type SoundItOutWire = {
         "note": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Pitching"]["_sentBy"]>>>, ["note"]>>;
         "pitch": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Pitching"]["_sentBy"]>>>, ["pitch"]>>;
         "reviewed": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Pitching"]["_sentBy"]>>>, ["reviewed"]>>;
-        "to": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["UserAuthenticating"]["_username"]>>>, ["username"]>>;
+        "to": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Registering"]["_username"]>>>, ["username"]>>;
         "word": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Pitching"]["_sentBy"]>>>, ["target"]>>;
       }[];
     };
-    error: { error: AppWideError | "INVALID_INPUT" | "UNKNOWN_SESSION" };
+    error: { error: AppWideError | "INVALID_INPUT" | "NOT_SIGNED_IN" };
   };
   "/suggestions/withdraw": {
     input: {
       "pitch": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Pitching"]["withdraw"]>[0], ["pitch"]>>;
-      "session": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["UserAuthenticating"]["current"]>[0], ["session"]>>;
+      "session": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Sessioning"]["use"]>[0], ["session"]>>;
     };
     output: Record<string, never>;
-    error: { error: AppWideError | "ALREADY_REVIEWED" | "INVALID_INPUT" | "NOT_CONTRIBUTOR" | "UNKNOWN_PITCH" | "UNKNOWN_SESSION" };
+    error: { error: AppWideError | "ALREADY_REVIEWED" | "INVALID_INPUT" | "NOT_CONTRIBUTOR" | "NOT_SIGNED_IN" | "UNKNOWN_PITCH" };
   };
   "/wall/associate": {
     input: {
       "description": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Associating"]["associate"]>[0], ["description"]>>;
       "label": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Associating"]["associate"]>[0], ["label"]>>;
-      "session": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["UserAuthenticating"]["current"]>[0], ["session"]>>;
+      "session": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Sessioning"]["use"]>[0], ["session"]>>;
       "visibility": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Associating"]["associate"]>[0], ["visibility"]>>;
     };
     output: {
       "association": Jsonify<AtPath<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Associating"]["associate"]>>, ["association"]>>;
     };
-    error: { error: AppWideError | "ASSOCIATION_EXISTS" | "INVALID_ASSOCIATION" | "INVALID_INPUT" | "UNKNOWN_SESSION" };
+    error: { error: AppWideError | "ASSOCIATION_EXISTS" | "INVALID_ASSOCIATION" | "INVALID_INPUT" | "NOT_SIGNED_IN" };
   };
   "/wall/examples/add": {
     input: {
@@ -215,7 +217,7 @@ export type SoundItOutWire = {
       "note": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Annotating"]["annotate"]>[0], ["note"]>>;
       "qualities": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Annotating"]["annotate"]>[0], ["qualities"]>>;
       "role": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Annotating"]["annotate"]>[0], ["role"]>>;
-      "session": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["UserAuthenticating"]["current"]>[0], ["session"]>>;
+      "session": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Sessioning"]["use"]>[0], ["session"]>>;
     };
     output: {
       "annotation": Jsonify<AtPath<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Annotating"]["annotate"]>>, ["annotation"]>>;
@@ -223,15 +225,15 @@ export type SoundItOutWire = {
         "label": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Associating"]["_get"]>>>, ["label"]>> | null;
       };
     };
-    error: { error: AppWideError | "ANNOTATION_EXISTS" | "INVALID_INPUT" | "UNKNOWN_SESSION" | "WORD_NOT_FOUND" };
+    error: { error: AppWideError | "ANNOTATION_EXISTS" | "INVALID_INPUT" | "NOT_SIGNED_IN" | "WORD_NOT_FOUND" };
   };
   "/wall/examples/remove": {
     input: {
       "annotation": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Annotating"]["remove"]>[0], ["annotation"]>>;
-      "session": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["UserAuthenticating"]["current"]>[0], ["session"]>>;
+      "session": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Sessioning"]["use"]>[0], ["session"]>>;
     };
     output: Record<string, never>;
-    error: { error: AppWideError | "INVALID_INPUT" | "NOT_AUTHOR" | "UNKNOWN_ANNOTATION" | "UNKNOWN_SESSION" };
+    error: { error: AppWideError | "INVALID_INPUT" | "NOT_AUTHOR" | "NOT_SIGNED_IN" | "UNKNOWN_ANNOTATION" };
   };
   "/wall/examples/update": {
     input: {
@@ -239,23 +241,23 @@ export type SoundItOutWire = {
       "note": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Annotating"]["update"]>[0], ["note"]>>;
       "qualities": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Annotating"]["update"]>[0], ["qualities"]>>;
       "role": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Annotating"]["update"]>[0], ["role"]>>;
-      "session": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["UserAuthenticating"]["current"]>[0], ["session"]>>;
+      "session": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Sessioning"]["use"]>[0], ["session"]>>;
     };
     output: Record<string, never>;
-    error: { error: AppWideError | "INVALID_INPUT" | "NOT_AUTHOR" | "UNKNOWN_ANNOTATION" | "UNKNOWN_SESSION" };
+    error: { error: AppWideError | "INVALID_INPUT" | "NOT_AUTHOR" | "NOT_SIGNED_IN" | "UNKNOWN_ANNOTATION" };
   };
   "/wall/examples/visibility": {
     input: {
       "annotation": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Annotating"]["setVisibility"]>[0], ["annotation"]>>;
-      "session": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["UserAuthenticating"]["current"]>[0], ["session"]>>;
+      "session": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Sessioning"]["use"]>[0], ["session"]>>;
       "visibility": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Annotating"]["setVisibility"]>[0], ["visibility"]>>;
     };
     output: Record<string, never>;
-    error: { error: AppWideError | "INVALID_INPUT" | "NOT_AUTHOR" | "UNKNOWN_ANNOTATION" | "UNKNOWN_SESSION" };
+    error: { error: AppWideError | "INVALID_INPUT" | "NOT_AUTHOR" | "NOT_SIGNED_IN" | "UNKNOWN_ANNOTATION" };
   };
   "/wall/list": {
     input: {
-      "session": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["UserAuthenticating"]["current"]>[0], ["session"]>>;
+      "session": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Sessioning"]["use"]>[0], ["session"]>>;
     };
     output: {
       "wall": {
@@ -272,7 +274,7 @@ export type SoundItOutWire = {
           }[];
           "label": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Associating"]["_byUser"]>>>, ["label"]>>;
           "suggestions": {
-            "contributor": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["UserAuthenticating"]["_username"]>>>, ["username"]>>;
+            "contributor": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Registering"]["_username"]>>>, ["username"]>>;
             "fit": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Pitching"]["_forTarget"]>>>, ["fit"]>>;
             "item": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Pitching"]["_forTarget"]>>>, ["item"]>>;
             "note": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Pitching"]["_forTarget"]>>>, ["note"]>>;
@@ -283,11 +285,11 @@ export type SoundItOutWire = {
         }[];
       };
     };
-    error: { error: AppWideError | "INVALID_INPUT" | "UNKNOWN_SESSION" };
+    error: { error: AppWideError | "INVALID_INPUT" | "NOT_SIGNED_IN" };
   };
   "/wall/preview": {
     input: {
-      "session": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["UserAuthenticating"]["current"]>[0], ["session"]>>;
+      "session": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Sessioning"]["use"]>[0], ["session"]>>;
     };
     output: {
       "anyone": {
@@ -321,14 +323,14 @@ export type SoundItOutWire = {
         }[];
       };
     };
-    error: { error: AppWideError | "INVALID_INPUT" | "UNKNOWN_SESSION" };
+    error: { error: AppWideError | "INVALID_INPUT" | "NOT_SIGNED_IN" };
   };
   "/wall/public": {
     input: {
-      "username": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["UserAuthenticating"]["_byUsername"]>[0], ["username"]>>;
+      "username": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Registering"]["_byUsername"]>[0], ["username"]>>;
     };
     output: {
-      "owner": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["UserAuthenticating"]["_byUsername"]>>>, ["name"]>>;
+      "owner": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Registering"]["_byUsername"]>>>, ["username"]>>;
       "wall": {
         "words": {
           "association": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Associating"]["_byUser"]>>>, ["association"]>>;
@@ -350,37 +352,37 @@ export type SoundItOutWire = {
   "/wall/remove": {
     input: {
       "association": Jsonify<OneOf<[AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Associating"]["remove"]>[0], ["association"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Pitching"]["clearTarget"]>[0], ["target"]>]>>;
-      "session": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["UserAuthenticating"]["current"]>[0], ["session"]>>;
+      "session": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Sessioning"]["use"]>[0], ["session"]>>;
     };
     output: Record<string, never>;
-    error: { error: AppWideError | "INVALID_INPUT" | "NOT_OWNER" | "UNKNOWN_ASSOCIATION" | "UNKNOWN_SESSION" };
+    error: { error: AppWideError | "INVALID_INPUT" | "NOT_OWNER" | "NOT_SIGNED_IN" | "UNKNOWN_ASSOCIATION" };
   };
   "/wall/update": {
     input: {
       "association": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Associating"]["update"]>[0], ["association"]>>;
       "description": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Associating"]["update"]>[0], ["description"]>>;
       "label": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Associating"]["update"]>[0], ["label"]>>;
-      "session": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["UserAuthenticating"]["current"]>[0], ["session"]>>;
+      "session": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Sessioning"]["use"]>[0], ["session"]>>;
     };
     output: Record<string, never>;
-    error: { error: AppWideError | "ASSOCIATION_EXISTS" | "INVALID_ASSOCIATION" | "INVALID_INPUT" | "NOT_OWNER" | "UNKNOWN_ASSOCIATION" | "UNKNOWN_SESSION" };
+    error: { error: AppWideError | "ASSOCIATION_EXISTS" | "INVALID_ASSOCIATION" | "INVALID_INPUT" | "NOT_OWNER" | "NOT_SIGNED_IN" | "UNKNOWN_ASSOCIATION" };
   };
   "/wall/visibility": {
     input: {
       "association": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Associating"]["setVisibility"]>[0], ["association"]>>;
-      "session": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["UserAuthenticating"]["current"]>[0], ["session"]>>;
+      "session": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Sessioning"]["use"]>[0], ["session"]>>;
       "visibility": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Associating"]["setVisibility"]>[0], ["visibility"]>>;
     };
     output: Record<string, never>;
-    error: { error: AppWideError | "INVALID_INPUT" | "NOT_OWNER" | "UNKNOWN_ASSOCIATION" | "UNKNOWN_SESSION" };
+    error: { error: AppWideError | "INVALID_INPUT" | "NOT_OWNER" | "NOT_SIGNED_IN" | "UNKNOWN_ASSOCIATION" };
   };
   "/wall/visit": {
     input: {
-      "session": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["UserAuthenticating"]["current"]>[0], ["session"]>>;
-      "username": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["UserAuthenticating"]["_byUsername"]>[0], ["username"]>>;
+      "session": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Sessioning"]["use"]>[0], ["session"]>>;
+      "username": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Registering"]["_byUsername"]>[0], ["username"]>>;
     };
     output: {
-      "owner": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["UserAuthenticating"]["_byUsername"]>>>, ["name"]>>;
+      "owner": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Registering"]["_byUsername"]>>>, ["username"]>>;
       "wall": {
         "words": {
           "association": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Associating"]["_byUser"]>>>, ["association"]>>;
@@ -397,7 +399,7 @@ export type SoundItOutWire = {
         }[];
       };
     } | {
-      "owner": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["UserAuthenticating"]["_byUsername"]>>>, ["name"]>>;
+      "owner": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Registering"]["_byUsername"]>>>, ["username"]>>;
       "wall": {
         "words": {
           "association": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Associating"]["_byUser"]>>>, ["association"]>>;
@@ -414,7 +416,7 @@ export type SoundItOutWire = {
         }[];
       };
     };
-    error: { error: AppWideError | "INVALID_INPUT" | "UNKNOWN_SESSION" | "WALL_NOT_FOUND" };
+    error: { error: AppWideError | "INVALID_INPUT" | "NOT_SIGNED_IN" | "WALL_NOT_FOUND" };
   };
 };
 
@@ -423,12 +425,11 @@ export type HttpAppWideError = never;
 export type SoundItOutWireHttp = {
   "/auth/login": {
     input: {
-      "password": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["UserAuthenticating"]["authenticate"]>[0], ["password"]>>;
-      "username": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["UserAuthenticating"]["authenticate"]>[0], ["username"]>>;
+      "password": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Authenticating"]["authenticate"]>[0], ["password"]>>;
+      "username": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Registering"]["_byUsername"]>[0], ["username"]>>;
     };
     output: {
-      "user": Jsonify<AtPath<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["UserAuthenticating"]["authenticate"]>>, ["user"]>>;
-      "username": Jsonify<AtPath<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["UserAuthenticating"]["authenticate"]>>, ["username"]>>;
+      "user": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Sessioning"]["start"]>[0], ["subject"]>>;
     };
     error: { error: HttpAppWideError | "INVALID_REQUEST" | "UNAUTHORIZED" };
   };
@@ -440,38 +441,38 @@ export type SoundItOutWireHttp = {
   "/auth/me": {
     input: Record<string, never>;
     output: {
-      "user": Jsonify<AtPath<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["UserAuthenticating"]["current"]>>, ["user"]>>;
-      "username": Jsonify<AtPath<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["UserAuthenticating"]["current"]>>, ["username"]>>;
+      "user": Jsonify<AllOf<[AtPath<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Sessioning"]["use"]>>, ["subject"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Registering"]["_username"]>[0], ["user"]>]>>;
+      "username": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Registering"]["_username"]>>>, ["username"]>>;
     };
     error: { error: HttpAppWideError | "INVALID_REQUEST" | "UNAUTHORIZED" };
   };
   "/auth/register": {
     input: {
-      "password": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["UserAuthenticating"]["register"]>[0], ["password"]>>;
-      "username": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["UserAuthenticating"]["register"]>[0], ["username"]>>;
+      "password": Jsonify<OneOf<[AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Authenticating"]["_acceptable"]>[0], ["password"]>, AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Authenticating"]["set"]>[0], ["password"]>]>>;
+      "username": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Registering"]["register"]>[0], ["username"]>>;
     };
     output: {
-      "user": Jsonify<AtPath<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["UserAuthenticating"]["register"]>>, ["user"]>>;
+      "user": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Sessioning"]["start"]>[0], ["subject"]>>;
     };
     error: { error: HttpAppWideError | "CONFLICT" | "INVALID_REQUEST" };
   };
   "/friends/accept": {
     input: {
-      "username": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["UserAuthenticating"]["_byUsername"]>[0], ["username"]>>;
+      "username": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Registering"]["_byUsername"]>[0], ["username"]>>;
     };
     output: Record<string, never>;
     error: { error: HttpAppWideError | "INVALID_REQUEST" | "NOT_FOUND" | "UNAUTHORIZED" };
   };
   "/friends/cancel": {
     input: {
-      "username": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["UserAuthenticating"]["_byUsername"]>[0], ["username"]>>;
+      "username": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Registering"]["_byUsername"]>[0], ["username"]>>;
     };
     output: Record<string, never>;
     error: { error: HttpAppWideError | "INVALID_REQUEST" | "NOT_FOUND" | "UNAUTHORIZED" };
   };
   "/friends/decline": {
     input: {
-      "username": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["UserAuthenticating"]["_byUsername"]>[0], ["username"]>>;
+      "username": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Registering"]["_byUsername"]>[0], ["username"]>>;
     };
     output: Record<string, never>;
     error: { error: HttpAppWideError | "INVALID_REQUEST" | "NOT_FOUND" | "UNAUTHORIZED" };
@@ -481,7 +482,7 @@ export type SoundItOutWireHttp = {
     output: {
       "circle": {
         "friends": {
-          "username": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["UserAuthenticating"]["_username"]>>>, ["username"]>>;
+          "username": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Registering"]["_username"]>>>, ["username"]>>;
           "wall": {
             "words": {
               "association": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Associating"]["_byUser"]>>>, ["association"]>>;
@@ -499,10 +500,10 @@ export type SoundItOutWireHttp = {
           };
         }[];
         "received": {
-          "username": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["UserAuthenticating"]["_username"]>>>, ["username"]>>;
+          "username": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Registering"]["_username"]>>>, ["username"]>>;
         }[];
         "sent": {
-          "username": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["UserAuthenticating"]["_username"]>>>, ["username"]>>;
+          "username": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Registering"]["_username"]>>>, ["username"]>>;
         }[];
       };
     };
@@ -510,14 +511,14 @@ export type SoundItOutWireHttp = {
   };
   "/friends/remove": {
     input: {
-      "username": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["UserAuthenticating"]["_byUsername"]>[0], ["username"]>>;
+      "username": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Registering"]["_byUsername"]>[0], ["username"]>>;
     };
     output: Record<string, never>;
     error: { error: HttpAppWideError | "INVALID_REQUEST" | "NOT_FOUND" | "UNAUTHORIZED" };
   };
   "/friends/request": {
     input: {
-      "username": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["UserAuthenticating"]["_byUsername"]>[0], ["username"]>>;
+      "username": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Registering"]["_byUsername"]>[0], ["username"]>>;
     };
     output: Record<string, never>;
     error: { error: HttpAppWideError | "CONFLICT" | "INVALID_REQUEST" | "NOT_FOUND" | "UNAUTHORIZED" };
@@ -572,7 +573,7 @@ export type SoundItOutWireHttp = {
         "note": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Pitching"]["_sentBy"]>>>, ["note"]>>;
         "pitch": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Pitching"]["_sentBy"]>>>, ["pitch"]>>;
         "reviewed": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Pitching"]["_sentBy"]>>>, ["reviewed"]>>;
-        "to": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["UserAuthenticating"]["_username"]>>>, ["username"]>>;
+        "to": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Registering"]["_username"]>>>, ["username"]>>;
         "word": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Pitching"]["_sentBy"]>>>, ["target"]>>;
       }[];
     };
@@ -654,7 +655,7 @@ export type SoundItOutWireHttp = {
           }[];
           "label": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Associating"]["_byUser"]>>>, ["label"]>>;
           "suggestions": {
-            "contributor": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["UserAuthenticating"]["_username"]>>>, ["username"]>>;
+            "contributor": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Registering"]["_username"]>>>, ["username"]>>;
             "fit": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Pitching"]["_forTarget"]>>>, ["fit"]>>;
             "item": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Pitching"]["_forTarget"]>>>, ["item"]>>;
             "note": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Pitching"]["_forTarget"]>>>, ["note"]>>;
@@ -705,10 +706,10 @@ export type SoundItOutWireHttp = {
   };
   "/wall/public": {
     input: {
-      "username": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["UserAuthenticating"]["_byUsername"]>[0], ["username"]>>;
+      "username": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Registering"]["_byUsername"]>[0], ["username"]>>;
     };
     output: {
-      "owner": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["UserAuthenticating"]["_byUsername"]>>>, ["name"]>>;
+      "owner": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Registering"]["_byUsername"]>>>, ["username"]>>;
       "wall": {
         "words": {
           "association": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Associating"]["_byUser"]>>>, ["association"]>>;
@@ -753,10 +754,10 @@ export type SoundItOutWireHttp = {
   };
   "/wall/visit": {
     input: {
-      "username": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["UserAuthenticating"]["_byUsername"]>[0], ["username"]>>;
+      "username": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["Registering"]["_byUsername"]>[0], ["username"]>>;
     };
     output: {
-      "owner": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["UserAuthenticating"]["_byUsername"]>>>, ["name"]>>;
+      "owner": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Registering"]["_byUsername"]>>>, ["username"]>>;
       "wall": {
         "words": {
           "association": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Associating"]["_byUser"]>>>, ["association"]>>;
@@ -773,7 +774,7 @@ export type SoundItOutWireHttp = {
         }[];
       };
     } | {
-      "owner": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["UserAuthenticating"]["_byUsername"]>>>, ["name"]>>;
+      "owner": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Registering"]["_byUsername"]>>>, ["username"]>>;
       "wall": {
         "words": {
           "association": Jsonify<AtPath<QueryRow<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["Associating"]["_byUser"]>>>, ["association"]>>;

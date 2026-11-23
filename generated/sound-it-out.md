@@ -35,10 +35,10 @@ Defined in [Annotating](../design/concepts/Annotating.md), line 1.
 
 #### Instances
 
-- `Annotating` — instance of `Annotating` — [Application types](../design/types.md), line 24.
-  - `Author` is `UserAuthenticating.User` — [Application types](../design/types.md), line 25.
-  - `Context` is `Associating.Association` — [Application types](../design/types.md), line 27.
-  - `Item` is `Track` — [Application types](../design/types.md), line 26.
+- `Annotating` — instance of `Annotating` — [Application types](../design/types.md), line 41.
+  - `Author` is `Registering.User` — [Application types](../design/types.md), line 42.
+  - `Context` is `Associating.Association` — [Application types](../design/types.md), line 44.
+  - `Item` is `Track` — [Application types](../design/types.md), line 43.
 
 ### Associating
 
@@ -68,8 +68,29 @@ Defined in [Associating](../design/concepts/Associating.md), line 1.
 
 #### Instances
 
-- `Associating` — instance of `Associating` — [Application types](../design/types.md), line 21.
-  - `User` is `UserAuthenticating.User` — [Application types](../design/types.md), line 22.
+- `Associating` — instance of `Associating` — [Application types](../design/types.md), line 38.
+  - `User` is `Registering.User` — [Application types](../design/types.md), line 39.
+
+### Authenticating
+
+Defined in [Authenticating](../design/concepts/Authenticating.md), line 1.
+
+#### Actions
+
+- `set(user: User, password: String) : returns (user: User)`
+  - Refuses `INVALID_PASSWORD`: Use a password with 8 to 128 characters.
+  - Refuses `PASSWORD_SET`: This account already has a password.
+- `authenticate(user: User, password: String) : returns (user: User)`
+  - Refuses `INVALID_CREDENTIALS`: The username or password is incorrect.
+
+#### Queries
+
+- `_acceptable(password: String) : one (acceptable: Flag)`
+
+#### Instances
+
+- `Authenticating` — instance of `Authenticating` — [Application types](../design/types.md), line 32.
+  - `User` is `Registering.User` — [Application types](../design/types.md), line 33.
 
 ### Friending
 
@@ -100,8 +121,8 @@ Defined in [Friending](../design/concepts/Friending.md), line 1.
 
 #### Instances
 
-- `Friending` — instance of `Friending` — [Application types](../design/types.md), line 34.
-  - `Person` is `UserAuthenticating.User` — [Application types](../design/types.md), line 35.
+- `Friending` — instance of `Friending` — [Application types](../design/types.md), line 51.
+  - `Person` is `Registering.User` — [Application types](../design/types.md), line 52.
 
 ### Pitching
 
@@ -131,42 +152,56 @@ Defined in [Pitching](../design/concepts/Pitching.md), line 1.
 
 #### Instances
 
-- `Pitching` — instance of `Pitching` — [Application types](../design/types.md), line 29.
-  - `Item` is `Track` — [Application types](../design/types.md), line 32.
-  - `Person` is `UserAuthenticating.User` — [Application types](../design/types.md), line 30.
-  - `Target` is `Associating.Association` — [Application types](../design/types.md), line 31.
+- `Pitching` — instance of `Pitching` — [Application types](../design/types.md), line 46.
+  - `Item` is `Track` — [Application types](../design/types.md), line 49.
+  - `Person` is `Registering.User` — [Application types](../design/types.md), line 47.
+  - `Target` is `Associating.Association` — [Application types](../design/types.md), line 48.
 
-### UserAuthenticating
+### Registering
 
-Defined in [UserAuthenticating](../design/concepts/UserAuthenticating.md), line 1.
+Defined in [Registering](../design/concepts/Registering.md), line 1.
 
 #### Actions
 
-- `register(username: String, password: String) : returns (user: User)`
+- `register(username: String) : returns (user: User)`
   - Refuses `INVALID_USERNAME`: Use 3 to 32 letters, numbers, underscores, or hyphens.
-  - Refuses `INVALID_PASSWORD`: Use a password with 8 to 128 characters.
   - Refuses `USERNAME_TAKEN`: That username is already taken.
-- `authenticate(username: String, password: String) : returns (user: User, username: String, session: Session, expiresAt: DateTime)`
-  - Refuses `INVALID_CREDENTIALS`: The username or password is incorrect.
-- `current(session: Session) : returns (user: User, username: String)`
-  - Refuses `UNKNOWN_SESSION`: Sign in to continue.
-- `logout(session: Session) : returns ()`
-  - Refuses `UNKNOWN_SESSION`: Sign in to continue.
 
 #### Queries
 
-- `_byUsername(username: String) : optional (user: User, name: String)`
+- `_byUsername(username: String) : optional (user: User, username: String)`
 - `_username(user: User) : optional (username: String)`
 
 #### Instances
 
-- `UserAuthenticating` — instance of `UserAuthenticating` — [Application types](../design/types.md), line 19.
+- `Registering` — instance of `Registering` — [Application types](../design/types.md), line 30.
+
+### Sessioning
+
+Defined in [Sessioning](../design/concepts/Sessioning.md), line 1.
+
+#### Actions
+
+- `start(subject: Subject, at: DateTime) : returns (session: Session, expiresAt: DateTime)`
+- `use(session: Session, at: DateTime) : returns (subject: Subject)`
+  - Refuses `NOT_SIGNED_IN`: Sign in to continue.
+- `end(session: Session, at: DateTime) : returns (session: Session)`
+  - Refuses `SESSION_ENDED`: Sign in to continue.
+
+#### Instances
+
+- `Sessioning` — instance of `Sessioning` — [Application types](../design/types.md), line 35.
+  - `Subject` is `Registering.User` — [Application types](../design/types.md), line 36.
 
 ## Application types
 
 Concrete types:
 
-- `Track` — [Application types](../design/types.md), line 14.
+- `Track` — [Application types](../design/types.md), line 20.
+
+## Computations
+
+- `currentInstant() : DateTime` — [Application types](../design/types.md), line 25.
 
 ## Views
 
@@ -225,18 +260,18 @@ Authored path: `Friends.Circle.Circle`.
 Former "the friends and requests of (user)" — inputs (user); bindings (friend, friendName, sender, senderName, recipient, recipientName); promises exactly one record — forms:
   a record of
     friends: each Friending._friends (person: user) has (friend)
-      where UserAuthenticating._username (user: friend) has (username: friendName)
+      where Registering._username (user: friend) has (username: friendName)
       arranged by friendName
       form a record of
         username: friendName
         wall: former "the sound wall of (user) open to (levels)" with (levels: ["LIMITED", "PUBLIC"], user: friend)
     received: each Friending._received (recipient: user) has (sender)
-      where UserAuthenticating._username (user: sender) has (username: senderName)
+      where Registering._username (user: sender) has (username: senderName)
       arranged by senderName
       form a record of
         username: senderName
     sent: each Friending._sent (sender: user) has (recipient)
-      where UserAuthenticating._username (user: recipient) has (username: recipientName)
+      where Registering._username (user: recipient) has (username: recipientName)
       arranged by recipientName
       form a record of
         username: recipientName
@@ -266,7 +301,7 @@ Former "the personal sound wall (user)" — inputs (user); bindings (association
             visibility: exampleVisibility
         label
         suggestions: each Pitching._forTarget (target: association) has (contributor, fit, item: pitchedItem, note: pitchNote, pitch, response)
-          where UserAuthenticating._username (user: contributor) has (username: contributorName)
+          where Registering._username (user: contributor) has (username: contributorName)
           arranged by pitch
           form a record of
             contributor: contributorName
@@ -286,7 +321,7 @@ Authored path: `Suggestions.Sending.SuggestionsSent`.
 ```former
 Former "the suggestions (user) has sent" — inputs (user); bindings (pitch, recipient, to, target, item, note, reviewed); promises exactly one record — forms:
   each Pitching._sentBy (contributor: user) has (item, note, pitch, recipient, reviewed, target)
-    where UserAuthenticating._username (user: recipient) has (username: to)
+    where Registering._username (user: recipient) has (username: to)
     arranged by pitch
     form a record of
       item
@@ -311,52 +346,85 @@ Former "the word (association) after a write" — inputs (association); bindings
 
 ## Reactions
 
-### Accounts.Login
+### Accounts.Login:known-username
 
 Authored path: `Accounts.Login`.
-- Covered by [Accounts](../design/compositions/Accounts.md), line 7.
-- Covered by [Accounts](../design/compositions/Accounts.md), line 18.
+- Covered by [Accounts](../design/compositions/Accounts.md), line 34.
+- Covered by [Accounts](../design/compositions/Accounts.md), line 70.
 
 ```reaction
 when RequestBoundary.request (password, path: "/auth/login", requestId, username)
+where
+  Registering._byUsername (username) has (user)
+  at is currentInstant
 then
-  UserAuthenticating.authenticate (password, username)
+  Authenticating.authenticate (password, user)
 ```
 
-### Accounts.Login#2
+### Accounts.Login:known-username#2
 
 Authored path: `Accounts.Login`.
-- Covered by [Accounts](../design/compositions/Accounts.md), line 7.
-- Covered by [Accounts](../design/compositions/Accounts.md), line 18.
+- Covered by [Accounts](../design/compositions/Accounts.md), line 34.
+- Covered by [Accounts](../design/compositions/Accounts.md), line 70.
 
 ```reaction
-when UserAuthenticating.authenticate (password, username, expiresAt, session, user, result.username: displayName), asked by Accounts.Login
+when Authenticating.authenticate (password, user), asked by Accounts.Login:known-username
+where
+  at is currentInstant
+then
+  Sessioning.start (at, subject: user)
+```
+
+### Accounts.Login:known-username#3
+
+Authored path: `Accounts.Login`.
+- Covered by [Accounts](../design/compositions/Accounts.md), line 34.
+- Covered by [Accounts](../design/compositions/Accounts.md), line 70.
+
+```reaction
+when Sessioning.start (at, subject: user, expiresAt, session), asked by Accounts.Login:known-username#2
 where
   earlier, RequestBoundary.request (password, path: "/auth/login", requestId, username)
 then
-  RequestBoundary.respond (expiresAt, requestId, session, user, username: displayName)
+  RequestBoundary.respond (expiresAt, requestId, session, user)
+```
+
+### Accounts.Login:unknown-username
+
+Authored path: `Accounts.Login`.
+- Covered by [Accounts](../design/compositions/Accounts.md), line 34.
+- Covered by [Accounts](../design/compositions/Accounts.md), line 70.
+
+```reaction
+when RequestBoundary.request (password, path: "/auth/login", requestId, username)
+where
+  no Registering._byUsername (username)
+then
+  RequestBoundary.respond (error: "INVALID_CREDENTIALS", requestId)
 ```
 
 ### Accounts.Logout
 
 Authored path: `Accounts.Logout`.
-- Covered by [Accounts](../design/compositions/Accounts.md), line 10.
-- Covered by [Accounts](../design/compositions/Accounts.md), line 20.
+- Covered by [Accounts](../design/compositions/Accounts.md), line 54.
+- Covered by [Accounts](../design/compositions/Accounts.md), line 72.
 
 ```reaction
 when RequestBoundary.request (path: "/auth/logout", requestId, session)
+where
+  at is currentInstant
 then
-  UserAuthenticating.logout (session)
+  Sessioning.end (at, session)
 ```
 
 ### Accounts.Logout#2
 
 Authored path: `Accounts.Logout`.
-- Covered by [Accounts](../design/compositions/Accounts.md), line 10.
-- Covered by [Accounts](../design/compositions/Accounts.md), line 20.
+- Covered by [Accounts](../design/compositions/Accounts.md), line 54.
+- Covered by [Accounts](../design/compositions/Accounts.md), line 72.
 
 ```reaction
-when UserAuthenticating.logout (session), asked by Accounts.Logout
+when Sessioning.end (at, session), asked by Accounts.Logout
 where
   earlier, RequestBoundary.request (path: "/auth/logout", requestId, session)
 then
@@ -366,53 +434,101 @@ then
 ### Accounts.Me
 
 Authored path: `Accounts.Me`.
-- Covered by [Accounts](../design/compositions/Accounts.md), line 9.
-- Covered by [Accounts](../design/compositions/Accounts.md), line 19.
+- Covered by [Accounts](../design/compositions/Accounts.md), line 52.
+- Covered by [Accounts](../design/compositions/Accounts.md), line 71.
 
 ```reaction
 when RequestBoundary.request (path: "/auth/me", requestId, session)
+where
+  at is currentInstant
 then
-  UserAuthenticating.current (session)
+  Sessioning.use (at, session)
 ```
 
 ### Accounts.Me#2
 
 Authored path: `Accounts.Me`.
-- Covered by [Accounts](../design/compositions/Accounts.md), line 9.
-- Covered by [Accounts](../design/compositions/Accounts.md), line 19.
+- Covered by [Accounts](../design/compositions/Accounts.md), line 52.
+- Covered by [Accounts](../design/compositions/Accounts.md), line 71.
 
 ```reaction
-when UserAuthenticating.current (session, user, username), asked by Accounts.Me
+when Sessioning.use (at, session, subject: user), asked by Accounts.Me
 where
+  Registering._username (user) has (username)
   earlier, RequestBoundary.request (path: "/auth/me", requestId, session)
 then
   RequestBoundary.respond (requestId, user, username)
 ```
 
-### Accounts.Register
+### Accounts.Register:acceptable-password
 
 Authored path: `Accounts.Register`.
-- Covered by [Accounts](../design/compositions/Accounts.md), line 7.
-- Covered by [Accounts](../design/compositions/Accounts.md), line 17.
+- Covered by [Accounts](../design/compositions/Accounts.md), line 11.
+- Covered by [Accounts](../design/compositions/Accounts.md), line 69.
 
 ```reaction
 when RequestBoundary.request (password, path: "/auth/register", requestId, username)
+where
+  Authenticating._acceptable (password) has (acceptable: true)
+  at is currentInstant
 then
-  UserAuthenticating.register (password, username)
+  Registering.register (username)
 ```
 
-### Accounts.Register#2
+### Accounts.Register:acceptable-password#2
 
 Authored path: `Accounts.Register`.
-- Covered by [Accounts](../design/compositions/Accounts.md), line 7.
-- Covered by [Accounts](../design/compositions/Accounts.md), line 17.
+- Covered by [Accounts](../design/compositions/Accounts.md), line 11.
+- Covered by [Accounts](../design/compositions/Accounts.md), line 69.
 
 ```reaction
-when UserAuthenticating.register (password, username, user), asked by Accounts.Register
+when Registering.register (username, user), asked by Accounts.Register:acceptable-password
 where
   earlier, RequestBoundary.request (password, path: "/auth/register", requestId, username)
 then
-  RequestBoundary.respond (requestId, user)
+  Authenticating.set (password, user)
+```
+
+### Accounts.Register:acceptable-password#3
+
+Authored path: `Accounts.Register`.
+- Covered by [Accounts](../design/compositions/Accounts.md), line 11.
+- Covered by [Accounts](../design/compositions/Accounts.md), line 69.
+
+```reaction
+when Authenticating.set (password, user), asked by Accounts.Register:acceptable-password#2
+where
+  at is currentInstant
+then
+  Sessioning.start (at, subject: user)
+```
+
+### Accounts.Register:acceptable-password#4
+
+Authored path: `Accounts.Register`.
+- Covered by [Accounts](../design/compositions/Accounts.md), line 11.
+- Covered by [Accounts](../design/compositions/Accounts.md), line 69.
+
+```reaction
+when Sessioning.start (at, subject: user, expiresAt, session), asked by Accounts.Register:acceptable-password#3
+where
+  earlier, RequestBoundary.request (password, path: "/auth/register", requestId, username)
+then
+  RequestBoundary.respond (expiresAt, requestId, session, user)
+```
+
+### Accounts.Register:unacceptable-password
+
+Authored path: `Accounts.Register`.
+- Covered by [Accounts](../design/compositions/Accounts.md), line 11.
+- Covered by [Accounts](../design/compositions/Accounts.md), line 69.
+
+```reaction
+when RequestBoundary.request (password, path: "/auth/register", requestId, username)
+where
+  Authenticating._acceptable (password) has (acceptable: false)
+then
+  RequestBoundary.respond (error: "INVALID_PASSWORD", requestId)
 ```
 
 ### DeliverFaultToAsker
@@ -443,8 +559,10 @@ Authored path: `Friends.Circle.List`.
 
 ```reaction
 when RequestBoundary.request (path: "/friends/list", requestId, session)
+where
+  at is currentInstant
 then
-  UserAuthenticating.current (session)
+  Sessioning.use (at, session)
 ```
 
 ### Friends.Circle.List#2
@@ -454,7 +572,7 @@ Authored path: `Friends.Circle.List`.
 - Covered by [Friends](../design/compositions/Friends.md), line 21.
 
 ```reaction
-when UserAuthenticating.current (session, user), asked by Friends.Circle.List
+when Sessioning.use (at, session, subject: user), asked by Friends.Circle.List
 where
   earlier, RequestBoundary.request (path: "/friends/list", requestId, session)
 then
@@ -469,8 +587,10 @@ Authored path: `Friends.Leaving.Remove`.
 
 ```reaction
 when RequestBoundary.request (path: "/friends/remove", requestId, session, username)
+where
+  at is currentInstant
 then
-  UserAuthenticating.current (session)
+  Sessioning.use (at, session)
 ```
 
 ### Friends.Leaving.Remove:known#2
@@ -480,10 +600,10 @@ Authored path: `Friends.Leaving.Remove`.
 - Covered by [Friends](../design/compositions/Friends.md), line 52.
 
 ```reaction
-when UserAuthenticating.current (session, user), asked by Friends.Leaving.Remove
+when Sessioning.use (at, session, subject: user), asked by Friends.Leaving.Remove
 where
   earlier, RequestBoundary.request (path: "/friends/remove", requestId, session, username)
-  UserAuthenticating._byUsername (username) has (user: other)
+  Registering._byUsername (username) has (user: other)
 then
   Friending.unfriend (friend: other, person: user)
 ```
@@ -509,10 +629,10 @@ Authored path: `Friends.Leaving.Remove`.
 - Covered by [Friends](../design/compositions/Friends.md), line 52.
 
 ```reaction
-when UserAuthenticating.current (session, user), asked by Friends.Leaving.Remove
+when Sessioning.use (at, session, subject: user), asked by Friends.Leaving.Remove
 where
   earlier, RequestBoundary.request (path: "/friends/remove", requestId, session, username)
-  no UserAuthenticating._byUsername (username)
+  no Registering._byUsername (username)
 then
   RequestBoundary.respond (error: "PERSON_NOT_FOUND", requestId)
 ```
@@ -525,8 +645,10 @@ Authored path: `Friends.Requests.Accept`.
 
 ```reaction
 when RequestBoundary.request (path: "/friends/accept", requestId, session, username)
+where
+  at is currentInstant
 then
-  UserAuthenticating.current (session)
+  Sessioning.use (at, session)
 ```
 
 ### Friends.Requests.Accept:known#2
@@ -536,10 +658,10 @@ Authored path: `Friends.Requests.Accept`.
 - Covered by [Friends](../design/compositions/Friends.md), line 38.
 
 ```reaction
-when UserAuthenticating.current (session, user), asked by Friends.Requests.Accept
+when Sessioning.use (at, session, subject: user), asked by Friends.Requests.Accept
 where
   earlier, RequestBoundary.request (path: "/friends/accept", requestId, session, username)
-  UserAuthenticating._byUsername (username) has (user: other)
+  Registering._byUsername (username) has (user: other)
 then
   Friending.accept (recipient: user, sender: other)
 ```
@@ -565,10 +687,10 @@ Authored path: `Friends.Requests.Accept`.
 - Covered by [Friends](../design/compositions/Friends.md), line 38.
 
 ```reaction
-when UserAuthenticating.current (session, user), asked by Friends.Requests.Accept
+when Sessioning.use (at, session, subject: user), asked by Friends.Requests.Accept
 where
   earlier, RequestBoundary.request (path: "/friends/accept", requestId, session, username)
-  no UserAuthenticating._byUsername (username)
+  no Registering._byUsername (username)
 then
   RequestBoundary.respond (error: "PERSON_NOT_FOUND", requestId)
 ```
@@ -581,8 +703,10 @@ Authored path: `Friends.Requests.Cancel`.
 
 ```reaction
 when RequestBoundary.request (path: "/friends/cancel", requestId, session, username)
+where
+  at is currentInstant
 then
-  UserAuthenticating.current (session)
+  Sessioning.use (at, session)
 ```
 
 ### Friends.Requests.Cancel:known#2
@@ -592,10 +716,10 @@ Authored path: `Friends.Requests.Cancel`.
 - Covered by [Friends](../design/compositions/Friends.md), line 40.
 
 ```reaction
-when UserAuthenticating.current (session, user), asked by Friends.Requests.Cancel
+when Sessioning.use (at, session, subject: user), asked by Friends.Requests.Cancel
 where
   earlier, RequestBoundary.request (path: "/friends/cancel", requestId, session, username)
-  UserAuthenticating._byUsername (username) has (user: other)
+  Registering._byUsername (username) has (user: other)
 then
   Friending.cancel (recipient: other, sender: user)
 ```
@@ -621,10 +745,10 @@ Authored path: `Friends.Requests.Cancel`.
 - Covered by [Friends](../design/compositions/Friends.md), line 40.
 
 ```reaction
-when UserAuthenticating.current (session, user), asked by Friends.Requests.Cancel
+when Sessioning.use (at, session, subject: user), asked by Friends.Requests.Cancel
 where
   earlier, RequestBoundary.request (path: "/friends/cancel", requestId, session, username)
-  no UserAuthenticating._byUsername (username)
+  no Registering._byUsername (username)
 then
   RequestBoundary.respond (error: "PERSON_NOT_FOUND", requestId)
 ```
@@ -637,8 +761,10 @@ Authored path: `Friends.Requests.Decline`.
 
 ```reaction
 when RequestBoundary.request (path: "/friends/decline", requestId, session, username)
+where
+  at is currentInstant
 then
-  UserAuthenticating.current (session)
+  Sessioning.use (at, session)
 ```
 
 ### Friends.Requests.Decline:known#2
@@ -648,10 +774,10 @@ Authored path: `Friends.Requests.Decline`.
 - Covered by [Friends](../design/compositions/Friends.md), line 39.
 
 ```reaction
-when UserAuthenticating.current (session, user), asked by Friends.Requests.Decline
+when Sessioning.use (at, session, subject: user), asked by Friends.Requests.Decline
 where
   earlier, RequestBoundary.request (path: "/friends/decline", requestId, session, username)
-  UserAuthenticating._byUsername (username) has (user: other)
+  Registering._byUsername (username) has (user: other)
 then
   Friending.decline (recipient: user, sender: other)
 ```
@@ -677,10 +803,10 @@ Authored path: `Friends.Requests.Decline`.
 - Covered by [Friends](../design/compositions/Friends.md), line 39.
 
 ```reaction
-when UserAuthenticating.current (session, user), asked by Friends.Requests.Decline
+when Sessioning.use (at, session, subject: user), asked by Friends.Requests.Decline
 where
   earlier, RequestBoundary.request (path: "/friends/decline", requestId, session, username)
-  no UserAuthenticating._byUsername (username)
+  no Registering._byUsername (username)
 then
   RequestBoundary.respond (error: "PERSON_NOT_FOUND", requestId)
 ```
@@ -693,8 +819,10 @@ Authored path: `Friends.Requests.Request`.
 
 ```reaction
 when RequestBoundary.request (path: "/friends/request", requestId, session, username)
+where
+  at is currentInstant
 then
-  UserAuthenticating.current (session)
+  Sessioning.use (at, session)
 ```
 
 ### Friends.Requests.Request:known#2
@@ -704,10 +832,10 @@ Authored path: `Friends.Requests.Request`.
 - Covered by [Friends](../design/compositions/Friends.md), line 37.
 
 ```reaction
-when UserAuthenticating.current (session, user), asked by Friends.Requests.Request
+when Sessioning.use (at, session, subject: user), asked by Friends.Requests.Request
 where
   earlier, RequestBoundary.request (path: "/friends/request", requestId, session, username)
-  UserAuthenticating._byUsername (username) has (user: other)
+  Registering._byUsername (username) has (user: other)
 then
   Friending.request (recipient: other, sender: user)
 ```
@@ -733,10 +861,10 @@ Authored path: `Friends.Requests.Request`.
 - Covered by [Friends](../design/compositions/Friends.md), line 37.
 
 ```reaction
-when UserAuthenticating.current (session, user), asked by Friends.Requests.Request
+when Sessioning.use (at, session, subject: user), asked by Friends.Requests.Request
 where
   earlier, RequestBoundary.request (path: "/friends/request", requestId, session, username)
-  no UserAuthenticating._byUsername (username)
+  no Registering._byUsername (username)
 then
   RequestBoundary.respond (error: "PERSON_NOT_FOUND", requestId)
 ```
@@ -749,8 +877,10 @@ Authored path: `SoundWall.Definitions.Associate`.
 
 ```reaction
 when RequestBoundary.request (description, label, path: "/wall/associate", requestId, session, visibility)
+where
+  at is currentInstant
 then
-  UserAuthenticating.current (session)
+  Sessioning.use (at, session)
 ```
 
 ### SoundWall.Definitions.Associate#2
@@ -760,7 +890,7 @@ Authored path: `SoundWall.Definitions.Associate`.
 - Covered by [Sound Wall](../design/compositions/SoundWall.md), line 21.
 
 ```reaction
-when UserAuthenticating.current (session, user), asked by SoundWall.Definitions.Associate
+when Sessioning.use (at, session, subject: user), asked by SoundWall.Definitions.Associate
 where
   earlier, RequestBoundary.request (description, label, path: "/wall/associate", requestId, session, visibility)
 then
@@ -790,8 +920,10 @@ Authored path: `SoundWall.Definitions.RemoveWord`.
 
 ```reaction
 when RequestBoundary.request (association, path: "/wall/remove", requestId, session)
+where
+  at is currentInstant
 then
-  UserAuthenticating.current (session)
+  Sessioning.use (at, session)
 ```
 
 ### SoundWall.Definitions.RemoveWord#2
@@ -802,7 +934,7 @@ Authored path: `SoundWall.Definitions.RemoveWord`.
 - Covered by [Sound Wall](../design/compositions/SoundWall.md), line 24.
 
 ```reaction
-when UserAuthenticating.current (session, user), asked by SoundWall.Definitions.RemoveWord
+when Sessioning.use (at, session, subject: user), asked by SoundWall.Definitions.RemoveWord
 where
   earlier, RequestBoundary.request (association, path: "/wall/remove", requestId, session)
 then
@@ -858,8 +990,10 @@ Authored path: `SoundWall.Definitions.SetVisibility`.
 
 ```reaction
 when RequestBoundary.request (association, path: "/wall/visibility", requestId, session, visibility)
+where
+  at is currentInstant
 then
-  UserAuthenticating.current (session)
+  Sessioning.use (at, session)
 ```
 
 ### SoundWall.Definitions.SetVisibility#2
@@ -869,7 +1003,7 @@ Authored path: `SoundWall.Definitions.SetVisibility`.
 - Covered by [Sound Wall](../design/compositions/SoundWall.md), line 23.
 
 ```reaction
-when UserAuthenticating.current (session, user), asked by SoundWall.Definitions.SetVisibility
+when Sessioning.use (at, session, subject: user), asked by SoundWall.Definitions.SetVisibility
 where
   earlier, RequestBoundary.request (association, path: "/wall/visibility", requestId, session, visibility)
 then
@@ -898,8 +1032,10 @@ Authored path: `SoundWall.Definitions.UpdateWord`.
 
 ```reaction
 when RequestBoundary.request (association, description, label, path: "/wall/update", requestId, session)
+where
+  at is currentInstant
 then
-  UserAuthenticating.current (session)
+  Sessioning.use (at, session)
 ```
 
 ### SoundWall.Definitions.UpdateWord#2
@@ -909,7 +1045,7 @@ Authored path: `SoundWall.Definitions.UpdateWord`.
 - Covered by [Sound Wall](../design/compositions/SoundWall.md), line 22.
 
 ```reaction
-when UserAuthenticating.current (session, user), asked by SoundWall.Definitions.UpdateWord
+when Sessioning.use (at, session, subject: user), asked by SoundWall.Definitions.UpdateWord
 where
   earlier, RequestBoundary.request (association, description, label, path: "/wall/update", requestId, session)
 then
@@ -939,8 +1075,10 @@ Authored path: `SoundWall.Examples.AddExample`.
 
 ```reaction
 when RequestBoundary.request (association, item, note, path: "/wall/examples/add", qualities, requestId, role, session)
+where
+  at is currentInstant
 then
-  UserAuthenticating.current (session)
+  Sessioning.use (at, session)
 ```
 
 ### SoundWall.Examples.AddExample:not-own-word#2
@@ -951,7 +1089,7 @@ Authored path: `SoundWall.Examples.AddExample`.
 - Covered by [Sound Wall](../design/compositions/SoundWall.md), line 51.
 
 ```reaction
-when UserAuthenticating.current (session, user), asked by SoundWall.Examples.AddExample
+when Sessioning.use (at, session, subject: user), asked by SoundWall.Examples.AddExample
 where
   earlier, RequestBoundary.request (association, item, note, path: "/wall/examples/add", qualities, requestId, role, session)
   no Associating._get (association) has (user)
@@ -967,7 +1105,7 @@ Authored path: `SoundWall.Examples.AddExample`.
 - Covered by [Sound Wall](../design/compositions/SoundWall.md), line 51.
 
 ```reaction
-when UserAuthenticating.current (session, user), asked by SoundWall.Examples.AddExample
+when Sessioning.use (at, session, subject: user), asked by SoundWall.Examples.AddExample
 where
   earlier, RequestBoundary.request (association, item, note, path: "/wall/examples/add", qualities, requestId, role, session)
   Associating._get (association) has (user)
@@ -1011,8 +1149,10 @@ Authored path: `SoundWall.Examples.RemoveExample`.
 
 ```reaction
 when RequestBoundary.request (annotation, path: "/wall/examples/remove", requestId, session)
+where
+  at is currentInstant
 then
-  UserAuthenticating.current (session)
+  Sessioning.use (at, session)
 ```
 
 ### SoundWall.Examples.RemoveExample#2
@@ -1022,7 +1162,7 @@ Authored path: `SoundWall.Examples.RemoveExample`.
 - Covered by [Sound Wall](../design/compositions/SoundWall.md), line 48.
 
 ```reaction
-when UserAuthenticating.current (session, user), asked by SoundWall.Examples.RemoveExample
+when Sessioning.use (at, session, subject: user), asked by SoundWall.Examples.RemoveExample
 where
   earlier, RequestBoundary.request (annotation, path: "/wall/examples/remove", requestId, session)
 then
@@ -1051,8 +1191,10 @@ Authored path: `SoundWall.Examples.SetExampleVisibility`.
 
 ```reaction
 when RequestBoundary.request (annotation, path: "/wall/examples/visibility", requestId, session, visibility)
+where
+  at is currentInstant
 then
-  UserAuthenticating.current (session)
+  Sessioning.use (at, session)
 ```
 
 ### SoundWall.Examples.SetExampleVisibility#2
@@ -1062,7 +1204,7 @@ Authored path: `SoundWall.Examples.SetExampleVisibility`.
 - Covered by [Sound Wall](../design/compositions/SoundWall.md), line 47.
 
 ```reaction
-when UserAuthenticating.current (session, user), asked by SoundWall.Examples.SetExampleVisibility
+when Sessioning.use (at, session, subject: user), asked by SoundWall.Examples.SetExampleVisibility
 where
   earlier, RequestBoundary.request (annotation, path: "/wall/examples/visibility", requestId, session, visibility)
 then
@@ -1091,8 +1233,10 @@ Authored path: `SoundWall.Examples.UpdateExample`.
 
 ```reaction
 when RequestBoundary.request (annotation, note, path: "/wall/examples/update", qualities, requestId, role, session)
+where
+  at is currentInstant
 then
-  UserAuthenticating.current (session)
+  Sessioning.use (at, session)
 ```
 
 ### SoundWall.Examples.UpdateExample#2
@@ -1102,7 +1246,7 @@ Authored path: `SoundWall.Examples.UpdateExample`.
 - Covered by [Sound Wall](../design/compositions/SoundWall.md), line 46.
 
 ```reaction
-when UserAuthenticating.current (session, user), asked by SoundWall.Examples.UpdateExample
+when Sessioning.use (at, session, subject: user), asked by SoundWall.Examples.UpdateExample
 where
   earlier, RequestBoundary.request (annotation, note, path: "/wall/examples/update", qualities, requestId, role, session)
 then
@@ -1131,8 +1275,10 @@ Authored path: `SoundWall.Reading.ListWall`.
 
 ```reaction
 when RequestBoundary.request (path: "/wall/list", requestId, session)
+where
+  at is currentInstant
 then
-  UserAuthenticating.current (session)
+  Sessioning.use (at, session)
 ```
 
 ### SoundWall.Reading.ListWall#2
@@ -1142,7 +1288,7 @@ Authored path: `SoundWall.Reading.ListWall`.
 - Covered by [Sound Wall](../design/compositions/SoundWall.md), line 109.
 
 ```reaction
-when UserAuthenticating.current (session, user), asked by SoundWall.Reading.ListWall
+when Sessioning.use (at, session, subject: user), asked by SoundWall.Reading.ListWall
 where
   earlier, RequestBoundary.request (path: "/wall/list", requestId, session)
 then
@@ -1158,7 +1304,7 @@ Authored path: `SoundWall.Reading.MissingWall`.
 ```reaction
 when RequestBoundary.request (path: "/wall/public", requestId, username)
 where
-  no UserAuthenticating._byUsername (username)
+  no Registering._byUsername (username)
 then
   RequestBoundary.respond (error: "WALL_NOT_FOUND", requestId)
 ```
@@ -1171,8 +1317,10 @@ Authored path: `SoundWall.Reading.PreviewWall`.
 
 ```reaction
 when RequestBoundary.request (path: "/wall/preview", requestId, session)
+where
+  at is currentInstant
 then
-  UserAuthenticating.current (session)
+  Sessioning.use (at, session)
 ```
 
 ### SoundWall.Reading.PreviewWall#2
@@ -1182,7 +1330,7 @@ Authored path: `SoundWall.Reading.PreviewWall`.
 - Covered by [Sound Wall](../design/compositions/SoundWall.md), line 113.
 
 ```reaction
-when UserAuthenticating.current (session, user), asked by SoundWall.Reading.PreviewWall
+when Sessioning.use (at, session, subject: user), asked by SoundWall.Reading.PreviewWall
 where
   earlier, RequestBoundary.request (path: "/wall/preview", requestId, session)
 then
@@ -1198,7 +1346,7 @@ Authored path: `SoundWall.Reading.ReadPublicWall`.
 ```reaction
 when RequestBoundary.request (path: "/wall/public", requestId, username)
 where
-  UserAuthenticating._byUsername (username) has (name, user)
+  Registering._byUsername (username) has (user, username: name)
 then
   RequestBoundary.respond (owner: name, requestId, wall: former "the sound wall of (user) open to (levels)" with (levels: ["PUBLIC"], user))
 ```
@@ -1211,8 +1359,10 @@ Authored path: `SoundWall.Reading.VisitWall`.
 
 ```reaction
 when RequestBoundary.request (path: "/wall/visit", requestId, session, username)
+where
+  at is currentInstant
 then
-  UserAuthenticating.current (session)
+  Sessioning.use (at, session)
 ```
 
 ### SoundWall.Reading.VisitWall:friend#2
@@ -1222,10 +1372,10 @@ Authored path: `SoundWall.Reading.VisitWall`.
 - Covered by [Sound Wall](../design/compositions/SoundWall.md), line 112.
 
 ```reaction
-when UserAuthenticating.current (session, user), asked by SoundWall.Reading.VisitWall
+when Sessioning.use (at, session, subject: user), asked by SoundWall.Reading.VisitWall
 where
   earlier, RequestBoundary.request (path: "/wall/visit", requestId, session, username)
-  UserAuthenticating._byUsername (username) has (name, user: owner)
+  Registering._byUsername (username) has (user: owner, username: name)
   Friending._friendship (other: owner, person: user)
 then
   RequestBoundary.respond (owner: name, requestId, wall: former "the sound wall of (user) open to (levels)" with (levels: ["LIMITED", "PUBLIC"], user: owner))
@@ -1238,10 +1388,10 @@ Authored path: `SoundWall.Reading.VisitWall`.
 - Covered by [Sound Wall](../design/compositions/SoundWall.md), line 112.
 
 ```reaction
-when UserAuthenticating.current (session, user), asked by SoundWall.Reading.VisitWall
+when Sessioning.use (at, session, subject: user), asked by SoundWall.Reading.VisitWall
 where
   earlier, RequestBoundary.request (path: "/wall/visit", requestId, session, username)
-  no UserAuthenticating._byUsername (username)
+  no Registering._byUsername (username)
 then
   RequestBoundary.respond (error: "WALL_NOT_FOUND", requestId)
 ```
@@ -1253,10 +1403,10 @@ Authored path: `SoundWall.Reading.VisitWall`.
 - Covered by [Sound Wall](../design/compositions/SoundWall.md), line 112.
 
 ```reaction
-when UserAuthenticating.current (session, user), asked by SoundWall.Reading.VisitWall
+when Sessioning.use (at, session, subject: user), asked by SoundWall.Reading.VisitWall
 where
   earlier, RequestBoundary.request (path: "/wall/visit", requestId, session, username)
-  UserAuthenticating._byUsername (username) has (name, user: owner)
+  Registering._byUsername (username) has (user: owner, username: name)
   no Friending._friendship (other: owner, person: user)
 then
   RequestBoundary.respond (owner: name, requestId, wall: former "the sound wall of (user) open to (levels)" with (levels: ["PUBLIC"], user: owner))
@@ -1270,8 +1420,10 @@ Authored path: `Suggestions.Reviewing.Promote`.
 
 ```reaction
 when RequestBoundary.request (note, path: "/suggestions/promote", pitch, qualities, requestId, session)
+where
+  at is currentInstant
 then
-  UserAuthenticating.current (session)
+  Sessioning.use (at, session)
 ```
 
 ### Suggestions.Reviewing.Promote:not-own-match#2
@@ -1281,7 +1433,7 @@ Authored path: `Suggestions.Reviewing.Promote`.
 - Covered by [Suggestions](../design/compositions/Suggestions.md), line 77.
 
 ```reaction
-when UserAuthenticating.current (session, user), asked by Suggestions.Reviewing.Promote
+when Sessioning.use (at, session, subject: user), asked by Suggestions.Reviewing.Promote
 where
   earlier, RequestBoundary.request (note, path: "/suggestions/promote", pitch, qualities, requestId, session)
   no Pitching._get (pitch) has (fit: "MATCH", recipient: user)
@@ -1296,7 +1448,7 @@ Authored path: `Suggestions.Reviewing.Promote`.
 - Covered by [Suggestions](../design/compositions/Suggestions.md), line 77.
 
 ```reaction
-when UserAuthenticating.current (session, user), asked by Suggestions.Reviewing.Promote
+when Sessioning.use (at, session, subject: user), asked by Suggestions.Reviewing.Promote
 where
   earlier, RequestBoundary.request (note, path: "/suggestions/promote", pitch, qualities, requestId, session)
   Pitching._get (pitch) has (fit: "MATCH", item, recipient: user, target)
@@ -1326,8 +1478,10 @@ Authored path: `Suggestions.Reviewing.Review`.
 
 ```reaction
 when RequestBoundary.request (fit, path: "/suggestions/review", pitch, requestId, response, session)
+where
+  at is currentInstant
 then
-  UserAuthenticating.current (session)
+  Sessioning.use (at, session)
 ```
 
 ### Suggestions.Reviewing.Review#2
@@ -1337,7 +1491,7 @@ Authored path: `Suggestions.Reviewing.Review`.
 - Covered by [Suggestions](../design/compositions/Suggestions.md), line 76.
 
 ```reaction
-when UserAuthenticating.current (session, user), asked by Suggestions.Reviewing.Review
+when Sessioning.use (at, session, subject: user), asked by Suggestions.Reviewing.Review
 where
   earlier, RequestBoundary.request (fit, path: "/suggestions/review", pitch, requestId, response, session)
 then
@@ -1379,8 +1533,10 @@ Authored path: `Suggestions.Sending.ListSent`.
 
 ```reaction
 when RequestBoundary.request (path: "/suggestions/sent", requestId, session)
+where
+  at is currentInstant
 then
-  UserAuthenticating.current (session)
+  Sessioning.use (at, session)
 ```
 
 ### Suggestions.Sending.ListSent#2
@@ -1390,7 +1546,7 @@ Authored path: `Suggestions.Sending.ListSent`.
 - Covered by [Suggestions](../design/compositions/Suggestions.md), line 34.
 
 ```reaction
-when UserAuthenticating.current (session, user), asked by Suggestions.Sending.ListSent
+when Sessioning.use (at, session, subject: user), asked by Suggestions.Sending.ListSent
 where
   earlier, RequestBoundary.request (path: "/suggestions/sent", requestId, session)
 then
@@ -1405,8 +1561,10 @@ Authored path: `Suggestions.Sending.Send`.
 
 ```reaction
 when RequestBoundary.request (association, item, note, path: "/suggestions/send", requestId, session)
+where
+  at is currentInstant
 then
-  UserAuthenticating.current (session)
+  Sessioning.use (at, session)
 ```
 
 ### Suggestions.Sending.Send:friends-word#2
@@ -1416,7 +1574,7 @@ Authored path: `Suggestions.Sending.Send`.
 - Covered by [Suggestions](../design/compositions/Suggestions.md), line 33.
 
 ```reaction
-when UserAuthenticating.current (session, user), asked by Suggestions.Sending.Send
+when Sessioning.use (at, session, subject: user), asked by Suggestions.Sending.Send
 where
   earlier, RequestBoundary.request (association, item, note, path: "/suggestions/send", requestId, session)
   Associating._get (association) has (user: owner, visibility: "LIMITED")
@@ -1446,7 +1604,7 @@ Authored path: `Suggestions.Sending.Send`.
 - Covered by [Suggestions](../design/compositions/Suggestions.md), line 33.
 
 ```reaction
-when UserAuthenticating.current (session, user), asked by Suggestions.Sending.Send
+when Sessioning.use (at, session, subject: user), asked by Suggestions.Sending.Send
 where
   earlier, RequestBoundary.request (association, item, note, path: "/suggestions/send", requestId, session)
   no Associating._get (association) has (visibility: "PUBLIC")
@@ -1462,7 +1620,7 @@ Authored path: `Suggestions.Sending.Send`.
 - Covered by [Suggestions](../design/compositions/Suggestions.md), line 33.
 
 ```reaction
-when UserAuthenticating.current (session, user), asked by Suggestions.Sending.Send
+when Sessioning.use (at, session, subject: user), asked by Suggestions.Sending.Send
 where
   earlier, RequestBoundary.request (association, item, note, path: "/suggestions/send", requestId, session)
   Associating._get (association) has (user: owner, visibility: "PUBLIC")
@@ -1492,8 +1650,10 @@ Authored path: `Suggestions.Sending.Withdraw`.
 
 ```reaction
 when RequestBoundary.request (path: "/suggestions/withdraw", pitch, requestId, session)
+where
+  at is currentInstant
 then
-  UserAuthenticating.current (session)
+  Sessioning.use (at, session)
 ```
 
 ### Suggestions.Sending.Withdraw#2
@@ -1503,7 +1663,7 @@ Authored path: `Suggestions.Sending.Withdraw`.
 - Covered by [Suggestions](../design/compositions/Suggestions.md), line 35.
 
 ```reaction
-when UserAuthenticating.current (session, user), asked by Suggestions.Sending.Withdraw
+when Sessioning.use (at, session, subject: user), asked by Suggestions.Sending.Withdraw
 where
   earlier, RequestBoundary.request (path: "/suggestions/withdraw", pitch, requestId, session)
 then
