@@ -1,0 +1,28 @@
+bun test v1.4.0 (1381054db)
+
+tests/integration/removal-race.test.ts:
+73 |     try {
+74 |       const added = await app.request("/wall/examples/add", { association, item: chillDay, role: "EXAMPLE", note: "", qualities: [] }, owner.cookie);
+75 |       // Proves the interleaving happened, so this test cannot pass without exercising it.
+76 |       expect(forced).toBe(true);
+77 |       expect(added.status).toBe(200);
+78 |       expect(added.body.word).toEqual({ label: null });
+                                   ^
+error: expect(received).toEqual(expected)
+
+- {
+-   "label": null,
+- }
++ undefined
+
+- Expected  - 3
++ Received  + 1
+
+      at <anonymous> (/Users/sanskritisingh/music-discovery/tests/integration/removal-race.test.ts:78:31)
+(fail) Adding to a word while it is being removed > an add whose word is removed just before the song is written is answered as not kept [185.30ms]
+
+ 0 pass
+ 4 filtered out
+ 1 fail
+ 5 expect() calls
+Ran 1 test across 1 file. [347.00ms]

@@ -1,10 +1,10 @@
 bun test v1.4.0 (1381054db)
 
 tests/integration/removal-race.test.ts:
-example race: of 60 trials, 59 stored the song while the word existed (cleared by the removal), 1 stored it after the word was gone (answered with no word, cleared by the repair), 0 were refused before writing.
+example race: of 60 trials, 60 stored the song while the word existed (cleared by the removal), 0 stored it after the word was gone (answered with no word, cleared by the repair), 0 were refused before writing.
 suggestion race: of 60 trials, 60 stored the song while the word existed (cleared by the removal), 0 stored it after the word was gone (answered with no word, cleared by the repair), 0 were refused before writing.
 
- 56 pass
+ 58 pass
  0 fail
- 5350 expect() calls
-Ran 56 tests across 12 files. [7.00s]
+ 5365 expect() calls
+Ran 58 tests across 13 files. [8.30s]

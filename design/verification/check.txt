@@ -1,3 +1,4 @@
-$ sync-engine check && sync-engine artifacts check && tsc --noEmit
+$ sync-engine check && sync-engine artifacts check && tsc --noEmit && bun scripts/advisories.ts
 Concept action/query source check passed for 5 concepts.
 Application diagnostic check passed with 30 advisories (use --show-advisories to list them).
+All 30 engine advisories have been reviewed.

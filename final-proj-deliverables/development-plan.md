@@ -1,7 +1,6 @@
 # Development plan: updated for the alpha
 
-**Updated:** November 22, 2026, at commit `085c57b` plus the deployment settings in
-`src/main.ts`.  
+**Updated:** November 22, 2026, at commit `bb09f35`.  
 **Replaces:** the forward-looking plan in [F3](sound-it-out-f3.md#development-plan),
 which is kept unchanged as the submitted record.  
 **Team:** Bhadra Rupesh, Sanskriti Singh, Rebecca Xiong, and Victor.
@@ -24,7 +23,9 @@ reasons behind each change, and how each was checked, are in the
 | Adding a match to examples | Yes | **Done**; promoting twice adds once | HTTP race test |
 | Friends (Friending) | Not planned | **Added** | [D8](../design/decisions.md#d8-friends-and-a-third-audience-for-a-word); friends tests; Journey B |
 | Privacy across every route | Planned as tests | **Done** | Privacy sweep over every route for four readers |
-| Deleting a word cleans up | Planned as a transaction | **Done, changed:** owner constraints plus repair; honest answer after a race | [D3](../design/decisions.md#d3-no-cross-concept-transactions), [D9](../design/decisions.md#d9-an-add-that-loses-the-race-to-a-removal-says-so) |
+| Deleting a word cleans up | Planned as a transaction | **Done, changed:** owner constraints, a repair reaction, a startup sweep, and an honest answer after a race | [D3](../design/decisions.md#d3-no-cross-concept-transactions), [D9](../design/decisions.md#d9-an-add-that-loses-the-race-to-a-removal-says-so), [case study](../design/verification/case-study/README.md) |
+| Recovery from errors | Planned | **Done:** broken playback, failed save, ended session, duplicate, removed word | [D11](../design/decisions.md#d11-recovering-from-an-ended-session-keeps-the-persons-place); Journey D |
+| Every track plays | Planned | **Done** in Chrome locally; re-check before each milestone | [tracks](../design/verification/tracks.md) |
 | Excerpts (Excerpting) | Yes | **Deferred** | See §3 |
 | Counterexamples in the interface | Beta | **Deferred** (the concept supports them) | See §3 |
 | Sharing a review with its contributor | Beta | **Deferred** | See §3 |
@@ -83,8 +84,10 @@ Owner: Sanskriti. Reviewer: Rebecca. The course platform is 6.1040 Apps at
 6. Check it:
    - `BASE_URL=https://<app>.mit-sdg.dev bun run test:e2e` from a laptop with the
      project installed. It creates two test accounts.
-   - Sign in by hand in Safari and Firefox; play one track in each.
-   - Save the output in `design/verification/` with the date and commit.
+   - `bun run check:tracks` to confirm every track still plays.
+   - Sign in by hand in Safari and Firefox; play one track in each and listen.
+   - Save the output in `design/verification/` with the date and deployed commit,
+     and update the table at the top of its README.
 
 **If something fails.** "Exited with code 1": a missing variable; the log names it.
 "Signing in gets FORBIDDEN": `PUBLIC_ORIGIN` does not exactly match the address.
