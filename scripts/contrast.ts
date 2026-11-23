@@ -36,6 +36,8 @@ const pairs: Array<[string, string, string, number]> = [
   ["White on the primary button", "surface", "accent", 4.5],
   ["White on a danger button", "surface", "danger", 4.5],
   ["Control boundaries", "control-border", "surface", 3],
+  ["Play icon on its circle", "accent", "accent-soft", 3],
+  ["Remove word, in red", "danger", "canvas", 4.5],
 ];
 
 console.log("| Use | Text | Surface | Ratio | Needs | Result |");

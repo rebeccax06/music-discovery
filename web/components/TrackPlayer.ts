@@ -34,7 +34,11 @@ function loadWidgetApi() {
  * presses play. This is the only component that knows the music comes from SoundCloud.
  */
 export default defineComponent({
-  props: { track: { type: String, required: true } },
+  props: {
+    track: { type: String, required: true },
+    /** False when a heading above already names the artist, as in the song library. */
+    showArtist: { type: Boolean, default: true },
+  },
   setup(props) {
     const entry = computed(() => findTrack(props.track));
     const state = ref<"idle" | "loading" | "ready" | "failed">("idle");
@@ -86,7 +90,7 @@ export default defineComponent({
         <div class="track-names">
           <p class="track-title">{{ entry ? entry.title : 'This track is no longer available' }}</p>
           <p v-if="entry" class="track-artist">
-            {{ entry.artist }} ·
+            <template v-if="showArtist">{{ entry.artist }} · </template>
             <a :href="entry.page" target="_blank" rel="noopener">SoundCloud<span class="visually-hidden"> page for {{ entry.title }}, opens in a new tab</span></a>
           </p>
           <p v-else class="track-artist">It was removed from the library. What you saved about it is still here.</p>

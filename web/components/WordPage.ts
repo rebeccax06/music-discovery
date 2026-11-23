@@ -163,7 +163,7 @@ export default defineComponent({
               {{ sharing ? 'Close sharing' : 'Share…' }}
             </button>
             <button class="action rename-word" type="button" @click="show('renaming', '#rename-word')">Rename</button>
-            <button class="action remove-word" type="button" @click="show('removing', '.keep-word')">Remove word</button>
+            <button class="text-button danger-text remove-word" type="button" @click="show('removing', '.keep-word')">Remove word</button>
           </div>
         </section>
       </article>

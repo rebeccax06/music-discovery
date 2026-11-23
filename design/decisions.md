@@ -292,6 +292,40 @@ playing? Press play in the player, or open it on SoundCloud."
 - `bun run check:tracks` reports, for each track, when it became ready and when sound
   started. `--only "<title>" --repeat N` replays one track to diagnose it.
 
+## D13. The music is quieter than the word
+
+**Difficulty.** The densest screen, the song library, put 14 near-black play circles
+and 14 outlined "Choose" buttons beside each other. They were the heaviest marks on
+the page, louder than the word and its description, and "LAKEY INSPIRED" was printed
+nine times. Every song card on a word repeated the same black circle. "Remove word"
+looked exactly as weighty as "Share…" and "Rename", although it is the one action that
+destroys data. A confirmation message could also cover the last row of buttons.
+
+**Decision.**
+- **Play buttons are light:** a violet glyph on a pale violet circle, filling with
+  violet on hover. The accent now marks one thing everywhere: sound, choices, and the
+  primary action.
+- **The library is grouped by artist.** Each artist is named once, as a small label,
+  with that artist's songs beneath it, the way a record shelf is organized.
+- **"Choose" is a quiet text action**, so the only filled button in the library is the
+  one that commits ("Add to Dreamy").
+- **"Remove word" is red text**, set apart on the right, away from the everyday
+  actions.
+- **The page leaves room at the bottom** so a confirmation never covers a button.
+
+**Before and after.** [Library before](verification/visual/library-before.png) ·
+[after](verification/visual/library-after.png) ·
+[word page before](verification/visual/word-before.png) ·
+[after](verification/visual/word-after.png). In the after screens, the record and the
+word are the strongest elements, and the eye goes from the word, to its songs, to the
+one primary action.
+
+**Checked by.** Contrast of the new pairs: the play glyph on its circle is 5.24:1 (icons
+need 3:1), and red text on the page is 7.78:1. Both are now part of
+`bun scripts/contrast.ts`. The browser journeys pass unchanged, which confirms that every
+control kept its accessible name. Grouping first listed the whole library under each
+artist; the journeys caught it.
+
 ## How generated code was checked
 
 Most code in this increment was written with a coding agent. Before building on it:

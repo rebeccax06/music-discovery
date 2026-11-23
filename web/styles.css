@@ -918,22 +918,23 @@ button.chip:hover:enabled {
   width: var(--target);
   height: var(--target);
   padding: 0;
-  color: white;
-  background: var(--ink);
+  color: var(--accent);
+  background: var(--accent-soft);
   border: 0;
   border-radius: 50%;
 }
 .play svg {
-  width: 1.4rem;
-  height: 1.4rem;
+  width: 1.35rem;
+  height: 1.35rem;
   fill: currentColor;
 }
 .play:hover:enabled {
+  color: white;
   background: var(--accent);
 }
 .play.is-spent {
   color: var(--muted);
-  background: rgba(40, 33, 50, 0.08);
+  background: rgba(40, 33, 50, 0.06);
 }
 .player-frame {
   display: block;
@@ -1318,4 +1319,41 @@ button.chip:hover:enabled {
 }
 .visitor-invite .account-panel {
   text-align: left;
+}
+
+/* The song library reads as a shelf: each artist named once, songs beneath. */
+.artist-group + .artist-group {
+  margin-top: var(--space-3);
+}
+.artist-name {
+  margin: var(--space-3) 0 var(--space-1);
+  color: var(--muted);
+}
+.text-button.choose {
+  flex: none;
+  padding-inline: var(--space-2);
+  font-weight: 600;
+  text-decoration: none;
+}
+.text-button.choose:hover:enabled {
+  text-decoration: underline;
+}
+
+/* Song cards: the parts of one song sit close together. */
+.example {
+  gap: var(--space-3);
+}
+.example .card-actions {
+  margin-top: calc(-1 * var(--space-1));
+}
+
+/* Destructive actions look different from everyday ones. */
+.text-button.danger-text {
+  margin-left: auto;
+  color: var(--danger);
+}
+
+/* Leave room so the confirmation message never covers the last row of buttons. */
+main {
+  padding-bottom: calc(clamp(2rem, 6vw, 4rem) + 4rem);
 }

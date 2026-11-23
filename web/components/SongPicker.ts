@@ -46,6 +46,12 @@ export default defineComponent({
         ? catalog.filter(entry => `${entry.title} ${entry.artist}`.toLowerCase().includes(wanted))
         : catalog;
     });
+    // Group the library by artist, so each artist is named once and the list reads as a shelf.
+    const groups = computed(() => {
+      const byArtist = new Map<string, typeof tracks.value>();
+      for (const entry of tracks.value) byArtist.set(entry.artist, [...(byArtist.get(entry.artist) ?? []), entry]);
+      return [...byArtist.entries()].map(([artist, entries]) => ({ artist, entries }));
+    });
     const dirty = computed(() => !!note.value.trim() || picked.value.length > 0);
     warnBeforeLeaving(dirty);
 
@@ -79,7 +85,7 @@ export default defineComponent({
       else chosen.value = null;
     }
 
-    return { id, query, chosen, picked, note, pending, error, root, showFilter, tracks, choose, unchoose, send, MAX_NOTE };
+    return { id, groups, query, chosen, picked, note, pending, error, root, showFilter, tracks, choose, unchoose, send, MAX_NOTE };
   },
   template: `
     <section ref="root" class="picker" :aria-labelledby="id">
@@ -91,28 +97,31 @@ export default defineComponent({
       <input v-if="showFilter" v-model="query" class="search" type="search" placeholder="Find a track or artist"
         aria-label="Find a track or artist" autocomplete="off">
       <p v-if="!tracks.length" class="meta" role="status">No tracks match “{{ query.trim() }}”.</p>
-      <ul class="songs">
-        <li v-for="entry in tracks" :key="entry.track" class="song" :class="{ 'is-chosen': chosen === entry.track }">
-          <TrackPlayer :track="entry.track">
-            <span v-if="taken[entry.track]" class="audience">{{ taken[entry.track] }}</span>
-            <button v-else-if="chosen !== entry.track" class="action choose" type="button" :disabled="pending" @click="choose(entry.track)">
-              Choose<span class="visually-hidden"> {{ entry.title }}</span>
-            </button>
-          </TrackPlayer>
-          <form v-if="chosen === entry.track" class="song-form" @submit.prevent="send" :aria-busy="pending">
-            <QualityPicker v-if="withQualities" v-model="picked" :disabled="pending" />
-            <div class="field">
-              <label :for="id + '-note'">{{ noteLabel }} <span class="optional">optional</span></label>
-              <textarea :id="id + '-note'" v-model="note" :maxlength="MAX_NOTE" rows="2" :readonly="pending"></textarea>
-            </div>
-            <p v-if="error" class="error" role="alert">{{ error }}</p>
-            <div class="form-actions">
-              <button class="primary" :disabled="pending">{{ pending ? committing : commit }}</button>
-              <button v-if="!only" class="action" type="button" :disabled="pending" @click="unchoose">Choose a different song</button>
-            </div>
-          </form>
-        </li>
-      </ul>
+      <section v-for="group in groups" :key="group.artist" class="artist-group" :aria-label="group.artist">
+        <p v-if="!only" class="section-label artist-name" aria-hidden="true">{{ group.artist }}</p>
+        <ul class="songs">
+            <li v-for="entry in group.entries" :key="entry.track" class="song" :class="{ 'is-chosen': chosen === entry.track }">
+              <TrackPlayer :track="entry.track" :show-artist="!!only">
+                <span v-if="taken[entry.track]" class="audience">{{ taken[entry.track] }}</span>
+                <button v-else-if="chosen !== entry.track" class="text-button choose" type="button" :disabled="pending" @click="choose(entry.track)">
+                  Choose<span class="visually-hidden"> {{ entry.title }}</span>
+                </button>
+              </TrackPlayer>
+              <form v-if="chosen === entry.track" class="song-form" @submit.prevent="send" :aria-busy="pending">
+                <QualityPicker v-if="withQualities" v-model="picked" :disabled="pending" />
+                <div class="field">
+                  <label :for="id + '-note'">{{ noteLabel }} <span class="optional">optional</span></label>
+                  <textarea :id="id + '-note'" v-model="note" :maxlength="MAX_NOTE" rows="2" :readonly="pending"></textarea>
+                </div>
+                <p v-if="error" class="error" role="alert">{{ error }}</p>
+                <div class="form-actions">
+                  <button class="primary" :disabled="pending">{{ pending ? committing : commit }}</button>
+                  <button v-if="!only" class="action" type="button" :disabled="pending" @click="unchoose">Choose a different song</button>
+                </div>
+              </form>
+            </li>
+        </ul>
+      </section>
     </section>
   `,
 });
