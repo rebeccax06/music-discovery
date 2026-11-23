@@ -94,7 +94,7 @@ Saved results and their limits: [design/verification](design/verification/README
 - [Decision log](design/decisions.md): what changed while building, why, and how each change was checked.
 - [How the concepts meet](design/alpha-integration.md)
 - [Application types](design/types.md)
-- Concepts: [UserAuthenticating](design/concepts/UserAuthenticating.md), [Associating](design/concepts/Associating.md), [Annotating](design/concepts/Annotating.md), [Pitching](design/concepts/Pitching.md), [Friending](design/concepts/Friending.md)
+- Concepts: [Registering](design/concepts/Registering.md), [Authenticating](design/concepts/Authenticating.md), [Sessioning](design/concepts/Sessioning.md), [Associating](design/concepts/Associating.md), [Annotating](design/concepts/Annotating.md), [Pitching](design/concepts/Pitching.md), [Friending](design/concepts/Friending.md)
 - Compositions: [Accounts](design/compositions/Accounts.md), [Sound Wall](design/compositions/SoundWall.md), [Suggestions](design/compositions/Suggestions.md), [Friends](design/compositions/Friends.md)
 - [Generated API documentation](generated/sound-it-out.md) and [wire types](generated/wire.ts)
 

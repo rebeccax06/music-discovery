@@ -5,6 +5,10 @@
   },
   {
     "code": "MISSING_ENDPOINT_FALLBACK",
+    "message": "Endpoint \"Accounts.Logout\" at \"/auth/logout\" has no recognized total answer path; an admitted request can time out when every answer guard drops."
+  },
+  {
+    "code": "MISSING_ENDPOINT_FALLBACK",
     "message": "Endpoint \"Accounts.Me\" at \"/auth/me\" has no recognized total answer path; an admitted request can time out when every answer guard drops."
   },
   {
