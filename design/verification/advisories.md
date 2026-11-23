@@ -57,10 +57,26 @@ set of guards is complementary: for any stored state, exactly one branch matches
 
 **The one way a request could go unanswered.** Sibling guards do not read one shared
 snapshot. If the state they read changes between their evaluations, for example a word
-made private at that instant, both guards could drop. The engine would then answer
-`TIMED_OUT` after 30 seconds, and the interface would show the action's "try again"
-message. This needs a concurrent change in a window of microseconds, has no lasting
-effect, and is accepted.
+made private at that instant, every guard could drop and the request would go
+unanswered.
+
+- *How narrow the window is.* The engine memoizes a query per concept and arguments
+  until an action on that concept runs. Guards that read the same query in one request
+  therefore see the same answer, unless an action on that very concept lands between
+  their reads.
+- *How often it happened.* `tests/integration/guard-race.test.ts` sends 400
+  suggestions while the word flips between public and private on every one, and makes
+  100 wall visits while a friendship is made and ended underneath each. Saved run:
+  0 unanswered and 0 wrong answers in 500 attempts
+  ([tests.txt](tests.txt)). The test fails if any request goes unanswered for 3 seconds,
+  so a regression that widens the window would be caught. This was measured locally,
+  not on the host.
+- *What the person sees if it does happen.* The engine answers after 30 seconds with
+  `TIMED_OUT`, which the HTTP adapter sends as `500 INTERNAL_ERROR`. Every guard
+  dropped before any action ran, so nothing was written and trying again is safe.
+  Journey D in the browser makes a suggestion fail with exactly that answer, and checks
+  that the person sees "Could not send your suggestion. Your pick is still here. Try
+  again.", that their note is kept, and that sending again succeeds.
 
 **What would catch a real gap.** The privacy sweep (`tests/integration/privacy.test.ts`)
 calls every route as four kinds of reader. Each test has a 15-second limit, shorter

@@ -487,6 +487,23 @@ describe("Journey D: recovering when things go wrong", () => {
     await snap(sam, "d3-duplicate-suggestion");
   });
 
+  test("a request the server never answers is reported as a failure that keeps the pick, and sending again works", async () => {
+    // The engine answers an unanswered request with 500 INTERNAL_ERROR (design/verification/advisories.md).
+    // Nothing was written in that case, so trying again is safe.
+    const row = song(sam, "Days Like These");
+    await row.getByRole("button", { name: "Choose Days Like These" }).click();
+    await row.getByLabel("Why this song?").fill("Worth a retry.");
+    await strangerContext.route("**/api/suggestions/send", route =>
+      route.fulfill({ status: 500, contentType: "application/json", body: JSON.stringify({ error: "INTERNAL_ERROR" }) }));
+    await row.getByRole("button", { name: "Send suggestion" }).click();
+    await visible(row.getByRole("alert").filter({ hasText: "Could not send your suggestion. Your pick is still here. Try again." }));
+    expect(await row.getByLabel("Why this song?").inputValue()).toBe("Worth a retry.");
+
+    await strangerContext.unroute("**/api/suggestions/send");
+    await row.getByRole("button", { name: "Send suggestion" }).click();
+    await visible(sam.locator(".word-page .suggestion").filter({ hasText: "Days Like These" }));
+  });
+
   test("a word removed while someone is suggesting for it is reported plainly, not as sent", async () => {
     const row = song(sam, "Arcade");
     await row.getByRole("button", { name: "Choose Arcade" }).click();
@@ -497,7 +514,7 @@ describe("Journey D: recovering when things go wrong", () => {
 
     await row.getByRole("button", { name: "Send suggestion" }).click();
     await visible(row.getByRole("alert").filter({ hasText: "You can no longer open this word." }));
-    expect(await sam.getByText(/Sent to/).count()).toBe(0);
+    expect(await sam.locator(".word-page .suggestion").filter({ hasText: "Arcade" }).count()).toBe(0);
     await snap(sam, "d4-word-removed");
   });
 });
