@@ -3,9 +3,16 @@ import { findTrack, playerUrl } from "../../shared/catalog.ts";
 
 /** The part of SoundCloud's Widget API this component uses. */
 type Widget = { bind(event: string, listener: () => void): void };
-type WidgetApi = { Widget: ((frame: HTMLIFrameElement) => Widget) & { Events: { READY: string; ERROR: string } } };
+type WidgetApi = {
+  Widget: ((frame: HTMLIFrameElement) => Widget) & { Events: { READY: string; ERROR: string; PLAY_PROGRESS: string } };
+};
 
 const READY_WITHIN_MS = 10_000;
+/**
+ * Sound normally starts about 1.3 s after the player is ready (design/verification/tracks.md). A ready
+ * player that has not advanced by this point has stalled, as one run of the playback check saw.
+ */
+const SOUND_WITHIN_MS = 8_000;
 let widgetApi: Promise<WidgetApi> | undefined;
 
 function loadWidgetApi() {
@@ -33,7 +40,9 @@ export default defineComponent({
     const state = ref<"idle" | "loading" | "ready" | "failed">("idle");
     const frame = ref<HTMLIFrameElement | null>(null);
     const address = computed(() => entry.value ? playerUrl(entry.value) : "");
+    const stalled = ref(false);
     let deadline: ReturnType<typeof setTimeout> | undefined;
+    let quiet: ReturnType<typeof setTimeout> | undefined;
 
     async function start() {
       state.value = "loading";
@@ -43,7 +52,14 @@ export default defineComponent({
         const api = await loadWidgetApi();
         if (!frame.value) return;
         const widget = api.Widget(frame.value);
-        widget.bind(api.Widget.Events.READY, () => { state.value = "ready"; });
+        widget.bind(api.Widget.Events.READY, () => {
+          state.value = "ready";
+          quiet = setTimeout(() => { stalled.value = true; }, SOUND_WITHIN_MS);
+        });
+        widget.bind(api.Widget.Events.PLAY_PROGRESS, () => {
+          clearTimeout(quiet);
+          stalled.value = false;
+        });
         widget.bind(api.Widget.Events.ERROR, () => { state.value = "failed"; });
       } catch {
         // Without the script the frame may still play, but nothing can confirm it. Offer the source.
@@ -51,8 +67,11 @@ export default defineComponent({
       }
     }
 
-    onBeforeUnmount(() => clearTimeout(deadline));
-    return { entry, state, frame, address, start };
+    onBeforeUnmount(() => {
+      clearTimeout(deadline);
+      clearTimeout(quiet);
+    });
+    return { entry, state, stalled, frame, address, start };
   },
   template: `
     <div class="track" :data-track="track" :data-player="state">
@@ -78,6 +97,10 @@ export default defineComponent({
         <iframe v-show="state !== 'failed'" ref="frame" class="player-frame" :title="'SoundCloud player: ' + entry.title + ' by ' + entry.artist"
           :src="address" allow="autoplay" scrolling="no"></iframe>
         <p v-if="state === 'loading'" class="meta" role="status">Loading the player…</p>
+        <p v-if="state === 'ready' && stalled" class="meta" role="status">
+          Not playing? Press play in the player, or
+          <a :href="entry.page" target="_blank" rel="noopener">open it on SoundCloud</a>.
+        </p>
         <p v-if="state === 'failed'" class="meta" role="status">
           This track isn’t loading here.
           <a :href="entry.page" target="_blank" rel="noopener">Open it on SoundCloud</a>.

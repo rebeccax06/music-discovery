@@ -266,6 +266,32 @@ while someone is suggesting for it. Two defects surfaced:
 A track that fails to load now hides its empty player instead of leaving a blank gap
 above the message. Journey D asserts each of these.
 
+## D12. A player that stalls says so
+
+**Evidence.** In one run of the playback check, Blue Boi became ready, played half a
+second, and then did not advance for 24 seconds. The check failed. The run before it,
+and every run since, passed.
+
+**Diagnosis.** The check now records when each player became ready and when sound
+started. Blue Boi was played 12 more times: ready after 0.6 to 0.9 s, sound after 1.1
+to 1.4 s, every time. Across all saved runs, that one stall happened once in about 55
+plays, mid-play, after the track was ready. That points to a passing network delay, not
+to the track or to the app. A probe also confirmed that, under Chrome's normal autoplay
+rules, a person's click on play does start the sound, so silence after a click is not
+expected.
+
+**Correction.** The app showed nothing in that situation. A person would sit in front
+of a silent player with no way forward. The player now waits 8 seconds after becoming
+ready (normal start is about 1.3 s). If no sound has played by then, it shows "Not
+playing? Press play in the player, or open it on SoundCloud."
+
+**Checked by, and how a recurrence is detected.**
+- Journey D blocks only the audio host, `playback.media-streaming.soundcloud.cloud`,
+  so the player is ready but silent, and asserts the hint and its link.
+- Journey A asserts that the hint does **not** appear while sound is playing.
+- `bun run check:tracks` reports, for each track, when it became ready and when sound
+  started. `--only "<title>" --repeat N` replays one track to diagnose it.
+
 ## How generated code was checked
 
 Most code in this increment was written with a coding agent. Before building on it:
@@ -292,3 +318,8 @@ Most code in this increment was written with a coding agent. Before building on 
    ([screens](verification/screens/)).
 6. The 30 advisories from the engine's checker were each reviewed and explained
    ([advisories](verification/advisories.md)). `bun run check` fails on any new one.
+7. `bun run check:mutations` plants 13 specific bugs one at a time, such as a missing
+   access check, a leak, or a dropped repair. For each, it runs the tests that should
+   notice, and fails if any planted bug goes unnoticed. All 13 are caught
+   ([mutations](verification/mutations.md)). This replaces the two one-off mutations
+   above with a check anyone can rerun.

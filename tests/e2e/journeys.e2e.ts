@@ -99,7 +99,12 @@ describe("Journey A: build a word from music", () => {
     // Depends on SoundCloud answering from wherever this runs. Required unless E2E_OFFLINE is set.
     const ready = await row.locator('.track[data-player="ready"]').waitFor({ timeout: 20_000 }).then(() => true, () => false);
     console.log(`SoundCloud player reported READY for Chill Day: ${ready ? "yes" : "no"}`);
-    if (!process.env.E2E_OFFLINE) expect(ready).toBe(true);
+    if (!process.env.E2E_OFFLINE) {
+      expect(ready).toBe(true);
+      // When sound is flowing, the stall hint never appears.
+      await alex.waitForTimeout(9_000);
+      expect(await row.getByText("Not playing?").count()).toBe(0);
+    }
   });
 
   test("picking what you hear adds the song privately and writes the draft, which follows the next song", async () => {
@@ -508,6 +513,21 @@ describe("Journey D: recovering when things go wrong", () => {
     await row.getByRole("button", { name: "Add to Warm" }).click();
     await visible(example(alex, "Better Days"));
     await alexContext.unroute("https://w.soundcloud.com/**");
+  });
+
+  test("a track that loads but never starts playing says so and offers SoundCloud", async () => {
+    // Reproduces the stall seen once by the playback check: the player is ready, but no audio arrives.
+    // The player loads from w.soundcloud.com and widget.sndcdn.com; only the audio comes from here.
+    const media = ["https://playback.media-streaming.soundcloud.cloud/**"];
+    for (const pattern of media) await alexContext.route(pattern, route => route.abort());
+    const row = song(alex, "Chill Day");
+    await row.getByRole("button", { name: "Play Chill Day by LAKEY INSPIRED" }).click();
+    await row.locator('.track[data-player="ready"]').waitFor({ timeout: 20_000 });
+    await visible(row.getByText("Not playing? Press play in the player, or"));
+    expect(await row.getByRole("link", { name: "open it on SoundCloud" }).getAttribute("href"))
+      .toBe("https://soundcloud.com/lakeyinspired/chill-day");
+    await snap(alex, "d1b-playback-stalled");
+    for (const pattern of media) await alexContext.unroute(pattern);
   });
 
   test("a session that ends mid-task keeps what was entered, and the task finishes after signing in again", async () => {
