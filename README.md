@@ -19,7 +19,7 @@ By Bhadra Rupesh, Sanskriti Singh, Rebecca Xiong, and Victor ([team](team.md)) f
 | Updated designs | [Concepts](#design) · [Compositions](#design) · [Generated API docs](generated/sound-it-out.md) | `bun run check` fails if they disagree with the code |
 | Design changes and reasons | [Decision log](design/decisions.md) | D1 to D11, each with how it was checked |
 | Updated development plan | [F4 development plan](final-proj-deliverables/f4-development-plan.md) | What is done, what remains, who owns it |
-| Test results | [Verification](design/verification/README.md) | 60 tests, 27 browser steps, 14 of 14 tracks play; local and deployed |
+| Test results | [Verification](design/verification/README.md) | 60 tests; 13 of 13 planted bugs caught; 28 browser steps locally and 27 on the live site; 14 of 14 tracks play |
 
 ### Start here (five minutes)
 
@@ -29,9 +29,11 @@ By Bhadra Rupesh, Sanskriti Singh, Rebecca Xiong, and Victor ([team](team.md)) f
    `https://sound-it-out.mit-sdg.dev/?wall=<username>`.
 2. **The design judgment.** The [three refinements that made the app simpler](design/decisions.md#start-here-three-refinements-that-made-the-app-simpler),
    with what each replaced.
-3. **The hardest bug.** The [case study](design/verification/case-study/README.md)
+3. **Failures, diagnosed.** The [case study](design/verification/case-study/README.md)
    follows a race from the evidence, through the fix, to a regression test, including
-   a first version of that test that could not fail.
+   a first version of that test that could not fail. A [playback stall](design/decisions.md#d12-a-player-that-stalls-says-so)
+   is traced the same way. The [mutation check](design/verification/mutations.md) shows
+   the tests catch 13 of 13 planted bugs.
 4. **How the work was checked.** [How the work progressed](design/decisions.md#how-the-work-progressed-and-how-each-step-was-checked),
    including how agent-written code was reviewed, and the [verification index](design/verification/README.md).
 

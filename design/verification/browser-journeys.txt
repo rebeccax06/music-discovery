@@ -2,10 +2,10 @@ $ bun test --timeout 120000 ./tests/e2e/journeys.e2e.ts
 bun test v1.4.0 (1381054db)
 
 tests/e2e/journeys.e2e.ts:
-Browser journeys against http://127.0.0.1:3386 (started for this run)
+Browser journeys against http://127.0.0.1:3675 (started for this run)
 SoundCloud player reported READY for Chill Day: yes
 
- 23 pass
+ 28 pass
  0 fail
- 57 expect() calls
-Ran 23 tests across 1 file. [26.68s]
+ 68 expect() calls
+Ran 28 tests across 1 file. [48.24s]

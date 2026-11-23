@@ -5,8 +5,23 @@ What was checked, how to run it again, and what each check does not show.
 **Deployed app:** checked on November 23, 2026, at https://sound-it-out.mit-sdg.dev with
 the full browser journeys: **27 passed, 0 failed**, and all 14 tracks play. Details and
 limits are in [deployed/](deployed/README.md).  
-**Local runs:** commit `1c71a5f`, on November 22, 2026, on macOS with Bun 1.4.0 (the
+**Local runs:** commit `7c7c96c`, on November 23, 2026, on macOS with Bun 1.4.0 (the
 project pins 1.4.2), MongoDB 8.0 in Docker, and Google Chrome through Playwright.
+
+## Two failures, diagnosed and fixed
+
+| Failure | Diagnosis | Correction | How a recurrence is caught |
+| --- | --- | --- | --- |
+| A song was reported as added to a word that had just been removed | A race between two requests; reproduced on demand by removing the word at the moment the song is written | Writes into a word answer with the word as read afterward; a repair reaction and a startup sweep clear the leftover | A forced-race test that fails on the old code ([case study](case-study/README.md)) |
+| A ready player once stalled for 24 s | Not reproducible in 12 replays (sound after 1.1 to 1.4 s); once in about 55 plays; a passing network delay | The player says "Not playing?" and links to SoundCloud after 8 s of silence | Journey D blocks the audio host and checks the hint; `check:tracks` times every track ([tracks](tracks.md), [D12](../decisions.md#d12-a-player-that-stalls-says-so)) |
+
+## Would the tests catch a real mistake?
+
+`bun run check:mutations` plants 13 specific bugs one at a time and runs the tests that
+should notice each: a missing access check, a leak of unshared songs, a missing match
+check, a dropped repair, a reversed sweep, and others. **All 13 are caught**
+([mutations](mutations.md)). The check fails whenever a planted bug goes unnoticed, so a
+test that weakens later is found.
 
 ## Deployed app
 
@@ -30,8 +45,9 @@ steps were not recorded.
 | Specification grammar | `bun run check:design` | Passed for 10 documents | [check-design.txt](check-design.txt) |
 | Assembly, generated contract, types, reviewed advisories | `bun run check` | Passed; all 30 engine advisories reviewed | [check.txt](check.txt), [advisories](advisories.md) |
 | Concept, draft, and HTTP tests | `bun test` | 60 passed, 0 failed | [tests.txt](tests.txt) |
-| Browser journeys A to D | `bun run test:e2e` | 23 passed, 0 failed | [browser-journeys.txt](browser-journeys.txt), [screens](screens/) |
-| Catalog playback | `bun run check:tracks` | 14 of 14 played on `bb09f35` and again on `1c71a5f`; one earlier run had 13 of 14 | [tracks.md](tracks.md) |
+| Planted bugs caught | `bun run check:mutations` | 13 of 13 | [mutations.md](mutations.md) |
+| Browser journeys A to D | `bun run test:e2e` | 28 passed, 0 failed | [browser-journeys.txt](browser-journeys.txt), [screens](screens/) |
+| Catalog playback | `bun run check:tracks` | 14 of 14, with time to ready and to sound; one earlier stall diagnosed | [tracks.md](tracks.md) |
 | Text contrast | `bun scripts/contrast.ts` | All 13 pairs pass | [contrast.md](contrast.md) |
 
 ## Follow-up on the merged alpha
