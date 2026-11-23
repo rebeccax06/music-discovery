@@ -771,5 +771,6 @@ it as follows; each change, its reason, and its check are in the [decision log](
   the pitch stores its recipient so Pitching can enforce who reviews it.
 - **Deferred:** Excerpting, counterexamples in the interface, sharing a review with
   its contributor, SoundCloud search, and LLM rewording of the draft.
-- **Not yet done:** public deployment, the narrated recording, and sessions with
-  people outside the team ([what is left](../design/alpha-integration.md#before-the-alpha-is-complete)).
+- **Status on November 22:** public deployment, the recording, and sessions with
+  people outside the team were still outstanding. For the current status, see the
+  [F4 plan](f4-development-plan.md) and [verification](../design/verification/README.md).

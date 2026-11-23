@@ -2,11 +2,28 @@
 
 What was checked, how to run it again, and what each check does not show.
 
-**Code checked:** commit `1c71a5f`. The outputs in this folder were produced from that
-commit and committed afterward.  
-**Run on:** November 22, 2026, on macOS, with Bun 1.4.0 (the project pins 1.4.2),
-MongoDB 8.0 in Docker, and Google Chrome through Playwright. **Not run against a
-deployment**; see [limits](#limits-of-this-evidence).
+**Deployed app:** checked on November 23, 2026, at https://sound-it-out.mit-sdg.dev with
+the full browser journeys: **27 passed, 0 failed**, and all 14 tracks play. Details and
+limits are in [deployed/](deployed/README.md).  
+**Local runs:** commit `1c71a5f`, on November 22, 2026, on macOS with Bun 1.4.0 (the
+project pins 1.4.2), MongoDB 8.0 in Docker, and Google Chrome through Playwright.
+
+## Deployed app
+
+| Check | Command | Result | Output |
+| --- | --- | --- | --- |
+| Health | `curl https://sound-it-out.mit-sdg.dev/health` | `200 {"status":"ok"}` | [deployed/health.txt](deployed/health.txt) |
+| Browser journeys A to D, four sessions | `BASE_URL=https://sound-it-out.mit-sdg.dev bun run test:e2e` | 27 passed, 0 failed; SoundCloud player ready | [deployed/browser-journeys.txt](deployed/browser-journeys.txt), [screens](deployed/screens/) |
+| Catalog playback | `bun run check:tracks` | 14 of 14 play | [deployed/tracks.txt](deployed/tracks.txt) |
+| Cookie, origin, and frame rules | `curl` against the live site | `__Host-`, `Secure`, `HttpOnly`, `SameSite=Strict`; sign-in from another origin refused with `403`; frames limited to SoundCloud | [deployed/README.md](deployed/README.md) |
+
+The deployed commit is `f43cca4`, the newest on `main` when the team deployed; no code
+has changed since. The platform's deployment identifier
+(`7d1a11fe-875a-4a60-8c88-a6726745df6a`) is not a Git commit. Before these automated
+runs, the team also walked through a two-person journey on the deployment by hand; its
+steps were not recorded.
+
+## Local runs
 
 | Check | Command | Result | Output |
 | --- | --- | --- | --- |
@@ -73,18 +90,20 @@ and how that was discovered and corrected.
 
 ## Limits of this evidence
 
-- **Not deployed.** Nothing here shows the public app works. After deploying, run
-  `BASE_URL=https://<app>.mit-sdg.dev bun run test:e2e`, and save its output here with
-  the date and deployed commit. The journeys then cover owner, friend, stranger, and
-  signed-out sessions on the real host.
+- **Deployed evidence is one run.** The deployed journeys passed once, from one
+  network, in Chrome. Re-run them after every deployment. Run
+  `BASE_URL=https://sound-it-out.mit-sdg.dev bun run test:e2e`, and save its output
+  with the date and deployed commit. Those journeys create accounts and content on
+  the deployed app.
 - **Restart on the host.** Persistence across a restart is tested locally (HTTP tests
   reassemble the app over the same database; the browser journeys reload both people).
   It has not been tested across a redeploy.
 - **Playback.** The check confirms that each track is ready, not blocked, and advancing
   in Chrome from one network. It does not show that a person can hear it, that it plays
   in Safari or Firefox, or that it plays in other regions. One run had a track stall.
-- **No sessions with people yet.** Whether people understand the three audiences, find
-  the Friends page, and see that a match is not added until they add it can only come
-  from watching them ([plan](../../final-proj-deliverables/f4-development-plan.md#43-sessions-with-people-before-the-beta)).
+- **User observation.** The reported two-person journey involved team members; its
+  observations have not yet been recorded. Understanding the audiences, finding Friends, and adding a match
+  should be checked by watching people use the app
+  ([plan](../../final-proj-deliverables/f4-development-plan.md#43-sessions-with-people-before-the-beta)).
 - **Accessibility.** Keyboard use of the chips, focus movement after errors, and
   contrast are checked. No screen-reader pass or full audit was done.

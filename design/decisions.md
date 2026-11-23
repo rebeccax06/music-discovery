@@ -9,6 +9,47 @@ current specification.
 Each entry names the difficulty, the decision, what was rejected, and the check. Test
 names refer to files under `tests/`; results are in [verification](verification/README.md).
 
+## Start here: three refinements that made the app simpler
+
+Each one replaced a harder design with a smaller one that still does the job. Each is
+visible in the code and checked by tests.
+
+| Refinement | Before | After | Where to see it |
+| --- | --- | --- | --- |
+| **The description is computed, not stored** ([D1](#d1-the-draft-description-is-computed-never-stored)) | A stored draft needs four mechanisms: a generated-or-edited flag, a revision number against stale writes, a refresh rule, and a rule keeping private songs out of a public draft. Each can fail. | One pure function, `draft()`, applied to whatever songs the reader may see. Nothing is stored, so nothing goes stale, nothing overwrites an edit, and a visitor's draft cannot mention a private song. | [shared/draft.ts](../shared/draft.ts); [tests/shared/draft.test.ts](../tests/shared/draft.test.ts) (500 random cases) |
+| **One wall view for every reader but the owner** ([D8](#d8-friends-and-a-third-audience-for-a-word)) | Adding friends seemed to need a second projection for friends, one for the Friends page, and one for the owner's preview, each of which could leak or drift. | One former, `VisibleWall(user, levels)`. Strangers get `PUBLIC`, friends get `LIMITED` and `PUBLIC`. The visited wall, the Friends page, and the preview all use it. Friendship is read on each request, so ending one closes access at once. | [src/compositions/SoundWall.ts](../src/compositions/SoundWall.ts) (`VisibleWall`); [privacy.test.ts](../tests/integration/privacy.test.ts) covers friends with no new projection code |
+| **Owner constraints instead of transactions** ([D3](#d3-no-cross-concept-transactions), [D9](#d9-an-add-that-loses-the-race-to-a-removal-says-so)) | F3 required every multi-concept request to be atomic. The engine provides no cross-concept transactions, and a database transaction would couple the concepts' storage and need a replica set. | Every rule that must not race sits in the concept that owns it, behind a unique index or conditional write. The one cross-concept relation has a repair reaction, an honest answer after a race, and a startup sweep. | [Case study](verification/case-study/README.md): failure before the fix, success after, and a regression test that was itself fixed |
+
+## How the work progressed, and how each step was checked
+
+The brief's [increments](../final-proj-deliverables/mvp-product-and-implementation-brief.md#14-increments)
+were built in order. Most of increments 1 to 6 and the friends feature landed in **one
+commit, `c69f4a0`**, because they were built in a single working session with a coding
+agent and committed together. That commit is larger than it should have been. It is
+kept as is, because teammates' work is built on top of it. This table records the order
+the work inside it was done and what was checked before the next step started.
+
+| Step | What changed | Checked before going on |
+| --- | --- | --- |
+| 1. Words without descriptions | Associating: description optional | Concept tests updated; spec grammar check |
+| 2. Songs | `Track` type; Annotating qualities and optional note; Pitching concept; `/wall/examples/*` routes; checked catalog | 28 concept and draft tests; then the Sound Wall HTTP tests, rewritten to set up through requests only (4 tests, 77 assertions) |
+| 3. Draft description | `shared/draft.ts` | Pattern tests and 500 random cases |
+| 4. Suggestions and review | `Suggestions` composition; repair reactions | Suggestion, privacy-sweep, and race tests: 47 passing |
+| 5. Tests that bite | — | Two deliberate mutations, each reverted: exposing unshared songs, and dropping a repair while accepting suggestions for private words. Each failed three tests. |
+| 6. Interface | Composables, components, stylesheet | Browser journeys. The first runs found four defects that the other tests had passed (see "How generated code was checked"). |
+| 7. Friends | Friending concept; `LIMITED` audience; `Friends` composition; Friends page | Friending concept tests, including two races; friends HTTP tests; the privacy sweep extended to a friend and to a stranger with a pending request (56 passing) |
+
+Every later change is its own commit, and each message says what was checked:
+
+| Commit | Change |
+| --- | --- |
+| `085c57b` | Decision log, verification results, README |
+| `00af7cd` | Deployment settings and the updated development plan |
+| `bb09f35` | The forced-race test (failing before the fix, passing after); the startup sweep; recovery journeys, which found two more defects; and the advisory review |
+| `1c71a5f` | Stress test of the unanswered-request window: 0 of 500 |
+| `ea11c8c` | Merge with teammates' work on `main`; what was superseded, and why |
+| `38ecbd6` | (Bhadra) Song privacy kept when a sharing change fails |
+
 ## D1. The draft description is computed, never stored
 
 **Difficulty.** People can recognize what they hear far more easily than they can

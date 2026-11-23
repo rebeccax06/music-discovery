@@ -11,14 +11,33 @@ By Bhadra Rupesh, Sanskriti Singh, Rebecca Xiong, and Victor ([team](team.md)) f
 
 ## F4 alpha deliverables
 
-| Deliverable | Link or status |
-| --- | --- |
-| Source code | [Backend](src/) · [Frontend](web/) · [Shared](shared/) · [Tests](tests/) |
-| Updated designs | [Concepts and compositions](#design) · [Decision log](design/decisions.md) · [How the concepts meet](design/alpha-integration.md) |
-| Updated development plan | [F4 development plan](final-proj-deliverables/f4-development-plan.md): what is complete, what remains, who owns it, and how to deploy |
-| Verification | [Saved results and their limits](design/verification/README.md) |
-| Deployed app | *Public URL pending deployment.* |
-| Narrated screen recording | [Watch or download the alpha recording](videos/f4-video.mov) |
+| Deliverable | Where | Status |
+| --- | --- | --- |
+| Deployed app | **https://sound-it-out.mit-sdg.dev** | Live. 27 of 27 browser-journey steps passed against it on November 23 ([deployed checks](design/verification/deployed/README.md)) |
+| Narrated screen recording | [videos/f4-video.mov](videos/f4-video.mov) | Recorded |
+| Source code | [Backend](src/) · [Frontend](web/) · [Shared](shared/) · [Tests](tests/) | Deployed from commit `f43cca4` |
+| Updated designs | [Concepts](#design) · [Compositions](#design) · [Generated API docs](generated/sound-it-out.md) | `bun run check` fails if they disagree with the code |
+| Design changes and reasons | [Decision log](design/decisions.md) | D1 to D11, each with how it was checked |
+| Updated development plan | [F4 development plan](final-proj-deliverables/f4-development-plan.md) | What is done, what remains, who owns it |
+| Test results | [Verification](design/verification/README.md) | 60 tests, 27 browser steps, 14 of 14 tracks play; local and deployed |
+
+### Start here (five minutes)
+
+1. **Try it.** Open the [deployed app](https://sound-it-out.mit-sdg.dev), create an
+   account, pick a word, and add a song. To see the friend side, open a private window,
+   create a second account, and open the first account's wall at
+   `https://sound-it-out.mit-sdg.dev/?wall=<username>`.
+2. **The design judgment.** The [three refinements that made the app simpler](design/decisions.md#start-here-three-refinements-that-made-the-app-simpler),
+   with what each replaced.
+3. **The hardest bug.** The [case study](design/verification/case-study/README.md)
+   follows a race from the evidence, through the fix, to a regression test, including
+   a first version of that test that could not fail.
+4. **How the work was checked.** [How the work progressed](design/decisions.md#how-the-work-progressed-and-how-each-step-was-checked),
+   including how agent-written code was reviewed, and the [verification index](design/verification/README.md).
+
+**Scope of this build:** songs are whole tracks from a checked library of 14, not
+excerpts. Descriptions are built from the qualities people pick, not from listening to
+the audio. See [what is deferred](final-proj-deliverables/f4-development-plan.md#3-deferred-and-the-condition-for-picking-each-up).
 
 ## What works today
 
@@ -67,7 +86,7 @@ without `PUBLIC_ORIGIN` and a database variable, and says which one is missing.
 On the course platform the settings are: runtime Bun, package directory `.`, no build
 script, start script `start`, port `3000`, health check `/health`, a MongoDB named
 `MONGODB_URL`, and `PUBLIC_ORIGIN` set to the app's https address. Step-by-step
-instructions and checks are in the [development plan](final-proj-deliverables/f4-development-plan.md#41-deploy-before-the-alpha-deadline).
+instructions and checks are in the [development plan](final-proj-deliverables/f4-development-plan.md#41-deployment-and-verification).
 
 ## Test it
 

@@ -2,7 +2,7 @@
 
 **Authors:** the Sound It Out team — Bhadra Rupesh, Sanskriti Singh, Rebecca Xiong, and Victor ([team page](../team.md))  
 **Audience:** teammates building the MVP, and a coding agent working in this repository  
-**Status:** implemented through increment 6, locally. [Section 2](#2-what-exists-today) describes the starting point at commit `ad9439a`. The [decision log](../design/decisions.md) records what was built, where it departs from this plan, and how each part was checked. The largest departure is an added Friending concept ([D8](../design/decisions.md#d8-friends-and-a-third-audience-for-a-word)). Deployment, the recording, and user sessions are still to do ([status](#implementation-status)).  
+**Status:** this brief records the implementation plan and its November 22 local status. [Section 2](#2-what-exists-today) describes the starting point at commit `ad9439a`. The [decision log](../design/decisions.md) records what was built and checked. For current deployment and validation status, see the [F4 plan](f4-development-plan.md) and [verification](../design/verification/README.md).
 **Research checked:** November 22, 2026
 
 ## Contents
@@ -49,8 +49,8 @@ What differs from this plan:
   not per word. The record-shelf "Public" switch was removed, because one switch
   cannot express three audiences.
 
-Still to do: increment 7 (sessions with people) and increment 8 (deployment, the
-deployed check, the recording).
+As of November 22, increments 7 and 8 remained. See the [F4 plan](f4-development-plan.md)
+for their current status.
 
 ## 1. Start here
 

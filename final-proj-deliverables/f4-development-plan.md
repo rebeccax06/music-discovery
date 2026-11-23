@@ -1,6 +1,6 @@
 # Sound It Out F4 development plan
 
-**Updated:** November 22, 2026, after the move to the music-first build on `main`.
+**Updated:** November 23, 2026, after deployment of the music-first build.
 
 **Replaces:** the forward-looking plan in [F3](sound-it-out-f3.md#development-plan),
 which is kept unchanged as the submitted record, and the earlier draft of this file
@@ -31,9 +31,9 @@ reasons behind each change, and how each was checked, are in the
 | Excerpts (Excerpting) | Yes | **Deferred** | See §3 |
 | Counterexamples in the interface | Beta | **Deferred** (the concept supports them) | See §3 |
 | Sharing a review with its contributor | Beta | **Deferred** | See §3 |
-| Public deployment | Alpha | **Not done**: owner Sanskriti, §4.1 | |
+| Public deployment | Alpha | **Done and checked:** 27 of 27 browser-journey steps and 14 of 14 tracks against the live site, November 23 | [Sound It Out](https://sound-it-out.mit-sdg.dev/), [deployed checks](../design/verification/deployed/README.md) |
 | Narrated recording | Alpha | **Recorded.** Verify the demonstrated flow on the deployed build. | [Alpha recording](../videos/f4-video.mov) |
-| Sessions with people | Alpha and beta | **Not done**: owner Bhadra, §4.3 | |
+| Sessions with people | Alpha and beta | **Two team members tested the journey**; observations and outside-user sessions remain, §4.3 | [Verification](../design/verification/README.md#deployed-app) |
 
 ## 2. Why the scope changed
 
@@ -63,10 +63,15 @@ reasons behind each change, and how each was checked, are in the
 
 ## 4. Remaining work
 
-### 4.1 Deploy (before the alpha deadline)
+### 4.1 Deployment and verification
 
 Owner: Sanskriti. Reviewer: Rebecca. The course platform is 6.1040 Apps at
 `mit-sdg.dev` ([course guide](https://61040.github.io/fa26/resources/deploying-apps/)).
+The app is deployed at [sound-it-out.mit-sdg.dev](https://sound-it-out.mit-sdg.dev/).
+It runs commit `f43cca4`. On November 23 the full browser journeys (27 of 27) and the
+playback check (14 of 14) passed against it; results are in
+[deployed checks](../design/verification/deployed/README.md). The steps below are kept for
+redeploying, and every redeploy should repeat step 6.
 
 1. Select the final integrated commit on the team's GitHub `main`. The music-first
    build and F4 deliverables index are already merged.

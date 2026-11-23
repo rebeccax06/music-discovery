@@ -67,13 +67,12 @@ sent to any model.
 Owners and step-by-step instructions are in the
 [updated development plan](../final-proj-deliverables/f4-development-plan.md#4-remaining-work).
 
-- **Deploy.** On the class host, use the root package, Bun, the `start` script, port
-  3000, and `/health`. Name the platform's database variable `MONGODB_URL`
-  (`MONGODB_URI` also works) and set `PUBLIC_ORIGIN`. The database does not need
-  transactions, and the server keeps at most 5 of its 10 allowed connections. See the
-  [course deployment guide](https://61040.github.io/fa26/resources/deploying-apps/).
-- **Check the deployment** with `BASE_URL=<public URL> bun run test:e2e`, then sign in
-  by hand in Safari and Firefox.
-- **Record** the narrated demo on the deployed build and link it from the README.
-- **Run sessions with people** as the F3 validation plan describes, and record what
-  happened.
+- **Deployed and checked.** [Sound It Out](https://sound-it-out.mit-sdg.dev/) runs
+  commit `f43cca4`. On November 23 all 27 browser-journey steps passed against it, and
+  all 14 tracks played ([deployed checks](verification/deployed/README.md)).
+- **Still to do by hand:** sign in and listen to a track in Safari and Firefox on the
+  deployed app.
+- **Check the recording** linked in the README against the deployed build and confirm
+  its narration and demonstrated version.
+- **Document the two-person journey** and run any remaining sessions with people
+  outside the team as the F3 validation plan describes.

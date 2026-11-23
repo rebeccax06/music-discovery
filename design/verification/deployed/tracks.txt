@@ -1,0 +1,17 @@
+$ bun scripts/check-tracks.ts
+| Chill Day | LAKEY INSPIRED | yes | MONETIZE | 186 s | 3.0 s | plays |
+| Better Days | LAKEY INSPIRED | yes | MONETIZE | 207 s | 3.0 s | plays |
+| Blue Boi | LAKEY INSPIRED | yes | MONETIZE | 106 s | 3.0 s | plays |
+| Warm Nights | LAKEY INSPIRED | yes | MONETIZE | 173 s | 3.0 s | plays |
+| The Process | LAKEY INSPIRED | yes | MONETIZE | 224 s | 3.0 s | plays |
+| Me 2 (Feat. Julian Avila) | LAKEY INSPIRED | yes | MONETIZE | 181 s | 3.0 s | plays |
+| Arcade | LAKEY INSPIRED | yes | MONETIZE | 108 s | 3.0 s | plays |
+| In My Dreams | LAKEY INSPIRED | yes | MONETIZE | 161 s | 3.0 s | plays |
+| Days Like These | LAKEY INSPIRED | yes | MONETIZE | 157 s | 3.0 s | plays |
+| Tobu - Candyland [NCS Release] | NCS | yes | MONETIZE | 201 s | 3.0 s | plays |
+| DEAF KEV - Invincible [NCS Release] | NCS | yes | MONETIZE | 280 s | 3.0 s | plays |
+| Unknown Brain - Superhero (feat. Chris Linton) [NCS Release] | NCS | yes | MONETIZE | 179 s | 3.0 s | plays |
+| Flickermood | Forss | yes | MONETIZE | 214 s | 3.0 s | plays |
+| Journeyman | Forss | yes | MONETIZE | 409 s | 3.0 s | plays |
+
+14 of 14 tracks play.
