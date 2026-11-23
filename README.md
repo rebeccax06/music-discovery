@@ -18,7 +18,7 @@ By Bhadra Rupesh, Sanskriti Singh, Rebecca Xiong, and Victor ([team](team.md)) f
 | Updated development plan | [F4 development plan](final-proj-deliverables/f4-development-plan.md): what is complete, what remains, who owns it, and how to deploy |
 | Verification | [Saved results and their limits](design/verification/README.md) |
 | Deployed app | *Public URL pending deployment.* |
-| Narrated screen recording | [Watch or download the alpha recording](videos/f3-video.mov) |
+| Narrated screen recording | [Watch or download the alpha recording](videos/f4-video.mov) |
 
 ## What works today
 

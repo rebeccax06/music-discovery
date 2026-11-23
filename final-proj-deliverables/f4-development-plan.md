@@ -32,7 +32,7 @@ reasons behind each change, and how each was checked, are in the
 | Counterexamples in the interface | Beta | **Deferred** (the concept supports them) | See §3 |
 | Sharing a review with its contributor | Beta | **Deferred** | See §3 |
 | Public deployment | Alpha | **Not done**: owner Sanskriti, §4.1 | |
-| Narrated recording | Alpha | **Recorded.** Verify the demonstrated flow on the deployed build. | [Alpha recording](../videos/f3-video.mov) |
+| Narrated recording | Alpha | **Recorded.** Verify the demonstrated flow on the deployed build. | [Alpha recording](../videos/f4-video.mov) |
 | Sessions with people | Alpha and beta | **Not done**: owner Bhadra, §4.3 | |
 
 ## 2. Why the scope changed
