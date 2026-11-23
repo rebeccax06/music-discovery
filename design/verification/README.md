@@ -2,7 +2,7 @@
 
 What was checked, how to run it again, and what each check does not show.
 
-**Code checked:** commit `bb09f35`. The outputs in this folder were produced from that
+**Code checked:** commit `1c71a5f`. The outputs in this folder were produced from that
 commit and committed afterward.  
 **Run on:** November 22, 2026, on macOS, with Bun 1.4.0 (the project pins 1.4.2),
 MongoDB 8.0 in Docker, and Google Chrome through Playwright. **Not run against a
@@ -12,9 +12,9 @@ deployment**; see [limits](#limits-of-this-evidence).
 | --- | --- | --- | --- |
 | Specification grammar | `bun run check:design` | Passed for 10 documents | [check-design.txt](check-design.txt) |
 | Assembly, generated contract, types, reviewed advisories | `bun run check` | Passed; all 30 engine advisories reviewed | [check.txt](check.txt), [advisories](advisories.md) |
-| Concept, draft, and HTTP tests | `bun test` | 58 passed, 0 failed | [tests.txt](tests.txt) |
-| Browser journeys A to D | `bun run test:e2e` | 22 passed, 0 failed | [browser-journeys.txt](browser-journeys.txt), [screens](screens/) |
-| Catalog playback | `bun run check:tracks` | 14 of 14 played; one earlier run had 13 of 14 | [tracks.md](tracks.md) |
+| Concept, draft, and HTTP tests | `bun test` | 60 passed, 0 failed | [tests.txt](tests.txt) |
+| Browser journeys A to D | `bun run test:e2e` | 23 passed, 0 failed | [browser-journeys.txt](browser-journeys.txt), [screens](screens/) |
+| Catalog playback | `bun run check:tracks` | 14 of 14 played on `bb09f35` and again on `1c71a5f`; one earlier run had 13 of 14 | [tracks.md](tracks.md) |
 | Text contrast | `bun scripts/contrast.ts` | All 13 pairs pass | [contrast.md](contrast.md) |
 
 ## One defect, end to end
@@ -48,12 +48,17 @@ and how that was discovered and corrected.
   the late write once; the forced test covers that case on every run.
 - **Failed repair** (`orphans.test.ts`): reproduces what a faulted repair leaves and
   checks that the startup sweep clears exactly that.
+- **Guards under changing state** (`guard-race.test.ts`): 400 suggestions while the
+  word flips between public and private on every one, and 100 wall visits while a
+  friendship is made and ended. In this run, 0 of 500 requests went unanswered and
+  none was answered wrongly ([advisories](advisories.md#missing_endpoint_fallback-26-warnings-one-per-endpoint-path)).
 - **Browser journeys** (`tests/e2e/journeys.e2e.ts`):
   - A: build a word from songs.
   - B: become friends and suggest a song.
   - C: review a suggestion and add a match.
   - D: recover from a track that will not load, a failed save, a session that ends
-    mid-task, a duplicate suggestion, and a word removed while someone is using it.
+    mid-task, a duplicate suggestion, a request the server never answers, and a word
+    removed while someone is using it.
   - A page is reloaded only where a step checks persistence.
 
 ## Limits of this evidence
