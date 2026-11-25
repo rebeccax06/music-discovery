@@ -326,6 +326,24 @@ need 3:1), and red text on the page is 7.78:1. Both are now part of
 control kept its accessible name. Grouping first listed the whole library under each
 artist; the journeys caught it.
 
+## D14. Put listening notes next to the song and sharing next to the word
+
+The November 23 mentor meeting flagged that notes were easy to miss and sharing
+made a word page longer. The song picker and editor now ask why the song fits, and
+song cards label the saved answer as a listening note. Each listening tag comes
+with a short description. The glossary lets people who use touch look up a tag
+before selecting it.
+
+The Share button is beside the word's audience status. It opens a dialog that
+scrolls independently and returns focus to Share when dismissed. The dialog uses
+the existing audience, song visibility, and preview actions. If the session ends
+mid-save, the dialog gives focus to sign-in and reopens afterward with the saved
+settings.
+
+Journey A checks keyboard and touch access, the sharing preview, and session
+recovery inside the dialog. Journey B checks that a friend can read the shared
+listening note while private notes stay hidden.
+
 ## How generated code was checked
 
 Most code in this increment was written with a coding agent. Before building on it:

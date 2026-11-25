@@ -479,6 +479,70 @@ button.chip:hover:enabled {
 .quality-group .section-label {
   color: var(--muted);
 }
+.tag-help {
+  font-size: var(--text-control);
+}
+.tag-help summary {
+  width: fit-content;
+  padding-block: var(--space-2);
+  color: var(--accent-strong);
+  cursor: pointer;
+}
+.tag-guide {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(13rem, 100%), 1fr));
+  gap: var(--space-4);
+  padding: var(--space-4);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+}
+.tag-guide dl,
+.tag-guide dd {
+  margin: 0;
+}
+.tag-guide dt {
+  margin-top: var(--space-2);
+  font-weight: 600;
+}
+.tag-guide dd {
+  color: var(--muted);
+}
+.quality-option {
+  position: relative;
+}
+.quality-tip {
+  position: absolute;
+  z-index: 2;
+  bottom: 100%;
+  left: var(--tip-left, 0);
+  display: none;
+  width: min(15rem, calc(100vw - 1rem));
+  padding-bottom: var(--space-1);
+  font-size: var(--text-control);
+  font-weight: 400;
+}
+.quality-tip > span {
+  display: block;
+  padding: var(--space-2) var(--space-3);
+  color: white;
+  background: var(--ink);
+  border-radius: var(--radius-field);
+}
+.tip-below .quality-tip {
+  top: 100%;
+  bottom: auto;
+  padding-top: var(--space-1);
+  padding-bottom: 0;
+}
+.quality-option:not(.tip-dismissed):has(.chip:focus-visible) .quality-tip {
+  display: block;
+}
+@media (hover: hover) {
+  .quality-option:not(.tip-dismissed):hover .quality-tip {
+    display: block;
+  }
+}
 
 /* The wall: toolbar, filters, and the shelf of sleeves */
 .wall-toolbar {
@@ -803,6 +867,13 @@ button.chip:hover:enabled {
 .stage > .lead {
   margin-top: 0;
 }
+.word-sharing {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2) var(--space-3);
+}
 .stage-edit {
   width: min(28rem, 100%);
   justify-items: center;
@@ -874,6 +945,21 @@ button.chip:hover:enabled {
 }
 .example.counterexample {
   background: var(--peach);
+}
+.listening-note {
+  display: grid;
+  gap: var(--space-1);
+  padding: var(--space-2) var(--space-3);
+  background: var(--surface);
+  border-inline-start: 2px solid var(--control-border);
+  border-radius: var(--radius-field);
+  overflow-wrap: anywhere;
+}
+.listening-note .section-label {
+  color: var(--muted);
+}
+.listening-note .note {
+  white-space: pre-wrap;
 }
 .suggestion {
   background: var(--surface);
@@ -1019,9 +1105,43 @@ button.chip:hover:enabled {
 }
 
 /* Sharing */
+.share-dialog {
+  width: min(40rem, calc(100% - 2rem));
+  max-height: calc(100dvh - 2rem);
+  padding: 0;
+  color: var(--ink);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  overflow: auto;
+  overscroll-behavior: contain;
+  scroll-padding-block: 6rem 1rem;
+  text-align: left;
+}
+.share-dialog::backdrop {
+  background: rgba(40, 33, 50, 0.48);
+}
+body:has(.share-dialog[open]) {
+  overflow: hidden;
+}
+.share-header {
+  position: sticky;
+  z-index: 1;
+  top: 0;
+  padding: var(--space-3) var(--space-4);
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+}
+.share-feedback:not(:empty) {
+  margin-top: var(--space-1);
+}
 .share {
   display: grid;
   gap: var(--space-4);
+  padding: var(--space-4);
+}
+.share .form-actions {
+  justify-content: flex-start;
 }
 .share-songs {
   display: grid;

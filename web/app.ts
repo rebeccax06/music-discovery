@@ -200,7 +200,7 @@ createApp({
         </section>
         <PublicWallView v-if="visiting" :visited="visited" :account="account" :session="session" :suggestions="suggestions" :friends="friends" />
         <FriendsPage v-else-if="onFriends" :me="account.username" :friends="friends" :suggestions="suggestions" />
-        <OwnWall v-else-if="account" :username="account.username" :wall="wall" />
+        <OwnWall v-else-if="account" :username="account.username" :wall="wall" :session-expired="expired" />
         <section v-else class="welcome">
           <h1 tabindex="-1">Show a friend what your music words sound like</h1>
           <p class="lead">Pick a word like “dreamy,” add the songs that sound like it to you, and share it with friends. They can listen and suggest songs that fit.</p>

@@ -15,6 +15,7 @@ export default defineComponent({
   props: {
     username: { type: String, required: true },
     wall: { type: Object as PropType<Wall>, required: true },
+    sessionExpired: Boolean,
   },
   setup(props) {
     const heading = ref<HTMLElement | null>(null);
@@ -101,7 +102,7 @@ export default defineComponent({
         <button class="primary" type="button" @click="wall.load()">Try again</button>
       </div>
 
-      <WordPage v-else-if="selected" :key="selected.association" :word="selected" :username="username" :wall="wall"
+      <WordPage v-else-if="selected" :key="selected.association" :word="selected" :username="username" :wall="wall" :session-expired="sessionExpired"
         @close="go({})" @renamed="go({ word: wordKey($event) }, { replace: true })" @removed="go({}, { replace: true })" />
 
       <template v-else-if="showAdd">

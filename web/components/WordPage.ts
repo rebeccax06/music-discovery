@@ -12,8 +12,8 @@ import SuggestionQueue from "./SuggestionQueue.ts";
 import WordDisc from "./WordDisc.ts";
 
 /**
- * The owner's page for one word, in the order a person needs it: what the word means, the songs
- * that show it, what friends suggested, and then sharing and housekeeping.
+ * The owner's page for one word: what it means, who can see it, the songs that show it,
+ * and what friends suggested.
  */
 export default defineComponent({
   components: { DescriptionBlock, ExampleCard, SharePanel, SongPicker, SuggestionQueue, WordDisc },
@@ -21,6 +21,7 @@ export default defineComponent({
     word: { type: Object as PropType<Word>, required: true },
     username: { type: String, required: true },
     wall: { type: Object as PropType<Wall>, required: true },
+    sessionExpired: Boolean,
   },
   emits: ["close", "renamed", "removed"],
   setup(props, { emit }) {
@@ -28,6 +29,7 @@ export default defineComponent({
     const root = ref<HTMLElement | null>(null);
     const adding = ref(props.word.examples.length === 0);
     const sharing = ref(false);
+    const shareButton = ref<HTMLButtonElement | null>(null);
     const mode = ref<"reading" | "renaming" | "removing">("reading");
     const name = ref("");
     const pending = ref(false);
@@ -61,6 +63,11 @@ export default defineComponent({
     }
 
     const describe = (description: string) => props.wall.saveWord(props.word.association, props.word.label, description);
+
+    function closeSharing() {
+      sharing.value = false;
+      shareButton.value?.focus({ preventScroll: true });
+    }
 
     async function show(next: typeof mode.value, focus: string) {
       error.value = "";
@@ -103,8 +110,8 @@ export default defineComponent({
     }
 
     return {
-      heading, root, adding, sharing, mode, name, pending, error, taken, shared,
-      reveal, addSong, saveSong, removeSong, describe, show, rename, remove, MAX_WORD,
+      heading, root, adding, sharing, shareButton, mode, name, pending, error, taken, shared,
+      reveal, addSong, saveSong, removeSong, describe, closeSharing, show, rename, remove, MAX_WORD,
     };
   },
   template: `
@@ -113,10 +120,15 @@ export default defineComponent({
       <article class="stage" :class="{ 'needs-example': !word.examples.length }">
         <h1 ref="heading" class="visually-hidden" tabindex="-1">{{ word.label }}</h1>
         <WordDisc :label="word.label" />
-        <p class="meta word-state">
-          <template v-if="word.visibility === 'PRIVATE'">Private · only you can open this word</template>
-          <template v-else>{{ word.visibility === 'PUBLIC' ? 'Public' : 'Shared with friends' }} · {{ shared }} of {{ word.examples.length }} {{ word.examples.length === 1 ? 'song' : 'songs' }} shown</template>
-        </p>
+        <div class="word-sharing">
+          <p class="meta word-state">
+            <template v-if="word.visibility === 'PRIVATE'">Private · only you can open this word</template>
+            <template v-else>{{ word.visibility === 'PUBLIC' ? 'Public' : 'Shared with friends' }} · {{ shared }} of {{ word.examples.length }} {{ word.examples.length === 1 ? 'song' : 'songs' }} shown</template>
+          </p>
+          <button ref="shareButton" class="action share-toggle" type="button" aria-haspopup="dialog" :disabled="sessionExpired"
+            @click="sharing = true">Share…</button>
+        </div>
+        <SharePanel v-if="sharing" :word="word" :username="username" :wall="wall" :session-expired="sessionExpired" @close="closeSharing" />
         <DescriptionBlock :word="word" :save="describe" />
 
         <section class="record-section" aria-labelledby="examples-heading">
@@ -135,8 +147,7 @@ export default defineComponent({
 
         <SuggestionQueue v-if="word.suggestions.length" :word="word" :wall="wall" />
 
-        <section class="record-section manage" aria-label="Sharing and settings">
-          <SharePanel v-if="sharing" :word="word" :username="username" :wall="wall" />
+        <section class="record-section manage" aria-label="Word settings">
           <form v-if="mode === 'renaming'" class="rename" @submit.prevent="rename" :aria-busy="pending">
             <div class="field">
               <label for="rename-word">Rename this word</label>
@@ -158,10 +169,6 @@ export default defineComponent({
             <p v-if="error" class="error" role="alert">{{ error }}</p>
           </div>
           <div v-else class="form-actions manage-actions">
-            <button class="action share-toggle" type="button" :aria-expanded="sharing ? 'true' : 'false'"
-              @click="sharing ? (sharing = false) : reveal(() => sharing = true, '.share input, .share button')">
-              {{ sharing ? 'Close sharing' : 'Share…' }}
-            </button>
             <button class="action rename-word" type="button" @click="show('renaming', '#rename-word')">Rename</button>
             <button class="text-button danger-text remove-word" type="button" @click="show('removing', '.keep-word')">Remove word</button>
           </div>

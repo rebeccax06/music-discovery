@@ -25,7 +25,7 @@ export default defineComponent({
     /** When set, the song is already decided and only what is heard in it is asked. */
     only: { type: String as PropType<string | null>, default: null },
     withQualities: { type: Boolean, default: true },
-    noteLabel: { type: String, default: "Anything else?" },
+    noteLabel: { type: String, default: "Why does this song fit?" },
     submit: { type: Function as PropType<(track: string, qualities: string[], note: string) => Promise<Failure>>, required: true },
   },
   emits: ["close"],

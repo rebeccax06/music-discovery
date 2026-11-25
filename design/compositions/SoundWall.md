@@ -112,3 +112,13 @@ SoundWall.Reading.MissingWall at /wall/public
 SoundWall.Reading.VisitWall at /wall/visit
 SoundWall.Reading.PreviewWall at /wall/preview
 ```
+
+## Word page controls
+
+The song picker and editor ask why the song fits. The picker explains listening
+tags on hover and keyboard focus and offers a tappable glossary. Saved listening
+notes appear beside the qualities on the owner's song card and on any shared view
+that includes the song.
+
+The Share button near the word opens a dialog with the audience, songs to show,
+link, and preview.

@@ -75,7 +75,10 @@ export default defineComponent({
       <form v-if="mode === 'editing'" class="example-edit" @submit.prevent="submit" :aria-busy="pending">
         <QualityPicker v-model="picked" :disabled="pending" />
         <div class="field">
-          <label :for="'note-' + example.annotation">Anything else? <span class="optional">optional</span></label>
+          <label :for="'note-' + example.annotation">
+            {{ example.role === 'COUNTEREXAMPLE' ? 'Why doesn’t this song fit?' : 'Why does this song fit?' }}
+            <span class="optional">optional</span>
+          </label>
           <textarea :id="'note-' + example.annotation" v-model="note" :maxlength="MAX_NOTE" rows="2" :readonly="pending"></textarea>
         </div>
         <p v-if="error" class="error" role="alert">{{ error }}</p>
@@ -89,7 +92,10 @@ export default defineComponent({
         <ul v-if="example.qualities.length" class="chips is-read" :aria-label="'Qualities picked for this song'">
           <li v-for="quality in example.qualities" :key="quality" class="chip">{{ quality }}</li>
         </ul>
-        <p v-if="example.note" class="note">{{ example.note }}</p>
+        <div v-if="example.note" class="listening-note">
+          <p class="section-label">Listening note</p>
+          <p class="note">{{ example.note }}</p>
+        </div>
 
         <div v-if="mode === 'removing'" class="confirm" role="group" :aria-labelledby="'remove-' + example.annotation">
           <p :id="'remove-' + example.annotation">Remove this song from {{ word }}? Your note and picked qualities will be deleted.</p>
@@ -99,7 +105,7 @@ export default defineComponent({
           </div>
         </div>
         <div v-else-if="save && remove" class="card-actions">
-          <button class="text-button edit-example" type="button" @click="edit">Edit<span class="visually-hidden"> what you hear in this song</span></button>
+          <button class="text-button edit-example" type="button" @click="edit">Edit note and tags</button>
           <button class="text-button remove-example" type="button" @click="show('removing', '.keep-example')">Remove<span class="visually-hidden"> this song</span></button>
         </div>
         <p v-if="error" class="error" role="alert">{{ error }}</p>

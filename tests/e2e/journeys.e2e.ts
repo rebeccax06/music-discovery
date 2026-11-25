@@ -49,6 +49,7 @@ const song = (scope: Page | Locator, title: string) => scope.locator(".picker .s
 const example = (page: Page, title: string) => page.locator(".word-page .examples > .example").filter({ hasText: title });
 const chip = (scope: Locator, label: string) => scope.getByRole("button", { name: label, exact: true });
 const nav = (page: Page, name: string | RegExp) => page.getByRole("navigation", { name: "Main" }).getByRole("link", { name });
+const shareDialog = (page: Page) => page.getByRole("dialog", { name: /^Share / });
 
 beforeAll(async () => {
   target = await startTarget();
@@ -111,11 +112,24 @@ describe("Journey A: build a word from music", () => {
     const first = song(alex, "Chill Day");
     await first.getByRole("button", { name: "Choose Chill Day" }).click();
     const picker = chip(first, "airy vocals");
-    await picker.focus();
+    await first.getByText("Tag meanings", { exact: true }).focus();
+    await picker.hover();
+    const tip = first.getByRole("tooltip").filter({ hasText: "Light or breathy singing" });
+    await visible(tip);
+    expect(await picker.getAttribute("aria-pressed")).toBe("false");
+    await alex.keyboard.press("Escape");
+    expect(await tip.isVisible()).toBe(false);
+    await alex.mouse.move(0, 0);
+    await alex.keyboard.press("Tab");
+    expect(await picker.evaluate(button => button === document.activeElement)).toBe(true);
+    await visible(tip);
+    await alex.keyboard.press("Escape");
+    expect(await tip.isVisible()).toBe(false);
     await alex.keyboard.press("Space");
     expect(await picker.getAttribute("aria-pressed")).toBe("true");
     await chip(first, "soft drums").click();
     await visible(first.getByText("2 of 5"));
+    await first.getByLabel("Why does this song fit?").fill("The singer sounds like they’re whispering.");
     await snap(alex, "a3-picking-qualities");
     await first.getByRole("button", { name: "Add to Dreamy" }).click();
 
@@ -137,13 +151,13 @@ describe("Journey A: build a word from music", () => {
     const row = song(alex, "Arcade");
     await row.getByRole("button", { name: "Choose Arcade" }).click();
     await chip(row, "heavy drums").click();
-    await row.getByLabel("Anything else?").fill("The drop.");
+    await row.getByLabel("Why does this song fit?").fill("The drop.");
 
     await alexContext.route("**/api/wall/examples/add", route => route.abort());
     await row.getByRole("button", { name: "Add to Dreamy" }).click();
     await visible(row.getByRole("alert").filter({ hasText: "Could not reach Sound It Out" }));
     expect(await chip(row, "heavy drums").getAttribute("aria-pressed")).toBe("true");
-    expect(await row.getByLabel("Anything else?").inputValue()).toBe("The drop.");
+    expect(await row.getByLabel("Why does this song fit?").inputValue()).toBe("The drop.");
     expect(await example(alex, "Arcade").count()).toBe(0);
     await snap(alex, "a4-save-failed");
 
@@ -171,8 +185,8 @@ describe("Journey A: build a word from music", () => {
 
   test("editing a private song note keeps it private and saves it across a reload", async () => {
     const card = example(alex, "Blue Boi");
-    await card.getByRole("button", { name: "Edit what you hear in this song" }).click();
-    await card.getByLabel("Anything else?").fill("The opening notes trail off gently.");
+    await card.getByRole("button", { name: "Edit note and tags" }).click();
+    await card.getByLabel("Why does this song fit?").fill("The opening notes trail off gently.");
     await card.getByRole("button", { name: "Save", exact: true }).click();
     await visible(card.getByText("The opening notes trail off gently."));
     await visible(card.getByText("Only you"));
@@ -182,22 +196,35 @@ describe("Journey A: build a word from music", () => {
   });
 
   test("sharing with friends shows exactly what friends and everyone else will see", async () => {
-    await alex.getByRole("button", { name: "Share…" }).click();
-    await alex.getByLabel(/Your friends/).check();
-    await visible(alex.getByText("No songs are shown with Dreamy yet, so friends would see only the word."));
-    await alex.getByRole("button", { name: "Cancel" }).click();
-    // Cancelling leaves the word, and the choice shown, as they were.
-    expect(await alex.getByLabel(/Only you/).isChecked()).toBe(true);
-    expect(await alex.getByLabel(/Your friends/).isChecked()).toBe(false);
+    const trigger = alex.getByRole("button", { name: "Share…" });
+    const panel = shareDialog(alex);
+    await trigger.press("Enter");
+    await visible(panel);
+    const done = panel.getByRole("button", { name: "Done" });
+    expect(await done.evaluate(button => button === document.activeElement)).toBe(true);
+    await alex.keyboard.press("Tab");
+    expect(await panel.evaluate(dialog => dialog.contains(document.activeElement))).toBe(true);
+    await alex.keyboard.press("Escape");
+    await gone(panel);
+    expect(await trigger.evaluate(button => button === document.activeElement)).toBe(true);
+    await trigger.click();
 
-    await alex.getByRole("checkbox", { name: "Chill Day by LAKEY INSPIRED" }).check();
+    await panel.getByLabel(/Your friends/).check();
+    await visible(panel.getByText("No songs are shown with Dreamy yet, so friends would see only the word."));
+    await panel.getByRole("button", { name: "Cancel" }).click();
+    // Cancelling leaves the word, and the choice shown, as they were.
+    expect(await panel.getByLabel(/Only you/).isChecked()).toBe(true);
+    expect(await panel.getByLabel(/Your friends/).isChecked()).toBe(false);
+
+    await panel.getByRole("checkbox", { name: "Chill Day by LAKEY INSPIRED" }).check();
     await visible(example(alex, "Chill Day").getByText("Shared"));
     await alex.getByLabel(/Your friends/).check();
     await visible(alex.getByText("Shared with friends · 1 of 3 songs shown"));
 
-    const preview = alex.locator(".preview");
+    const preview = panel.locator(".preview");
     await visible(preview.getByText(`For ${alexName}, “Dreamy” means airy vocals and soft drums.`));
     await visible(preview.getByText("Chill Day"));
+    await visible(preview.getByText("The singer sounds like they’re whispering."));
     expect(await preview.getByText("Blue Boi").count()).toBe(0);
     expect(await preview.getByText("The drop.").count()).toBe(0);
     await visible(alex.getByText("People who aren’t your friends can’t open it."));
@@ -208,7 +235,7 @@ describe("Journey A: build a word from music", () => {
   });
 
   test("a failed attempt to hide a shared song leaves the checkbox honest and can be retried", async () => {
-    const panel = alex.getByRole("region", { name: "Share", exact: true });
+    const panel = shareDialog(alex);
     const setting = panel.getByRole("checkbox", { name: "Chill Day by LAKEY INSPIRED" });
     const endpoint = "**/api/wall/examples/visibility";
     await alexContext.route(endpoint, route => route.abort(), { times: 1 });
@@ -227,8 +254,29 @@ describe("Journey A: build a word from music", () => {
     await visible(panel.locator(".preview").getByText("Chill Day"));
   });
 
+  test("sharing yields to sign-in and reopens after an ended session", async () => {
+    const panel = shareDialog(alex);
+    const songSetting = panel.getByRole("checkbox", { name: "Chill Day by LAKEY INSPIRED" });
+    await alexContext.clearCookies();
+    await songSetting.click();
+
+    const recovery = alex.getByRole("region", { name: "Sign in again" });
+    await visible(recovery);
+    expect(await panel.isVisible()).toBe(false);
+    await alex.waitForFunction(() => document.activeElement?.closest(".session-ended") !== null);
+    await recovery.getByLabel("Username").fill(alexName);
+    await recovery.getByLabel("Password").fill(password);
+    await recovery.getByRole("button", { name: "Sign in" }).click();
+
+    await visible(panel);
+    expect(await songSetting.isChecked()).toBe(true);
+    await visible(panel.getByRole("status").filter({ hasText: "You’re signed in again." }));
+    await panel.getByRole("button", { name: "Done" }).click();
+    await gone(panel);
+  });
+
   test("narrowing a public word to friends protects the songs before sharing them", async () => {
-    const context = await browser.newContext();
+    const context = await browser.newContext({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true });
     context.setDefaultTimeout(WAIT);
     const owner = await context.newPage();
     const visitor = await strangerContext.newPage();
@@ -241,12 +289,22 @@ describe("Journey A: build a word from music", () => {
       await owner.locator("form").getByRole("button", { name: "Add word", exact: true }).click();
       const track = song(owner, "Chill Day");
       await track.getByRole("button", { name: "Choose Chill Day" }).click();
-      await track.getByLabel("Anything else?").fill(note);
+      const guide = track.getByText("Tag meanings", { exact: true });
+      await guide.tap();
+      await visible(track.locator(".tag-guide").getByText("The guitars sound fuzzy, gritty, or crunchy."));
+      expect(await chip(track, "distorted guitars").getAttribute("aria-pressed")).toBe("false");
+      await guide.tap();
+      await track.getByLabel("Why does this song fit?").fill(note);
       await track.getByRole("button", { name: "Add to Lush" }).click();
       await visible(example(owner, "Chill Day").getByText("Only you"));
 
       await owner.getByRole("button", { name: "Share…" }).click();
-      const panel = owner.getByRole("region", { name: "Share", exact: true });
+      const panel = shareDialog(owner);
+      const fits = await panel.evaluate(dialog => {
+        const { left, right, top, bottom } = dialog.getBoundingClientRect();
+        return left >= 0 && right <= innerWidth && top >= 0 && bottom <= innerHeight;
+      });
+      expect(fits).toBe(true);
       await panel.getByLabel(/Anyone with the link/).check();
       await panel.getByRole("button", { name: "Share only the word" }).click();
       await visible(owner.getByText("Public · 0 of 1 song shown"));
@@ -288,7 +346,9 @@ describe("Journey A: build a word from music", () => {
     await card.getByRole("button", { name: "Remove song" }).click();
     await gone(example(alex, "Blue Boi"));
     await visible(alex.locator(".description .definition", { hasText: "Like hearing a party from the next room." }));
+    await alex.getByRole("button", { name: "Share…" }).click();
     await visible(alex.locator(".preview .definition", { hasText: "Like hearing a party from the next room." }));
+    await shareDialog(alex).getByRole("button", { name: "Done" }).click();
   });
 });
 
@@ -337,6 +397,8 @@ describe("Journey B: become friends and suggest a song", () => {
     expect(await songs.count()).toBe(1);
     await visible(songs.getByText("Chill Day"));
     await visible(songs.getByText("airy vocals"));
+    await visible(songs.getByText("Listening note"));
+    await visible(songs.getByText("The singer sounds like they’re whispering."));
     const text = await daniel.locator("main").innerText();
     expect(text).not.toContain("Arcade");
     expect(text).not.toContain("The drop.");
@@ -466,6 +528,7 @@ describe("Journey C: review and accept a suggestion", () => {
   test("ending the friendship closes friends' words at once; Back closes a word; removing a word is final", async () => {
     await alex.getByLabel(/Your friends/).check();
     await visible(alex.getByText("People who aren’t your friends can’t open it."));
+    await shareDialog(alex).getByRole("button", { name: "Done" }).click();
     await nav(alex, /Friends/).click();
     const card = alex.locator(".friend-card").filter({ hasText: danielName });
     await card.getByRole("button", { name: `Remove ${danielName} as a friend` }).click();
@@ -534,7 +597,7 @@ describe("Journey D: recovering when things go wrong", () => {
     const row = song(alex, "Journeyman");
     await row.getByRole("button", { name: "Choose Journeyman" }).click();
     await chip(row, "warm bass").click();
-    await row.getByLabel("Anything else?").fill("The low end.");
+    await row.getByLabel("Why does this song fit?").fill("The low end.");
     await alexContext.clearCookies();
 
     await row.getByRole("button", { name: "Add to Warm" }).click();
@@ -542,7 +605,7 @@ describe("Journey D: recovering when things go wrong", () => {
     // The sign-in form comes to the person instead of waiting at the top of a long page.
     await alex.waitForFunction(() => document.activeElement?.closest(".session-ended") !== null);
     expect(await chip(row, "warm bass").getAttribute("aria-pressed")).toBe("true");
-    expect(await row.getByLabel("Anything else?").inputValue()).toBe("The low end.");
+    expect(await row.getByLabel("Why does this song fit?").inputValue()).toBe("The low end.");
     await snap(alex, "d2-session-ended");
 
     const panel = alex.locator(".session-ended");
@@ -563,6 +626,7 @@ describe("Journey D: recovering when things go wrong", () => {
     await alex.getByRole("button", { name: "Show all 2 songs too" }).click();
     await visible(alex.getByText("Public · 2 of 2 songs shown"));
     warmLink = await alex.getByLabel("Link to this word").inputValue();
+    await shareDialog(alex).getByRole("button", { name: "Done" }).click();
 
     await daniel.goto(warmLink);
     await daniel.getByRole("button", { name: "Suggest a song" }).click();
