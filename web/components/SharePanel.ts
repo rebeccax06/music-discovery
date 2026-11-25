@@ -115,14 +115,22 @@ export default defineComponent({
 
     function open(audience: Audience) {
       asking.value = null;
-      return run("audience", () => props.wall.setWordVisibility(props.word.association, audience), `${props.word.label}: ${audienceOf(audience).label.toLowerCase()}`);
+      return run(
+        "audience",
+        () => props.wall.setWordVisibility(props.word.association, audience),
+        `${audienceOf(audience).label} can open “${props.word.label}”.`,
+      );
     }
 
     function shareAllAndOpen() {
       const audience = asking.value;
       if (!audience) return;
       asking.value = null;
-      return run("audience", () => props.wall.shareAllAndOpen(props.word, audience), `${props.word.label} and its songs: ${audienceOf(audience).label.toLowerCase()}`);
+      return run(
+        "audience",
+        () => props.wall.shareAllAndOpen(props.word, audience),
+        `${audienceOf(audience).label} can open “${props.word.label}” and listen to its songs.`,
+      );
     }
 
     async function copyLink() {
@@ -179,7 +187,6 @@ export default defineComponent({
             <span>{{ title(example) }}</span>
           </label>
         </fieldset>
-        <p v-else class="meta">Add a song first, so there is something to hear.</p>
         <p v-if="error" class="error" role="alert">{{ error }}</p>
 
         <template v-if="word.visibility !== 'PRIVATE'">
@@ -196,7 +203,7 @@ export default defineComponent({
             </p>
           </div>
           <div class="visitor-view">
-            <h3 class="section-label">What {{ word.visibility === 'LIMITED' ? 'your friends see' : 'others see' }}</h3>
+            <h3>What {{ word.visibility === 'LIMITED' ? 'your friends see' : 'others see' }}</h3>
             <p v-if="previewError" class="error" role="alert">{{ previewError }}</p>
             <template v-else-if="views">
               <div v-if="views.friends" class="preview">

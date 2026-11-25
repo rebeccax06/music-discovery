@@ -1165,8 +1165,9 @@ body:has(.share-dialog[open]) {
   display: grid;
   gap: var(--space-3);
 }
-.visitor-view .section-label {
-  color: var(--muted);
+.visitor-view h3 {
+  font-size: var(--text-control);
+  font-weight: 600;
 }
 .preview {
   display: grid;
@@ -1304,6 +1305,9 @@ body:has(.share-dialog[open]) {
 .audiences {
   display: grid;
   gap: var(--space-2);
+}
+.audiences legend {
+  padding-block-end: var(--space-2);
 }
 .audience-choice {
   display: flex;

@@ -87,6 +87,12 @@ describe("Journey A: build a word from music", () => {
     await visible(alex.getByRole("heading", { name: "Add a song to Dreamy" }));
     await visible(alex.getByText("(Our current database supports a small library of tracks we have checked)"));
     expect(await alex.getByText("Add a song that sounds dreamy to you.").count()).toBe(0);
+
+    await alex.getByRole("button", { name: "Share…" }).click();
+    const panel = shareDialog(alex);
+    await visible(panel.getByRole("group", { name: "Who can open Dreamy" }));
+    expect(await panel.getByText("Add a song first, so there is something to hear.").count()).toBe(0);
+    await panel.getByRole("button", { name: "Done" }).click();
   });
 
   test("the official SoundCloud player loads the chosen catalog track", async () => {
@@ -223,6 +229,8 @@ describe("Journey A: build a word from music", () => {
     await visible(example(alex, "Chill Day").getByText("Shared"));
     await alex.getByLabel(/Your friends/).check();
     await visible(alex.getByText("Shared with friends · 1 of 3 songs shown"));
+    await visible(panel.getByRole("status").filter({ hasText: "Your friends can open “Dreamy”." }));
+    await visible(panel.getByRole("heading", { name: "What your friends see" }));
 
     const preview = panel.locator(".preview");
     await visible(preview.getByText(`For ${alexName}, “Dreamy” means airy vocals and soft drums.`));
@@ -325,6 +333,7 @@ describe("Journey A: build a word from music", () => {
       await panel.getByLabel(/Your friends/).check();
       await panel.getByRole("button", { name: "Show the song too" }).click();
       await visible(owner.getByText("Shared with friends · 1 of 1 song shown"));
+      await visible(panel.getByRole("status").filter({ hasText: "Your friends can open “Lush” and listen to its songs." }));
       await visitor.reload();
       await visible(visitor.getByText(`If ${username} shared it with friends, sign in to see it.`));
       expect(await visitor.getByText(note).count()).toBe(0);
