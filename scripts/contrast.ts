@@ -38,7 +38,6 @@ const pairs: Array<[string, string, string, number]> = [
   ["Control boundaries", "control-border", "surface", 3],
   ["Play icon on its circle", "accent", "accent-soft", 3],
   ["Remove word, in red", "danger", "canvas", 4.5],
-  ["Tag help link on a selected song", "accent-strong", "accent-soft", 4.5],
   ["Tag explanation", "surface", "ink", 4.5],
 ];
 

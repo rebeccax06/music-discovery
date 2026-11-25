@@ -15,6 +15,7 @@ export default defineComponent({
     const root = ref<HTMLFieldSetElement | null>(null);
     const id = `qualities-${instances += 1}`;
     const full = computed(() => props.modelValue.length >= MAX_QUALITIES);
+    let touchedTag: HTMLElement | null = null;
     // A quality picked before it left the vocabulary can still be seen and unpicked.
     const groups = computed(() => {
       const earlier = props.modelValue.filter(label => !isQuality(label)).map(label => ({ label, phrase: label, description: "" }));
@@ -44,16 +45,35 @@ export default defineComponent({
       option.classList.remove("tip-dismissed");
     }
 
+    function dismissTouchHelp() {
+      touchedTag?.classList.remove("tip-touch");
+      touchedTag = null;
+    }
+
+    function showTouchHelp(event: PointerEvent) {
+      if (event.pointerType !== "touch") return;
+      positionHelp(event);
+      touchedTag = event.currentTarget as HTMLElement;
+      touchedTag.classList.add("tip-touch");
+    }
+
     function dismissHelp(event: KeyboardEvent) {
       if (event.key !== "Escape") return;
+      dismissTouchHelp();
       for (const option of root.value?.querySelectorAll(".quality-option:hover, .quality-option:focus-within") ?? []) {
         option.classList.add("tip-dismissed");
       }
     }
-    onMounted(() => document.addEventListener("keydown", dismissHelp));
-    onBeforeUnmount(() => document.removeEventListener("keydown", dismissHelp));
+    onMounted(() => {
+      document.addEventListener("keydown", dismissHelp);
+      document.addEventListener("pointerdown", dismissTouchHelp);
+    });
+    onBeforeUnmount(() => {
+      document.removeEventListener("keydown", dismissHelp);
+      document.removeEventListener("pointerdown", dismissTouchHelp);
+    });
 
-    return { root, id, full, groups, qualityGroups, toggle, positionHelp, MAX_QUALITIES };
+    return { root, id, full, groups, toggle, positionHelp, showTouchHelp, MAX_QUALITIES };
   },
   template: `
     <fieldset ref="root" class="qualities" :disabled="disabled">
@@ -61,25 +81,13 @@ export default defineComponent({
         What do you hear? <span class="optional">optional</span>
         <span class="count" role="status">{{ modelValue.length }} of {{ MAX_QUALITIES }}</span>
       </legend>
-      <details class="tag-help">
-        <summary>Tag meanings</summary>
-        <div class="tag-guide">
-          <div v-for="group in qualityGroups" :key="group.name">
-            <p class="section-label">{{ group.name }}</p>
-            <dl>
-              <template v-for="quality in group.qualities" :key="quality.label">
-                <dt>{{ quality.label }}</dt>
-                <dd>{{ quality.description }}</dd>
-              </template>
-            </dl>
-          </div>
-        </div>
-      </details>
+      <p class="field-hint quality-hover-hint">Hover over a tag for a more detailed description of what it means.</p>
+      <p class="field-hint quality-touch-hint">Tap a tag to select it and see what it means.</p>
       <div v-for="(group, index) in groups" :key="group.name" class="quality-group">
         <p class="section-label" :id="id + '-' + index">{{ group.name }}</p>
         <div class="chips" role="group" :aria-labelledby="id + '-' + index">
           <span v-for="(quality, qualityIndex) in group.qualities" :key="quality.label" class="quality-option"
-            @pointerenter="positionHelp" @focusin="positionHelp">
+            @pointerenter="positionHelp" @focusin="positionHelp" @pointerup="showTouchHelp">
             <button class="chip" type="button"
               :aria-pressed="modelValue.includes(quality.label) ? 'true' : 'false'"
               :aria-describedby="quality.description ? id + '-tip-' + index + '-' + qualityIndex : undefined"

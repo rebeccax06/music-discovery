@@ -120,7 +120,9 @@ describe("Journey A: build a word from music", () => {
     const first = song(alex, "Chill Day");
     await first.getByRole("button", { name: "Choose Chill Day" }).click();
     const picker = chip(first, "airy vocals");
-    await first.getByText("Tag meanings", { exact: true }).focus();
+    const note = first.getByLabel("Why does this song fit?");
+    await visible(first.getByText("Hover over a tag for a more detailed description of what it means."));
+    await note.focus();
     await picker.hover();
     const tip = first.getByRole("tooltip").filter({ hasText: "Light or breathy singing" });
     await visible(tip);
@@ -128,7 +130,8 @@ describe("Journey A: build a word from music", () => {
     await alex.keyboard.press("Escape");
     expect(await tip.isVisible()).toBe(false);
     await alex.mouse.move(0, 0);
-    await alex.keyboard.press("Tab");
+    await chip(first, "close vocals").focus();
+    await alex.keyboard.press("Shift+Tab");
     expect(await picker.evaluate(button => button === document.activeElement)).toBe(true);
     await visible(tip);
     await alex.keyboard.press("Escape");
@@ -137,7 +140,7 @@ describe("Journey A: build a word from music", () => {
     expect(await picker.getAttribute("aria-pressed")).toBe("true");
     await chip(first, "soft drums").click();
     await visible(first.getByText("2 of 5"));
-    await first.getByLabel("Why does this song fit?").fill("The singer sounds like they’re whispering.");
+    await note.fill("The singer sounds like they’re whispering.");
     await snap(alex, "a3-picking-qualities");
     await first.getByRole("button", { name: "Add to Dreamy" }).click();
 
@@ -300,12 +303,18 @@ describe("Journey A: build a word from music", () => {
       await owner.locator("form").getByRole("button", { name: "Add word", exact: true }).click();
       const track = song(owner, "Chill Day");
       await track.getByRole("button", { name: "Choose Chill Day" }).click();
-      const guide = track.getByText("Tag meanings", { exact: true });
-      await guide.tap();
-      await visible(track.locator(".tag-guide").getByText("The guitars sound fuzzy, gritty, or crunchy."));
-      expect(await chip(track, "distorted guitars").getAttribute("aria-pressed")).toBe("false");
-      await guide.tap();
-      await track.getByLabel("Why does this song fit?").fill(note);
+      await visible(track.getByText("Tap a tag to select it and see what it means."));
+      const tag = chip(track, "distorted guitars");
+      const tip = track.getByRole("tooltip").filter({ hasText: "The guitars sound fuzzy, gritty, or crunchy." });
+      await tag.tap();
+      await visible(tip);
+      expect(await tag.getAttribute("aria-pressed")).toBe("true");
+      await tag.tap();
+      expect(await tag.getAttribute("aria-pressed")).toBe("false");
+      const noteField = track.getByLabel("Why does this song fit?");
+      await noteField.tap();
+      expect(await tip.isVisible()).toBe(false);
+      await noteField.fill(note);
       await track.getByRole("button", { name: "Add to Lush" }).click();
       await visible(example(owner, "Chill Day").getByText("Only you"));
 

@@ -479,34 +479,8 @@ button.chip:hover:enabled {
 .quality-group .section-label {
   color: var(--muted);
 }
-.tag-help {
-  font-size: var(--text-control);
-}
-.tag-help summary {
-  width: fit-content;
-  padding-block: var(--space-2);
-  color: var(--accent-strong);
-  cursor: pointer;
-}
-.tag-guide {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(13rem, 100%), 1fr));
-  gap: var(--space-4);
-  padding: var(--space-4);
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-card);
-}
-.tag-guide dl,
-.tag-guide dd {
-  margin: 0;
-}
-.tag-guide dt {
-  margin-top: var(--space-2);
-  font-weight: 600;
-}
-.tag-guide dd {
-  color: var(--muted);
+.quality-touch-hint {
+  display: none;
 }
 .quality-option {
   position: relative;
@@ -538,9 +512,24 @@ button.chip:hover:enabled {
 .quality-option:not(.tip-dismissed):has(.chip:focus-visible) .quality-tip {
   display: block;
 }
+.tip-touch .quality-tip {
+  display: block;
+  pointer-events: none;
+}
 @media (hover: hover) {
   .quality-option:not(.tip-dismissed):hover .quality-tip {
     display: block;
+  }
+}
+@media (hover: none) {
+  .quality-hover-hint {
+    display: none;
+  }
+  .quality-touch-hint {
+    display: block;
+  }
+  .quality-option .chip:disabled {
+    pointer-events: none;
   }
 }
 

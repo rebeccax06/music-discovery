@@ -330,9 +330,9 @@ artist; the journeys caught it.
 
 The November 23 mentor meeting flagged that notes were easy to miss and sharing
 made a word page longer. The song picker and editor now ask why the song fits, and
-song cards label the saved answer as a listening note. Each listening tag comes
-with a short description. The glossary lets people who use touch look up a tag
-before selecting it.
+song cards label the saved answer as a listening note. Each listening tag shows a
+short description on hover or keyboard focus. Tapping a tag also shows its
+description.
 
 The Share button is beside the word's audience status. It opens a dialog that
 scrolls independently and returns focus to Share when dismissed. The dialog uses
