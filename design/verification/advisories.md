@@ -1,6 +1,6 @@
 # Engine advisories
 
-`bun run check` passes, and the sync-engine checker also reports 30 advisories: 26
+`bun run check` passes, and the sync-engine checker also reports 33 advisories: 29
 warnings and 4 notices. Each was reviewed. None is a defect, for the reasons below, and
 each reason names the test that would catch it if it stopped being true.
 
@@ -10,7 +10,7 @@ It compares the checker's advisories with the reviewed list in
 reported. A change that introduces an advisory cannot pass until someone reviews it,
 explains it here, and runs `bun scripts/advisories.ts --update`.
 
-## `MISSING_ENDPOINT_FALLBACK` (26 warnings, one per endpoint path)
+## `MISSING_ENDPOINT_FALLBACK` (29 warnings, one per endpoint path)
 
 > Endpoint … has no recognized total answer path; an admitted request can time out when
 > every answer guard drops.
@@ -36,12 +36,17 @@ exactly one record.
 | Endpoint | Path |
 | --- | --- |
 | Accounts.Register, Login, Me | `/auth/register`, `/auth/login`, `/auth/me` |
+| Commons.Start, Finish, ChooseUsername | `/auth/commons/start`, `/auth/commons/finish`, `/auth/commons/choose` |
 | SoundWall.Definitions.* | `/wall/associate`, `/wall/update`, `/wall/visibility`, `/wall/remove` |
 | SoundWall.Examples.UpdateExample, SetExampleVisibility, RemoveExample | `/wall/examples/update`, `/wall/examples/visibility`, `/wall/examples/remove` |
 | SoundWall.Reading.ListWall, PreviewWall | `/wall/list`, `/wall/preview` |
 | Suggestions.Sending.ListSent, Withdraw | `/suggestions/sent`, `/suggestions/withdraw` |
 | Suggestions.Reviewing.Review | `/suggestions/review` |
 | Friends.Circle.List | `/friends/list` |
+
+The Commons endpoints each run one action with a success or refusal response.
+The [Commons HTTP tests](../../tests/integration/commons.test.ts) check responses
+for valid sign-in, an expired attempt, a username collision, and concurrent callbacks.
 
 *Branched endpoints.* After the session step, sibling branches split the cases. Each
 set of guards is complementary: for any stored state, exactly one branch matches.

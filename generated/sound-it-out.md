@@ -148,6 +148,16 @@ Defined in [UserAuthenticating](../design/concepts/UserAuthenticating.md), line 
   - Refuses `USERNAME_TAKEN`: That username is already taken.
 - `authenticate(username: String, password: String) : returns (user: User, username: String, session: Session, expiresAt: DateTime)`
   - Refuses `INVALID_CREDENTIALS`: The username or password is incorrect.
+- `startCommons() : returns (attempt: Attempt, address: String, expiresAt: DateTime)`
+  - Refuses `COMMONS_SIGN_IN_REFUSED`: Commons sign-in is unavailable.
+- `finishCommons(attempt: Attempt, state: String, code: String) : returns (user: User, username: String, session: Session, expiresAt: DateTime)`
+  - Refuses `COMMONS_SIGN_IN_REFUSED`: Restart Commons sign-in.
+  - Refuses `INVALID_USERNAME`: Use 3 to 32 letters, numbers, underscores, or hyphens.
+  - Refuses `USERNAME_TAKEN`: That username is already taken.
+- `chooseCommonsUsername(attempt: Attempt, username: String) : returns (user: User, username: String, session: Session, expiresAt: DateTime)`
+  - Refuses `COMMONS_SIGN_IN_REFUSED`: Restart Commons sign-in.
+  - Refuses `INVALID_USERNAME`: Use 3 to 32 letters, numbers, underscores, or hyphens.
+  - Refuses `USERNAME_TAKEN`: That username is already taken.
 - `current(session: Session) : returns (user: User, username: String)`
   - Refuses `UNKNOWN_SESSION`: Sign in to continue.
 - `logout(session: Session) : returns ()`
@@ -413,6 +423,84 @@ where
   earlier, RequestBoundary.request (password, path: "/auth/register", requestId, username)
 then
   RequestBoundary.respond (requestId, user)
+```
+
+### Commons.ChooseUsername
+
+Authored path: `Commons.ChooseUsername`.
+- Covered by [Commons sign-in](../design/compositions/Commons.md), line 19.
+- Covered by [Commons sign-in](../design/compositions/Commons.md), line 33.
+
+```reaction
+when RequestBoundary.request (attempt, path: "/auth/commons/choose", requestId, username)
+then
+  UserAuthenticating.chooseCommonsUsername (attempt, username)
+```
+
+### Commons.ChooseUsername#2
+
+Authored path: `Commons.ChooseUsername`.
+- Covered by [Commons sign-in](../design/compositions/Commons.md), line 19.
+- Covered by [Commons sign-in](../design/compositions/Commons.md), line 33.
+
+```reaction
+when UserAuthenticating.chooseCommonsUsername (attempt, username, expiresAt, session, user, result.username: displayName), asked by Commons.ChooseUsername
+where
+  earlier, RequestBoundary.request (attempt, path: "/auth/commons/choose", requestId, username)
+then
+  RequestBoundary.respond (expiresAt, requestId, session, user, username: displayName)
+```
+
+### Commons.Finish
+
+Authored path: `Commons.Finish`.
+- Covered by [Commons sign-in](../design/compositions/Commons.md), line 11.
+- Covered by [Commons sign-in](../design/compositions/Commons.md), line 32.
+
+```reaction
+when RequestBoundary.request (attempt, code, path: "/auth/commons/finish", requestId, state)
+then
+  UserAuthenticating.finishCommons (attempt, code, state)
+```
+
+### Commons.Finish#2
+
+Authored path: `Commons.Finish`.
+- Covered by [Commons sign-in](../design/compositions/Commons.md), line 11.
+- Covered by [Commons sign-in](../design/compositions/Commons.md), line 32.
+
+```reaction
+when UserAuthenticating.finishCommons (attempt, code, state, expiresAt, session, user, username), asked by Commons.Finish
+where
+  earlier, RequestBoundary.request (attempt, code, path: "/auth/commons/finish", requestId, state)
+then
+  RequestBoundary.respond (expiresAt, requestId, session, user, username)
+```
+
+### Commons.Start
+
+Authored path: `Commons.Start`.
+- Covered by [Commons sign-in](../design/compositions/Commons.md), line 9.
+- Covered by [Commons sign-in](../design/compositions/Commons.md), line 31.
+
+```reaction
+when RequestBoundary.request (path: "/auth/commons/start", requestId)
+then
+  UserAuthenticating.startCommons ()
+```
+
+### Commons.Start#2
+
+Authored path: `Commons.Start`.
+- Covered by [Commons sign-in](../design/compositions/Commons.md), line 9.
+- Covered by [Commons sign-in](../design/compositions/Commons.md), line 31.
+
+```reaction
+when UserAuthenticating.startCommons (address, attempt, expiresAt), asked by Commons.Start
+where
+  earlier, RequestBoundary.request (path: "/auth/commons/start", requestId)
+then
+  RequestBoundary.respond (address, attempt, expiresAt, requestId)
 ```
 
 ### DeliverFaultToAsker
@@ -1531,6 +1619,8 @@ object or lacks a required key. The response uses `INVALID_INPUT` and names
 the path or missing key. A declared default fills an absent key. Endpoints
 not listed here have no explicit input contract.
 
+- `/auth/commons/choose` — requires `attempt`, `username`
+- `/auth/commons/finish` — requires `attempt`, `state`, `code`
 - `/auth/login` — requires `username`, `password`
 - `/auth/logout` — requires `session`
 - `/auth/me` — requires `session`

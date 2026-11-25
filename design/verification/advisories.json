@@ -13,6 +13,18 @@
   },
   {
     "code": "MISSING_ENDPOINT_FALLBACK",
+    "message": "Endpoint \"Commons.ChooseUsername\" at \"/auth/commons/choose\" has no recognized total answer path; an admitted request can time out when every answer guard drops."
+  },
+  {
+    "code": "MISSING_ENDPOINT_FALLBACK",
+    "message": "Endpoint \"Commons.Finish\" at \"/auth/commons/finish\" has no recognized total answer path; an admitted request can time out when every answer guard drops."
+  },
+  {
+    "code": "MISSING_ENDPOINT_FALLBACK",
+    "message": "Endpoint \"Commons.Start\" at \"/auth/commons/start\" has no recognized total answer path; an admitted request can time out when every answer guard drops."
+  },
+  {
+    "code": "MISSING_ENDPOINT_FALLBACK",
     "message": "Endpoint \"Friends.Circle.List\" at \"/friends/list\" has no recognized total answer path; an admitted request can time out when every answer guard drops."
   },
   {

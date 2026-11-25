@@ -3,7 +3,7 @@ import authenticatingSpec from "@design/concepts/UserAuthenticating.md" with { t
 import annotatingSpec from "@design/concepts/Annotating.md" with { type: "text" };
 import associatingSpec from "@design/concepts/Associating.md" with { type: "text" };
 import {
-  InvalidCredentials, InvalidPassword, InvalidUsername, UnknownSession,
+  CommonsSignInRefused, InvalidCredentials, InvalidPassword, InvalidUsername, UnknownSession,
   UserAuthenticatingConcept, UsernameTaken,
 } from "./concepts/UserAuthenticating.ts";
 import friendingSpec from "@design/concepts/Friending.md" with { type: "text" };
@@ -28,6 +28,7 @@ const authenticating = registerConcept({
     USERNAME_TAKEN: UsernameTaken,
     INVALID_CREDENTIALS: InvalidCredentials,
     UNKNOWN_SESSION: UnknownSession,
+    COMMONS_SIGN_IN_REFUSED: CommonsSignInRefused,
   },
 });
 

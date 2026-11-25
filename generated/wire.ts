@@ -13,6 +13,42 @@ export type Json = null | boolean | number | string | Json[] | { [key: string]: 
 export type AppWideError = never;
 
 export type SoundItOutWire = {
+  "/auth/commons/choose": {
+    input: {
+      "attempt": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["UserAuthenticating"]["chooseCommonsUsername"]>[0], ["attempt"]>>;
+      "username": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["UserAuthenticating"]["chooseCommonsUsername"]>[0], ["username"]>>;
+    };
+    output: {
+      "expiresAt": Jsonify<AtPath<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["UserAuthenticating"]["chooseCommonsUsername"]>>, ["expiresAt"]>>;
+      "session": Jsonify<AtPath<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["UserAuthenticating"]["chooseCommonsUsername"]>>, ["session"]>>;
+      "user": Jsonify<AtPath<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["UserAuthenticating"]["chooseCommonsUsername"]>>, ["user"]>>;
+      "username": Jsonify<AtPath<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["UserAuthenticating"]["chooseCommonsUsername"]>>, ["username"]>>;
+    };
+    error: { error: AppWideError | "COMMONS_SIGN_IN_REFUSED" | "INVALID_INPUT" | "INVALID_USERNAME" | "USERNAME_TAKEN" };
+  };
+  "/auth/commons/finish": {
+    input: {
+      "attempt": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["UserAuthenticating"]["finishCommons"]>[0], ["attempt"]>>;
+      "code": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["UserAuthenticating"]["finishCommons"]>[0], ["code"]>>;
+      "state": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["UserAuthenticating"]["finishCommons"]>[0], ["state"]>>;
+    };
+    output: {
+      "expiresAt": Jsonify<AtPath<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["UserAuthenticating"]["finishCommons"]>>, ["expiresAt"]>>;
+      "session": Jsonify<AtPath<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["UserAuthenticating"]["finishCommons"]>>, ["session"]>>;
+      "user": Jsonify<AtPath<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["UserAuthenticating"]["finishCommons"]>>, ["user"]>>;
+      "username": Jsonify<AtPath<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["UserAuthenticating"]["finishCommons"]>>, ["username"]>>;
+    };
+    error: { error: AppWideError | "COMMONS_SIGN_IN_REFUSED" | "INVALID_INPUT" | "INVALID_USERNAME" | "USERNAME_TAKEN" };
+  };
+  "/auth/commons/start": {
+    input: Record<string, never>;
+    output: {
+      "address": Jsonify<AtPath<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["UserAuthenticating"]["startCommons"]>>, ["address"]>>;
+      "attempt": Jsonify<AtPath<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["UserAuthenticating"]["startCommons"]>>, ["attempt"]>>;
+      "expiresAt": Jsonify<AtPath<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["UserAuthenticating"]["startCommons"]>>, ["expiresAt"]>>;
+    };
+    error: { error: AppWideError | "COMMONS_SIGN_IN_REFUSED" };
+  };
   "/auth/login": {
     input: {
       "password": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["UserAuthenticating"]["authenticate"]>[0], ["password"]>>;
@@ -421,6 +457,34 @@ export type SoundItOutWire = {
 export type HttpAppWideError = never;
 
 export type SoundItOutWireHttp = {
+  "/auth/commons/choose": {
+    input: {
+      "username": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["UserAuthenticating"]["chooseCommonsUsername"]>[0], ["username"]>>;
+    };
+    output: {
+      "user": Jsonify<AtPath<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["UserAuthenticating"]["chooseCommonsUsername"]>>, ["user"]>>;
+      "username": Jsonify<AtPath<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["UserAuthenticating"]["chooseCommonsUsername"]>>, ["username"]>>;
+    };
+    error: { error: HttpAppWideError | "CONFLICT" | "FORBIDDEN" | "INVALID_REQUEST" };
+  };
+  "/auth/commons/finish": {
+    input: {
+      "code": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["UserAuthenticating"]["finishCommons"]>[0], ["code"]>>;
+      "state": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["UserAuthenticating"]["finishCommons"]>[0], ["state"]>>;
+    };
+    output: {
+      "user": Jsonify<AtPath<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["UserAuthenticating"]["finishCommons"]>>, ["user"]>>;
+      "username": Jsonify<AtPath<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["UserAuthenticating"]["finishCommons"]>>, ["username"]>>;
+    };
+    error: { error: HttpAppWideError | "CONFLICT" | "FORBIDDEN" | "INVALID_REQUEST" };
+  };
+  "/auth/commons/start": {
+    input: Record<string, never>;
+    output: {
+      "address": Jsonify<AtPath<Awaited<ReturnType<(typeof ApplicationConceptSet.concepts)["UserAuthenticating"]["startCommons"]>>, ["address"]>>;
+    };
+    error: { error: HttpAppWideError | "FORBIDDEN" };
+  };
   "/auth/login": {
     input: {
       "password": Jsonify<AtPath<Parameters<(typeof ApplicationConceptSet.concepts)["UserAuthenticating"]["authenticate"]>[0], ["password"]>>;

@@ -739,3 +739,37 @@ describe("Journey D: recovering when things go wrong", () => {
     expect(await account.count()).toBe(0);
   });
 });
+
+test.skipIf(!!process.env.BASE_URL)("Commons sign-in handles a username collision and returns to the visited wall", async () => {
+  const username = `commons-${run}`;
+  const owner = `local-${run}`;
+  target.commons!.setIdentity("browser-listener", owner);
+  const context = await browser.newContext();
+  try {
+    const page = await context.newPage();
+    await page.goto(target.url);
+    await createAccount(page, owner);
+    await page.getByRole("button", { name: owner, exact: true }).click();
+    await page.getByRole("button", { name: "Sign out", exact: true }).click();
+    await gone(nav(page, "Your wall"));
+
+    const wall = `${target.url}/?wall=${owner}`;
+    await page.goto(wall);
+    await page.getByRole("button", { name: "Sign in or create an account" }).click();
+    const callback = page.waitForResponse(response => new URL(response.url()).pathname === "/auth/commons/callback");
+    await page.getByRole("button", { name: "Continue with Commons" }).click();
+    expect((await callback).headers()["referrer-policy"]).toBe("no-referrer");
+    await visible(page.getByRole("heading", { name: "Choose a username" }));
+    await visible(page.getByText("That username is already taken on Sound It Out. Choose another."));
+    expect(new URL(page.url()).search).toBe("");
+    await page.getByRole("textbox", { name: "Username", exact: true }).fill(username);
+    await page.getByRole("button", { name: "Continue", exact: true }).click();
+    await page.waitForURL(wall);
+    await visible(page.getByRole("button", { name: username, exact: true }));
+    await visible(page.getByRole("heading", { name: `${owner}’s Sound Wall` }));
+    await page.reload();
+    await visible(page.getByRole("button", { name: username, exact: true }));
+  } finally {
+    await context.close();
+  }
+});

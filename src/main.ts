@@ -1,5 +1,6 @@
 import { MongoClient } from "mongodb";
 import { assembleApplication, createInstances } from "./assembly.ts";
+import { createCommonsProvider } from "./commonsProvider.ts";
 import { createApi } from "./http.ts";
 import { clearOrphans } from "./maintenance.ts";
 import { buildFrontend } from "../web/serve.ts";
@@ -22,7 +23,8 @@ const mongoUrl = setting(["MONGODB_URL", "MONGODB_URI"], "mongodb://dev:dev@127.
 // The hosted database allows 10 connections, and a rolling deploy briefly runs two copies of the app.
 const client = new MongoClient(mongoUrl, { serverSelectionTimeoutMS: 3000, maxPoolSize: 5 });
 const db = client.db();
-const application = assembleApplication(createInstances(db));
+const commons = createCommonsProvider(process.env.COMMONS_ORIGIN ?? "https://class.mit-sdg.dev", publicOrigin);
+const application = assembleApplication(createInstances(db, commons));
 const api = createApi(application, publicOrigin);
 const frontend = await buildFrontend();
 

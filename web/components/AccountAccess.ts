@@ -1,5 +1,6 @@
 import { computed, defineComponent, nextTick, ref, type PropType } from "vue/dist/vue.esm-bundler.js";
 import type { AccountActions } from "../account.ts";
+import { continueWithCommons } from "../commons.ts";
 
 let instances = 0;
 
@@ -8,13 +9,15 @@ export default defineComponent({
   props: {
     register: { type: Function as PropType<AccountActions["register"]>, required: true },
     signIn: { type: Function as PropType<AccountActions["signIn"]>, required: true },
+    recovering: Boolean,
   },
   setup(props) {
     const id = `account-${instances += 1}`;
     const creating = ref(false);
     const username = ref("");
     const password = ref("");
-    const busy = ref(false);
+    const action = ref<"password" | "commons" | null>(null);
+    const busy = computed(() => action.value !== null);
     const error = ref("");
     const notice = ref("");
     const heading = ref<HTMLHeadingElement | null>(null);
@@ -51,7 +54,7 @@ export default defineComponent({
         }
       }
 
-      busy.value = true;
+      action.value = "password";
       try {
         if (creating.value) {
           const refused = await props.register(name, secret);
@@ -67,11 +70,25 @@ export default defineComponent({
         if (failure) error.value = failure;
         else password.value = "";
       } finally {
-        busy.value = false;
+        action.value = null;
       }
     }
 
-    return { id, creating, username, password, busy, error, notice, heading, title, toggleMode, submit };
+    async function useCommons() {
+      if (busy.value) return;
+      action.value = "commons";
+      error.value = "";
+      notice.value = "";
+      try {
+        error.value = await continueWithCommons() ?? "";
+      } catch {
+        error.value = "Could not reach Sound It Out. Check your connection and try again.";
+      } finally {
+        action.value = null;
+      }
+    }
+
+    return { id, creating, username, password, action, busy, error, notice, heading, title, toggleMode, submit, useCommons };
   },
   template: `
     <section class="account-panel" :aria-labelledby="id">
@@ -94,12 +111,18 @@ export default defineComponent({
         <p v-if="notice" role="status">{{ notice }}</p>
         <p v-if="error" class="error" role="alert">{{ error }}</p>
         <button class="primary" :disabled="busy">
-          {{ busy ? (creating ? 'Creating account…' : 'Signing in…') : title }}
+          {{ action === 'password' ? (creating ? 'Creating account…' : 'Signing in…') : title }}
         </button>
       </form>
       <button class="text-button" type="button" @click="toggleMode" :disabled="busy">
         {{ creating ? 'Already have an account? Sign in' : 'Create an account' }}
       </button>
+      <div class="commons-option">
+        <p v-if="recovering" class="field-hint">Commons opens a sign-in page. Copy any unsaved work before continuing.</p>
+        <button class="action" type="button" @click="useCommons" :disabled="busy">
+          {{ action === 'commons' ? 'Connecting…' : 'Continue with Commons' }}
+        </button>
+      </div>
     </section>
   `,
 });

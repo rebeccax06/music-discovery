@@ -14,6 +14,7 @@ export function soundItOutPolicy(publicOrigin: string) {
       USERNAME_TAKEN: "CONFLICT",
       INVALID_CREDENTIALS: "UNAUTHORIZED",
       UNKNOWN_SESSION: "UNAUTHORIZED",
+      COMMONS_SIGN_IN_REFUSED: "FORBIDDEN",
       INVALID_ASSOCIATION: "INVALID_REQUEST",
       ASSOCIATION_EXISTS: "CONFLICT",
       UNKNOWN_ASSOCIATION: "NOT_FOUND",
@@ -44,8 +45,15 @@ export function soundItOutPolicy(publicOrigin: string) {
       session: {
         name: "sound-it-out-session",
         input: "session",
-        issue: [{ path: "/auth/login", value: "session", expires: "expiresAt" }],
+        issue: ["/auth/login", "/auth/commons/finish", "/auth/commons/choose"]
+          .map(path => ({ path, value: "session", expires: "expiresAt" })),
         clear: ["/auth/logout"],
+      },
+      commonsAttempt: {
+        name: "sound-it-out-commons",
+        input: "attempt",
+        issue: [{ path: "/auth/commons/start", value: "attempt", expires: "expiresAt" }],
+        clear: ["/auth/commons/finish", "/auth/commons/choose"],
       },
     },
   });

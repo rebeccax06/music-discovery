@@ -40,7 +40,7 @@ the audio. See [what is deferred](final-proj-deliverables/f4-development-plan.md
 
 ## What works today
 
-- Accounts: create one, sign in, stay signed in, sign out.
+- Accounts: sign in with a Sound It Out password or with Commons, stay signed in, and sign out.
 - Words: pick a suggested word or type your own. No description is required.
 - Songs: choose from a checked library of 14 SoundCloud tracks, play them in
   SoundCloud's player, pick up to five qualities you hear, and add an optional note.
@@ -75,10 +75,16 @@ Then open <http://127.0.0.1:3000>. `podman compose` works in place of
 | `PORT` | `3000` | You need another port. |
 | `PUBLIC_ORIGIN` | `http://127.0.0.1:<PORT>` | People open the app at any other address. No trailing slash. |
 | `HOST` | `127.0.0.1`, or `0.0.0.0` when `NODE_ENV=production` | You need to listen on another interface. |
+| `COMMONS_ORIGIN` | `https://class.mit-sdg.dev` | You are testing against a separate Commons instance. |
 
 None of these is a secret, and no API keys are needed. `MONGODB_URI` is accepted in
 place of `MONGODB_URL`. With `NODE_ENV=production`, the server refuses to start
 without `PUBLIC_ORIGIN` and a database variable, and says which one is missing.
+
+**Continue with Commons** uses the configured app origin for the callback.
+For local sign-in, open the app at the exact loopback address in
+`PUBLIC_ORIGIN` (or its default) in Chrome. People outside the class can
+create a Sound It Out password account from the same screen.
 
 ### Deploy
 
@@ -102,6 +108,9 @@ The tests need the MongoDB container running. Each test file creates its own dat
 and drops it afterward. The browser journeys use Google Chrome; set
 `E2E_BROWSER=chromium` after `bunx playwright install chromium` to use Playwright's
 own browser. To check a deployment, run `BASE_URL=https://… bun run test:e2e`.
+The local Commons browser check uses a loopback provider fixture. To smoke-test
+the class provider, choose **Continue with Commons** on the running app, approve
+it on Commons, and verify the app returns to the page where sign-in started.
 
 Saved results and their limits: [design/verification](design/verification/README.md).
 
@@ -113,7 +122,7 @@ Saved results and their limits: [design/verification](design/verification/README
 - [How the concepts meet](design/alpha-integration.md)
 - [Application types](design/types.md)
 - Concepts: [UserAuthenticating](design/concepts/UserAuthenticating.md), [Associating](design/concepts/Associating.md), [Annotating](design/concepts/Annotating.md), [Pitching](design/concepts/Pitching.md), [Friending](design/concepts/Friending.md)
-- Compositions: [Accounts](design/compositions/Accounts.md), [Sound Wall](design/compositions/SoundWall.md), [Suggestions](design/compositions/Suggestions.md), [Friends](design/compositions/Friends.md)
+- Compositions: [Accounts](design/compositions/Accounts.md), [Commons sign-in](design/compositions/Commons.md), [Sound Wall](design/compositions/SoundWall.md), [Suggestions](design/compositions/Suggestions.md), [Friends](design/compositions/Friends.md)
 - [Generated API documentation](generated/sound-it-out.md) and [wire types](generated/wire.ts)
 
 F2 and F3 below are the submitted earlier deliverables. Where they differ from the

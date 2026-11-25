@@ -1,6 +1,8 @@
-import { computed, createApp, nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue/dist/vue.esm-bundler.js";
+import { computed, createApp, defineComponent, nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue/dist/vue.esm-bundler.js";
+import { COMMONS_CALLBACK_PATH } from "../shared/commons.ts";
 import { useAccount } from "./account.ts";
 import AccountAccess from "./components/AccountAccess.ts";
+import CommonsCallback from "./components/CommonsCallback.ts";
 import FriendsPage from "./components/FriendsPage.ts";
 import OwnWall from "./components/OwnWall.ts";
 import PublicWallView from "./components/PublicWallView.ts";
@@ -11,7 +13,7 @@ import { useSuggestions } from "./suggestions.ts";
 import { dismiss, toast } from "./toast.ts";
 import { useWall } from "./wall.ts";
 
-createApp({
+const app = defineComponent({
   components: { AccountAccess, FriendsPage, OwnWall, PublicWallView },
   setup() {
     const session = useAccount();
@@ -196,7 +198,7 @@ createApp({
         <p v-if="signOutError" class="error" role="alert">{{ signOutError }}</p>
         <section v-if="expired && account" class="session-ended" aria-label="Sign in again">
           <p class="notice" role="alert">Your session has ended. Sign in again to continue. What you entered on this page is still here, and you’ll go back to it.</p>
-          <AccountAccess :register="session.register" :sign-in="session.signIn" />
+          <AccountAccess :register="session.register" :sign-in="session.signIn" recovering />
         </section>
         <PublicWallView v-if="visiting" :visited="visited" :account="account" :session="session" :suggestions="suggestions" :friends="friends" />
         <FriendsPage v-else-if="onFriends" :me="account.username" :friends="friends" :suggestions="suggestions" />
@@ -213,4 +215,6 @@ createApp({
       <button v-if="toast.follow" class="toast-action" type="button" @click="follow">{{ toast.follow.label }}</button>
     </div>
   `,
-}).mount("#app");
+});
+
+createApp(location.pathname === COMMONS_CALLBACK_PATH ? CommonsCallback : app).mount("#app");

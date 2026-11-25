@@ -1,5 +1,6 @@
 import { expect } from "bun:test";
 import { assembleApplication, createInstances } from "../../src/assembly.ts";
+import type { CommonsProvider } from "../../src/commonsProvider.ts";
 import { createApi } from "../../src/http.ts";
 import { isolatedDatabase } from "./mongo.ts";
 
@@ -10,9 +11,9 @@ export const origin = "https://sound-it-out.example";
  * `concepts` reads stored state back in assertions. `assembled` asks a concept action through the
  * engine, so reactions run, for the one case a request cannot reach: an action landing late.
  */
-export async function startApplication() {
+export async function startApplication(commons?: CommonsProvider) {
   const storage = await isolatedDatabase();
-  let instances = createInstances(storage.db);
+  let instances = createInstances(storage.db, commons);
   let application = assembleApplication(instances);
   let handler = createApi(application, origin);
 
@@ -30,19 +31,19 @@ export async function startApplication() {
      * afterward is never called.
      */
     restart(adjust?: (fresh: ReturnType<typeof createInstances>) => void) {
-      instances = createInstances(storage.db);
+      instances = createInstances(storage.db, commons);
       adjust?.(instances);
       application = assembleApplication(instances);
       handler = createApi(application, origin);
     },
 
-    async request(path: string, body: Record<string, unknown> = {}, cookie = "") {
+    async request(path: string, body: Record<string, unknown> = {}, cookie = "", requestOrigin = origin) {
       const response = await handler(new Request(`${origin}/api${path}`, {
         method: "POST",
-        headers: { Origin: origin, Cookie: cookie, "Content-Type": "application/json" },
+        headers: { Origin: requestOrigin, Cookie: cookie, "Content-Type": "application/json" },
         body: JSON.stringify(body),
       }));
-      return { status: response.status, body: await response.json() as any };
+      return { status: response.status, body: await response.json() as any, cookies: response.headers.getSetCookie() };
     },
 
     /** Registers `username`, signs in, and returns the session cookie and the user identity. */
