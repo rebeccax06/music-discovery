@@ -10,13 +10,14 @@ import SharePanel from "./SharePanel.ts";
 import SongPicker from "./SongPicker.ts";
 import SuggestionQueue from "./SuggestionQueue.ts";
 import WordDisc from "./WordDisc.ts";
+import WordPageHelp from "./WordPageHelp.ts";
 
 /**
  * The owner's page for one word: what it means, who can see it, the songs that show it,
  * and what friends suggested.
  */
 export default defineComponent({
-  components: { DescriptionBlock, ExampleCard, SharePanel, SongPicker, SuggestionQueue, WordDisc },
+  components: { DescriptionBlock, ExampleCard, SharePanel, SongPicker, SuggestionQueue, WordDisc, WordPageHelp },
   props: {
     word: { type: Object as PropType<Word>, required: true },
     username: { type: String, required: true },
@@ -116,7 +117,10 @@ export default defineComponent({
   },
   template: `
     <div ref="root" class="word-page">
-      <button class="back-link" type="button" @click="$emit('close')">← All words</button>
+      <div class="word-page-toolbar">
+        <button class="back-link" type="button" @click="$emit('close')">← All words</button>
+        <WordPageHelp />
+      </div>
       <article class="stage" :class="{ 'needs-example': !word.examples.length }">
         <h1 ref="heading" class="visually-hidden" tabindex="-1">{{ word.label }}</h1>
         <WordDisc :label="word.label" />

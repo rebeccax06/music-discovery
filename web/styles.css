@@ -841,6 +841,35 @@ button.chip:hover:enabled {
 }
 
 /* A word's page: the record and its meaning centered, then sections in one reading column */
+.word-page-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+.word-page-help {
+  position: relative;
+  z-index: 2;
+}
+.word-page-help-button {
+  width: var(--target);
+  padding: 0;
+  font-weight: 600;
+}
+.word-page-help-tip {
+  position: absolute;
+  inset-block-start: 100%;
+  inset-inline-end: 0;
+  width: min(23rem, calc(100vw - 2rem));
+  padding-block-start: var(--space-1);
+}
+.word-page-help-tip p {
+  padding: var(--space-3) var(--space-4);
+  color: var(--surface);
+  background: var(--ink);
+  border-radius: var(--radius-card);
+  font-size: var(--text-control);
+}
 .stage {
   --disc: var(--surface);
   display: grid;

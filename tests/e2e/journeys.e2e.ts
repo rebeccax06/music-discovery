@@ -88,6 +88,20 @@ describe("Journey A: build a word from music", () => {
     await visible(alex.getByText("(Our current database supports a small library of tracks we have checked)"));
     expect(await alex.getByText("Add a song that sounds dreamy to you.").count()).toBe(0);
 
+    const helpButton = alex.getByRole("button", { name: "Help with this word page" });
+    const help = alex.getByRole("tooltip").filter({ hasText: "Use this page to add songs" });
+    expect(await help.isVisible()).toBe(false);
+    await helpButton.hover();
+    await visible(help);
+    await alex.mouse.move(0, 0);
+    expect(await help.isVisible()).toBe(false);
+    await alex.getByRole("button", { name: "← All words" }).focus();
+    await alex.keyboard.press("Tab");
+    expect(await helpButton.evaluate(button => button === document.activeElement)).toBe(true);
+    await visible(help);
+    await alex.keyboard.press("Escape");
+    expect(await help.isVisible()).toBe(false);
+
     await alex.getByRole("button", { name: "Share…" }).click();
     const panel = shareDialog(alex);
     await visible(panel.getByRole("group", { name: "Who can open Dreamy" }));
@@ -301,6 +315,12 @@ describe("Journey A: build a word from music", () => {
       await createAccount(owner, username);
       await owner.getByLabel("Or your own word").fill("Lush");
       await owner.locator("form").getByRole("button", { name: "Add word", exact: true }).click();
+      const helpButton = owner.getByRole("button", { name: "Help with this word page" });
+      const help = owner.getByRole("tooltip").filter({ hasText: "Share your word with friends" });
+      await helpButton.tap();
+      await visible(help);
+      await helpButton.tap();
+      expect(await help.isVisible()).toBe(false);
       const track = song(owner, "Chill Day");
       await track.getByRole("button", { name: "Choose Chill Day" }).click();
       await visible(track.getByText("Tap a tag to select it and see what it means."));
@@ -423,7 +443,7 @@ describe("Journey B: become friends and suggest a song", () => {
     expect(text).not.toContain("Arcade");
     expect(text).not.toContain("The drop.");
     expect(text).not.toContain("Only you");
-    for (const control of ["Add a song", "Share…", "Rename", "Remove word", "Edit description"]) {
+    for (const control of ["Add a song", "Share…", "Rename", "Remove word", "Edit description", "Help with this word page"]) {
       expect(await daniel.getByRole("button", { name: control }).count()).toBe(0);
     }
     const overflow = await daniel.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);

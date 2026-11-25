@@ -115,6 +115,9 @@ SoundWall.Reading.PreviewWall at /wall/preview
 
 ## Word page controls
 
+The question mark at the top of an owner's word page explains adding songs,
+editing the description, and sharing the word with friends.
+
 The song picker and editor ask why the song fits. The picker explains each
 listening tag on hover, keyboard focus, or tap. Saved listening
 notes appear beside the qualities on the owner's song card and on any shared view
