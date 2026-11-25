@@ -1,5 +1,6 @@
 import { computed, defineComponent, nextTick, onMounted, ref, type PropType } from "vue/dist/vue.esm-bundler.js";
 import { MAX_WORD } from "../../shared/limits.ts";
+import { listeningNotePrompt } from "../listeningNotePrompt.ts";
 import { notify } from "../toast.ts";
 import type { Example, Word } from "../types.ts";
 import type { Wall } from "../wall.ts";
@@ -112,7 +113,7 @@ export default defineComponent({
 
     return {
       heading, root, adding, sharing, shareButton, mode, name, pending, error, taken, shared,
-      reveal, addSong, saveSong, removeSong, describe, closeSharing, show, rename, remove, MAX_WORD,
+      reveal, addSong, saveSong, removeSong, describe, closeSharing, show, rename, remove, listeningNotePrompt, MAX_WORD,
     };
   },
   template: `
@@ -145,7 +146,7 @@ export default defineComponent({
               :save="saveSong" :remove="removeSong" />
           </ul>
           <SongPicker v-if="adding" :heading="'Add a song to ' + word.label" :commit="'Add to ' + word.label" committing="Adding…"
-            :taken="taken" :submit="addSong" @close="reveal(() => adding = false, '.add-song')" />
+            :note-label="listeningNotePrompt(word.label)" :taken="taken" :submit="addSong" @close="reveal(() => adding = false, '.add-song')" />
         </section>
 
         <SuggestionQueue v-if="word.suggestions.length" :word="word" :wall="wall" />

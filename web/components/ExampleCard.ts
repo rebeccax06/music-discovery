@@ -1,5 +1,6 @@
 import { computed, defineComponent, nextTick, ref, type PropType } from "vue/dist/vue.esm-bundler.js";
 import { MAX_NOTE } from "../../shared/limits.ts";
+import { listeningNotePrompt } from "../listeningNotePrompt.ts";
 import type { Example, Failure, PublicExample } from "../types.ts";
 import { warnBeforeLeaving } from "../unsaved.ts";
 import QualityPicker from "./QualityPicker.ts";
@@ -63,7 +64,7 @@ export default defineComponent({
       if (failure) error.value = failure;
     }
 
-    return { mode, picked, note, pending, error, root, owned, show, edit, submit, confirmRemove, MAX_NOTE };
+    return { mode, picked, note, pending, error, root, owned, show, edit, submit, confirmRemove, listeningNotePrompt, MAX_NOTE };
   },
   template: `
     <li ref="root" class="example" :class="{ counterexample: example.role === 'COUNTEREXAMPLE' }">
@@ -76,7 +77,7 @@ export default defineComponent({
         <QualityPicker v-model="picked" :disabled="pending" />
         <div class="field">
           <label :for="'note-' + example.annotation">
-            {{ example.role === 'COUNTEREXAMPLE' ? 'Why doesn’t this song fit?' : 'Why does this song fit?' }}
+            {{ listeningNotePrompt(word, example.role) }}
             <span class="optional">optional</span>
           </label>
           <textarea :id="'note-' + example.annotation" v-model="note" :maxlength="MAX_NOTE" rows="2" :readonly="pending"></textarea>

@@ -48,6 +48,8 @@ async function createAccount(scope: Page | Locator, username: string) {
 const song = (scope: Page | Locator, title: string) => scope.locator(".picker .song").filter({ hasText: title });
 const example = (page: Page, title: string) => page.locator(".word-page .examples > .example").filter({ hasText: title });
 const chip = (scope: Locator, label: string) => scope.getByRole("button", { name: label, exact: true });
+const listeningNote = (scope: Locator, word: string) =>
+  scope.getByLabel(`Describe in your own words why this song fits the word “${word}” optional`, { exact: true });
 const nav = (page: Page, name: string | RegExp) => page.getByRole("navigation", { name: "Main" }).getByRole("link", { name });
 const shareDialog = (page: Page) => page.getByRole("dialog", { name: /^Share / });
 
@@ -134,7 +136,7 @@ describe("Journey A: build a word from music", () => {
     const first = song(alex, "Chill Day");
     await first.getByRole("button", { name: "Choose Chill Day" }).click();
     const picker = chip(first, "airy vocals");
-    const note = first.getByLabel("Why does this song fit?");
+    const note = listeningNote(first, "Dreamy");
     await visible(first.getByText("Hover over a tag for a more detailed description of what it means."));
     await note.focus();
     await picker.hover();
@@ -177,13 +179,13 @@ describe("Journey A: build a word from music", () => {
     const row = song(alex, "Arcade");
     await row.getByRole("button", { name: "Choose Arcade" }).click();
     await chip(row, "heavy drums").click();
-    await row.getByLabel("Why does this song fit?").fill("The drop.");
+    await listeningNote(row, "Dreamy").fill("The drop.");
 
     await alexContext.route("**/api/wall/examples/add", route => route.abort());
     await row.getByRole("button", { name: "Add to Dreamy" }).click();
     await visible(row.getByRole("alert").filter({ hasText: "Could not reach Sound It Out" }));
     expect(await chip(row, "heavy drums").getAttribute("aria-pressed")).toBe("true");
-    expect(await row.getByLabel("Why does this song fit?").inputValue()).toBe("The drop.");
+    expect(await listeningNote(row, "Dreamy").inputValue()).toBe("The drop.");
     expect(await example(alex, "Arcade").count()).toBe(0);
     await snap(alex, "a4-save-failed");
 
@@ -212,7 +214,7 @@ describe("Journey A: build a word from music", () => {
   test("editing a private song note keeps it private and saves it across a reload", async () => {
     const card = example(alex, "Blue Boi");
     await card.getByRole("button", { name: "Edit note and tags" }).click();
-    await card.getByLabel("Why does this song fit?").fill("The opening notes trail off gently.");
+    await listeningNote(card, "Dreamy").fill("The opening notes trail off gently.");
     await card.getByRole("button", { name: "Save", exact: true }).click();
     await visible(card.getByText("The opening notes trail off gently."));
     await visible(card.getByText("Only you"));
@@ -331,7 +333,7 @@ describe("Journey A: build a word from music", () => {
       expect(await tag.getAttribute("aria-pressed")).toBe("true");
       await tag.tap();
       expect(await tag.getAttribute("aria-pressed")).toBe("false");
-      const noteField = track.getByLabel("Why does this song fit?");
+      const noteField = listeningNote(track, "Lush");
       await noteField.tap();
       expect(await tip.isVisible()).toBe(false);
       await noteField.fill(note);
@@ -507,6 +509,7 @@ describe("Journey C: review and accept a suggestion", () => {
     expect(await example(alex, "Warm Nights").count()).toBe(0);
 
     await card.getByRole("button", { name: "Add to examples" }).click();
+    await visible(listeningNote(card, "Dreamy"));
     await chip(card, "lots of reverb").click();
     await card.getByRole("button", { name: "Add to Dreamy" }).click();
     await visible(example(alex, "Warm Nights").getByText("Only you"));
@@ -637,7 +640,7 @@ describe("Journey D: recovering when things go wrong", () => {
     const row = song(alex, "Journeyman");
     await row.getByRole("button", { name: "Choose Journeyman" }).click();
     await chip(row, "warm bass").click();
-    await row.getByLabel("Why does this song fit?").fill("The low end.");
+    await listeningNote(row, "Warm").fill("The low end.");
     await alexContext.clearCookies();
 
     await row.getByRole("button", { name: "Add to Warm" }).click();
@@ -645,7 +648,7 @@ describe("Journey D: recovering when things go wrong", () => {
     // The sign-in form comes to the person instead of waiting at the top of a long page.
     await alex.waitForFunction(() => document.activeElement?.closest(".session-ended") !== null);
     expect(await chip(row, "warm bass").getAttribute("aria-pressed")).toBe("true");
-    expect(await row.getByLabel("Why does this song fit?").inputValue()).toBe("The low end.");
+    expect(await listeningNote(row, "Warm").inputValue()).toBe("The low end.");
     await snap(alex, "d2-session-ended");
 
     const panel = alex.locator(".session-ended");

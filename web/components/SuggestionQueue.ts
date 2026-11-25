@@ -1,4 +1,5 @@
 import { computed, defineComponent, nextTick, ref, watch, type PropType } from "vue/dist/vue.esm-bundler.js";
+import { listeningNotePrompt } from "../listeningNotePrompt.ts";
 import { notify } from "../toast.ts";
 import type { Fit, Suggestion, Word } from "../types.ts";
 import type { Wall } from "../wall.ts";
@@ -60,7 +61,7 @@ const SuggestionCard = defineComponent({
       root.value?.querySelector<HTMLElement>(".add-match, .fit")?.focus();
     }
 
-    return { fits, fit, response, pending, error, adding, root, reviewed, inExamples, changed, save, promote, closeAdding };
+    return { fits, fit, response, pending, error, adding, root, reviewed, inExamples, changed, save, promote, closeAdding, listeningNotePrompt };
   },
   template: `
     <li ref="root" class="suggestion">
@@ -92,7 +93,7 @@ const SuggestionCard = defineComponent({
       </form>
 
       <SongPicker v-if="adding" :heading="'Add to ' + word.label" :commit="'Add to ' + word.label" committing="Adding…"
-        :only="suggestion.item" :submit="promote" @close="closeAdding" />
+        :note-label="listeningNotePrompt(word.label)" :only="suggestion.item" :submit="promote" @close="closeAdding" />
     </li>
   `,
 });
