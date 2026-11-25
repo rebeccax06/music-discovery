@@ -81,10 +81,12 @@ describe("Journey A: build a word from music", () => {
     await alex.getByRole("button", { name: "Dreamy", exact: true }).click();
     await visible(alex.getByRole("heading", { name: "Dreamy", exact: true, level: 1 }));
     expect(new URL(alex.url()).searchParams.get("word")).toBe("dreamy");
-    await visible(alex.getByText("Private · only you can open this word"));
-    await visible(alex.getByText("Pick what you hear in a song and a description writes itself."));
+    await visible(alex.getByText("Private", { exact: true }));
+    const description = alex.getByRole("region", { name: "What this word means to you" });
+    expect(await description.innerText()).toBe("Edit description");
     await visible(alex.getByRole("heading", { name: "Add a song to Dreamy" }));
-    await visible(alex.getByText("A small library of tracks we have checked, not all of SoundCloud."));
+    await visible(alex.getByText("(Our current database supports a small library of tracks we have checked)"));
+    expect(await alex.getByText("Add a song that sounds dreamy to you.").count()).toBe(0);
   });
 
   test("the official SoundCloud player loads the chosen catalog track", async () => {
@@ -135,7 +137,8 @@ describe("Journey A: build a word from music", () => {
 
     await visible(example(alex, "Chill Day").getByText("Only you"));
     await visible(alex.getByText("For you, “Dreamy” means airy vocals and soft drums."));
-    await visible(alex.getByText("Draft from the qualities you picked."));
+    await visible(alex.getByRole("button", { name: "Edit description" }));
+    expect(await alex.getByText("Draft from the qualities you picked.").count()).toBe(0);
     await visible(song(alex, "Chill Day").getByText("Added"));
 
     const second = song(alex, "Blue Boi");
@@ -332,13 +335,12 @@ describe("Journey A: build a word from music", () => {
   });
 
   test("the owner's own words replace the draft, and changing songs never touches them", async () => {
-    await alex.getByRole("button", { name: "Write your own" }).click();
+    await alex.getByRole("button", { name: "Edit description" }).click();
     const editor = alex.getByLabel("What Dreamy means to you");
     expect(await editor.inputValue()).toBe("For you, “Dreamy” often means airy vocals, with soft drums, heavy drums or layered synths.");
     await editor.fill("Like hearing a party from the next room.");
     await alex.getByRole("button", { name: "Save description" }).click();
     await visible(alex.locator(".description .definition", { hasText: "Like hearing a party from the next room." }));
-    expect(await alex.getByText("Draft from the qualities you picked.").count()).toBe(0);
 
     const card = example(alex, "Blue Boi");
     await card.getByRole("button", { name: "Remove this song" }).click();

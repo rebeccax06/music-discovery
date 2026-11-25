@@ -93,7 +93,7 @@ export default defineComponent({
         <h3 :id="id">{{ heading }}</h3>
         <button class="action" type="button" :disabled="pending" @click="$emit('close')">Done</button>
       </div>
-      <p v-if="!only" class="meta">A small library of tracks we have checked, not all of SoundCloud.</p>
+      <p v-if="!only" class="meta">(Our current database supports a small library of tracks we have checked)</p>
       <input v-if="showFilter" v-model="query" class="search" type="search" placeholder="Find a track or artist"
         aria-label="Find a track or artist" autocomplete="off">
       <p v-if="!tracks.length" class="meta" role="status">No tracks match “{{ query.trim() }}”.</p>

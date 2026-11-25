@@ -43,7 +43,7 @@ export default defineComponent({
       const failure = await props.save(description);
       pending.value = false;
       if (failure) error.value = failure;
-      else await show("reading", ".write-own");
+      else await show("reading", ".edit-description");
     }
 
     return { mode, text, pending, error, root, drafted, show, write, store, MAX_DESCRIPTION };
@@ -59,37 +59,22 @@ export default defineComponent({
         <p v-if="error" class="error" role="alert">{{ error }}</p>
         <div class="form-actions">
           <button class="primary" :disabled="pending">{{ pending ? 'Saving…' : 'Save description' }}</button>
-          <button class="action" type="button" :disabled="pending" @click="show('reading', '.write-own')">Cancel</button>
+          <button class="action" type="button" :disabled="pending" @click="show('reading', '.edit-description')">Cancel</button>
         </div>
       </form>
 
-      <template v-else-if="word.description">
-        <p class="definition">{{ word.description }}</p>
+      <template v-else>
+        <p v-if="word.description || drafted" class="definition">{{ word.description || drafted }}</p>
         <div v-if="mode === 'replacing'" class="confirm" role="group" aria-labelledby="replace-description">
           <p id="replace-description">Replace your description with the draft? Your text will be deleted.</p>
           <div class="form-actions">
             <button class="primary danger" type="button" :disabled="pending" @click="store('')">{{ pending ? 'Replacing…' : 'Use the draft' }}</button>
-            <button class="action keep-text" type="button" :disabled="pending" @click="show('reading', '.write-own')">Keep my text</button>
+            <button class="action keep-text" type="button" :disabled="pending" @click="show('reading', '.edit-description')">Keep my text</button>
           </div>
         </div>
         <div v-else class="card-actions is-centered">
-          <button class="text-button write-own" type="button" @click="write">Edit description</button>
-          <button v-if="drafted" class="text-button" type="button" @click="show('replacing', '.keep-text')">Use the draft instead</button>
-        </div>
-      </template>
-
-      <template v-else-if="drafted">
-        <p class="definition is-draft">{{ drafted }}</p>
-        <p class="meta draft-label">Draft from the qualities you picked. It follows your songs as they change.</p>
-        <div class="card-actions is-centered">
-          <button class="text-button write-own" type="button" @click="write">Write your own</button>
-        </div>
-      </template>
-
-      <template v-else>
-        <p class="meta empty-description">Pick what you hear in a song and a description writes itself.</p>
-        <div class="card-actions is-centered">
-          <button class="text-button write-own" type="button" @click="write">Or write your own</button>
+          <button class="text-button edit-description" type="button" @click="write">Edit description</button>
+          <button v-if="word.description && drafted" class="text-button" type="button" @click="show('replacing', '.keep-text')">Use the draft instead</button>
         </div>
       </template>
       <p v-if="error && mode !== 'writing'" class="error" role="alert">{{ error }}</p>

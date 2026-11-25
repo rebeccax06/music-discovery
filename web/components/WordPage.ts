@@ -122,7 +122,7 @@ export default defineComponent({
         <WordDisc :label="word.label" />
         <div class="word-sharing">
           <p class="meta word-state">
-            <template v-if="word.visibility === 'PRIVATE'">Private · only you can open this word</template>
+            <template v-if="word.visibility === 'PRIVATE'">Private</template>
             <template v-else>{{ word.visibility === 'PUBLIC' ? 'Public' : 'Shared with friends' }} · {{ shared }} of {{ word.examples.length }} {{ word.examples.length === 1 ? 'song' : 'songs' }} shown</template>
           </p>
           <button ref="shareButton" class="action share-toggle" type="button" aria-haspopup="dialog" :disabled="sessionExpired"
@@ -136,8 +136,7 @@ export default defineComponent({
             <h2 id="examples-heading" class="section-heading">Songs</h2>
             <button v-if="!adding" class="primary add-song" type="button" @click="reveal(() => adding = true, '.picker .search, .picker .choose')">Add a song</button>
           </div>
-          <p v-if="!word.examples.length" class="meta">Add a song that sounds {{ word.label.toLowerCase() }} to you.</p>
-          <ul v-else class="examples">
+          <ul v-if="word.examples.length" class="examples">
             <ExampleCard v-for="example in word.examples" :key="example.annotation" :example="example" :word="word.label"
               :save="saveSong" :remove="removeSong" />
           </ul>
